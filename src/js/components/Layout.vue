@@ -1,26 +1,39 @@
 <script>
+    import SmallSizeTemplate from './templates/SmallSizeTemplate.vue';
     export default {
+        components: {
+            'small-template': SmallSizeTemplate
+        },
         props: {
-            greetings: {
-                type: String,
-                default: "Greetings!",
-            }
+            images: { type: Array },
+            size: { type: String }
         },
         data() {
-            return {
-                display_greetings: true,
-            };
+            return {};
+        },
+        mounted() {
+            console.log(this.size);
         }
     }
 </script>
 
 <template>
-    <div>
-        <p v-if="display_greetings">
-            {{ greetings }}
-        </p>
-        <p v-else="display_greetings">
-            Something went wrong!
-        </p>
+    <div class="cascade-gallery">
+        <div class="cascade-gallery-wrapper" v-if="size == 'small'">
+            <small-template :images="images"></small-template>
+        </div>
+        <div class="cascade-gallery-wrapper" v-else-if="size == 'large'">
+            large
+        </div>
+        <div class="cascade-gallery-wrapper" v-else>
+            medium
+        </div>
     </div>
 </template>
+
+<style scoped>
+    .cascade-gallery {
+        width: 1200px;
+        margin: 0 auto;
+    }
+</style>

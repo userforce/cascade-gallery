@@ -7,19 +7,89 @@
 </head>
 <body>
 <div id="app">
-    <cascade-gallery :greetings="greetings"></cascade-gallery>
+    <cascade-gallery v-bind:images="images" v-bind:size="'small'"></cascade-gallery>
+<!--    <cascade-gallery v-bind:images="images" v-bind:size="'medium'"></cascade-gallery>-->
+<!--    <cascade-gallery v-bind:images="images" v-bind:size="'large'"></cascade-gallery>-->
 </div>
 
 <script type="text/javascript">
     new Vue({
         el: '#app',
-        data: function () {
-            return {
-                greetings: 'cascade gallery example',
-            };
-        },
         components: {
             'cascade-gallery': CascadeGallery
+        },
+        data() {
+            let images = [
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig()
+            ];
+            return { images: images };
+        },
+        methods: {
+            generateRandomConfig() {
+                return {
+                    url: 'https://ibmachine.com/machine/view/7257',
+                    title: '<a href="https://ibmachine.com/machine/view/7257">Pharetra pharetra massa.</a>',
+                    description: this.getDescription(),
+                    default_index: this.getRandomIndex(),
+                    src: this.getImages()
+                };
+            },
+            getImages() {
+                return [
+                    'https://ibmachine.com/images/machine/87/7257/9004.jpg',
+                    'https://ibmachine.com/images/machine/87/7257/3438.jpg',
+                    'https://ibmachine.com/images/machine/87/7257/9339.jpg',
+                    'https://ibmachine.com/images/machine/998/7276/5656.jpg',
+                    'https://ibmachine.com/images/machine/997/7262/7715.jpg',
+                    'https://ibmachine.com/images/machine/65/7232/5436.jpg',
+                    'https://ibmachine.com/images/machine/87/7226/9137.jpg',
+                    'https://ibmachine.com/images/machine/87/7216/7331.jpg',
+                    'https://ibmachine.com/images/machine/87/7213/5113.jpg',
+                    'https://ibmachine.com/images/machine/984/7201/6268.jpg',
+                    'https://ibmachine.com/images/machine/984/7198/5655.jpg',
+                    'https://ibmachine.com/images/machine/984/7176/5002.jpg',
+                    'https://ibmachine.com/images/machine/87/7169/4340.jpg',
+                    'https://ibmachine.com/images/machine/87/7169/4340.jpg',
+                    'https://ibmachine.com/images/machine/65/7152/8948.jpg',
+                    'https://ibmachine.com/images/machine/982/7133/1231.jpg',
+                    'https://ibmachine.com/images/machine/982/7133/9507.jpg',
+                    'https://ibmachine.com/images/machine/87/7110/1302.jpg',
+                    'https://ibmachine.com/images/machine/521/7098/7166.jpg',
+                    'https://ibmachine.com/images/machine/521/7096/2366.jpg',
+                    'https://ibmachine.com/images/machine/2/7072/9748.jpg',
+                    'https://ibmachine.com/images/machine/33/7056/2488.jpg',
+                    'https://ibmachine.com/images/machine/33/7036/7551.jpg',
+                    'https://ibmachine.com/images/machine/151/7009/1424.jpg',
+                    'https://ibmachine.com/images/machine/65/7002/7562.jpg',
+                    'https://ibmachine.com/images/machine/262/6959/9316.jpg'
+                ]
+            },
+            getDescription() {
+                return'<b>Lorem donec massa</b> sapien <i>faucibus et molestie</i> ac feugiat. Ac ' +
+                      'turpis egestas integer eget aliquet nibh praesent tristique. ' +
+                      'Pharetra pharetra massa massa ultricies mi quis hendrerit dolor magna.';
+
+            },
+            getRandomIndex() {
+                return Math.floor(Math.random() * Math.floor(this.getImages().length - 1));
+            }
         }
     });
 </script>
