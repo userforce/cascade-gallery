@@ -4,33 +4,21 @@
         props: {
             images: { type: Array },
             default_index: { type: Number },
-            config: { type: Number }
+            config: { type: Object }
         },
         data() {
             return {
 
             };
         },
-        computed: {
-            defaultIndex() {
-                let index = parseInt(this.default_index);
-                return !!index ? index : 0;
-            }
-        },
         mounted() {
-            console.log(this.config);
+            // console.log(this.default_index);
         }
     }
 </script>
 
 <template>
-    <div class="cascade-gallery-image">
-        <img :src="images[defaultIndex]" v-bind:style="{width: config.width + 'px'}"/>
+    <div>
+        <img :src="images[default_index]?images[default_index]:images[0]"/>
     </div>
 </template>
-
-<style scoped>
-    .cascade-gallery-image {
-        float: left;
-    }
-</style>
