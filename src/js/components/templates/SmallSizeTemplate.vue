@@ -17,7 +17,7 @@
                 currentImageIndex: 0,
                 isEndOfTheLine: false,
                 config: {
-                    maxWidth: 400,
+                    maxWidth: 300,
                     minWidth: 200,
                     images: [],
                 },
@@ -42,7 +42,8 @@
             setNextLineConfig(index) {
                 this.currentImageIndex = index;
                 this.config.images[index] = {
-                    width: this.getWidth()
+                    width: this.getWidth(),
+                    loaded: false
                 };
                 this.currentImageIndex = index;
                 if(this.isEndOfTheLine) {
@@ -58,7 +59,6 @@
                     this.prepareNextLine();
                     this.isEndOfTheLine = false;
                 }
-                console.log(this.config.images);
             },
             getPositionX() {
                 let posX = 0;
@@ -137,9 +137,7 @@
                         }
                         let limitReached = iterator === limit - 1;
                         if (limitReached) {
-                            let diff = this.getLineLengthDiff(width);
-                            // this.config.images[index].width -= diff;
-                            return this.config.images[index].width - diff;
+                            return this.getLastPartWidth();
                         }
                         if (this.isAligned(width)) {
                             return width;
@@ -148,8 +146,11 @@
                     iterator++;
                 }
             },
+            getLastPartWidth() {
+                return this.window.width - this.getLineWidth()
+            },
             isAligned(width) {
-                return width + this.getLineWidth() === parseInt(this.window.width);
+                return width + this.getLineWidth() === this.window.width;
             },
             getLineLengthDiff(width) {
                 return (this.getLineWidth() + width) - this.window.width;
@@ -175,24 +176,25 @@
 </script>
 
 <template>
-    <div class="cascade-gallery-columns-block">
+    <div class="cascade-gallery-columns-block"
+         v-if="ready">
         <div class="cascade-gallery-image-block"
              :style="styles(index)"
-             v-if="ready"
              v-for="(image, index) in images" >
-            <div class="cascade-gallery-image">
-                <cascade-gallery-image :images="image['src']"
-                                       :config="config.images[index]"
-                                       :default_index="image['default_index']">
-                </cascade-gallery-image>
-            </div>
+            <cascade-gallery-image :images="image['src']"
+                                   :config="config.images[index]"
+                                   :default_index="image['default_index']">
+            </cascade-gallery-image>
         </div>
     </div>
 </template>
 
 <style scoped>
     .cascade-gallery-columns-block{
-        width: 1200px;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        width: 100%;
         position: relative;
     }
     .cascade-gallery-image-block {
@@ -203,15 +205,5 @@
         padding: 0;
         position: absolute;
         overflow: hidden;
-        border: 5px solid white;
-    }
-    .cascade-gallery-image-block .cascade-gallery-image {
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-    }
-    .cascade-gallery-image-block .cascade-gallery-image img {
-        width: 100%;
     }
 </style>

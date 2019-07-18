@@ -5,7 +5,7 @@
     <script type="text/javascript" src="../dist/js/cascade-gallery.js"></script>
     <title>Cascade gallery</title>
 </head>
-<body>
+<body style="padding: 0; margin: 0;">
 <div id="app">
     <cascade-gallery v-bind:images="images" v-bind:size="'small'"></cascade-gallery>
 <!--    <cascade-gallery v-bind:images="images" v-bind:size="'medium'"></cascade-gallery>-->
@@ -20,6 +20,22 @@
         },
         data() {
             let images = [
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
+                this.generateRandomConfig(),
                 this.generateRandomConfig(),
                 this.generateRandomConfig(),
                 this.generateRandomConfig(),
