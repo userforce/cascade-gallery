@@ -22,37 +22,38 @@
         methods: {
             showImage(event) {
                 this.image.element = event.target;
-                this.resizeImageSize();
+                this.setImageStyles();
 
                 this.config.loaded = true;
             },
-            resizeImageSize() {
-                let wrapperWidth = this.config.width;
-                let wrapperHeight = this.config.height;
-                let imageWidth = this.image.element.offsetWidth;
-                let imageHeight = this.image.element.offsetHeight;
-
-                let diffHeightInPercentage = (100*imageWidth)/imageHeight;
-                let imagePropHeight = wrapperHeight*diffHeightInPercentage/100;
-                let diffWidthInPercentage = (100*imageHeight)/imageWidth;
-                let imagePropWidth = wrapperWidth*diffWidthInPercentage/100;
-
-                console.log(this.images[this.default_index]?this.images[this.default_index]:this.images[0]);
-                // console.log('100*'+imageWidth+'/'+imageHeight);
-                // console.log(wrapperHeight+'*'+imagePropHeight+'/100');
-                // console.log(imagePropHeight);
-                // console.log(imagePropWidth);
-                // console.log(imagePropHeight < wrapperWidth);
-
-                if(imagePropHeight < wrapperWidth) {
+            setImageStyles() {
+                if(this.getImagePropHeight() < this.getWrapperWidth()) {
                     this.image.styles.width = '100%';
-                    this.image.styles.top = '-'+(imagePropWidth-wrapperHeight)/2+'px';
-                    console.log(this.image.styles.top);
+                    this.image.styles.top = '-'+(this.getImagePropWidth()-this.getWrapperHeight())/2+'px';
                 } else {
                     this.image.styles.height = '100%';
-                    this.image.styles.left = '-'+(imagePropHeight-wrapperWidth)/2+'px';
+                    this.image.styles.left = '-'+(this.getImagePropHeight()-this.getWrapperWidth())/2+'px';
                 }
-
+            },
+            getImageHeight() {
+                return this.image.element.offsetHeight;
+            },
+            getImageWidth() {
+                return this.image.element.offsetWidth;
+            },
+            getWrapperHeight() {
+                return this.config.height;
+            },
+            getWrapperWidth() {
+                return this.config.width;
+            },
+            getImagePropHeight() {
+                let diffHeightInPercentage = (100*this.getImageWidth())/this.getImageHeight();
+                return this.getWrapperHeight()*diffHeightInPercentage/100;
+            },
+            getImagePropWidth() {
+                let diffWidthInPercentage = (100*this.getImageHeight())/this.getImageWidth();
+                return this.getWrapperWidth()*diffWidthInPercentage/100;
             }
         }
     }

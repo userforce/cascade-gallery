@@ -21,20 +21,14 @@
     methods: {
         showImage(event) {
             this.image.element = event.target;
-            this.resizeImageSize();
+            this.setImageStyles();
 
             this.config.loaded = true;
         },
-        resizeImageSize() {
-            let wrapperWidth = this.config.width;
-            let wrapperHeight = this.config.height;
-            let imageWidth = this.image.element.offsetWidth;
-            let imageHeight = this.image.element.offsetHeight;
+        setImageStyles() {
+            let imagePropHeight = this.getImagePropHeight();
+            let imagePropWidth = this.getImagePropWidth();
 
-            let diffHeightInPercentage = (100*imageWidth)/imageHeight;
-            let imagePropHeight = wrapperHeight*diffHeightInPercentage/100;
-            let diffWidthInPercentage = (100*imageHeight)/imageWidth;
-            let imagePropWidth = wrapperWidth*diffWidthInPercentage/100;
 
             console.log(this.images[this.default_index]?this.images[this.default_index]:this.images[0]);
             // console.log('100*'+imageWidth+'/'+imageHeight);
@@ -43,15 +37,34 @@
             // console.log(imagePropWidth);
             // console.log(imagePropHeight < wrapperWidth);
 
-            if(imagePropHeight < wrapperWidth) {
+            if(this.getImagePropHeight() < this.getWrapperWidth()) {
                 this.image.styles.width = '100%';
-                this.image.styles.top = '-'+(imagePropWidth-wrapperHeight)/2+'px';
-                console.log(this.image.styles.top);
+                this.image.styles.top = '-'+(this.getImagePropWidth()-this.getWrapperHeight())/2+'px';
             } else {
                 this.image.styles.height = '100%';
-                this.image.styles.left = '-'+(imagePropHeight-wrapperWidth)/2+'px';
+                this.image.styles.left = '-'+(this.getImagePropHeight()-this.getWrapperWidth())/2+'px';
             }
 
+        },
+        getImageHeight() {
+            return this.image.element.offsetHeight;
+        },
+        getImageWidth() {
+            return this.image.element.offsetWidth;
+        },
+        getWrapperHeight() {
+            return this.config.height;
+        },
+        getWrapperWidth() {
+            return this.config.width;
+        },
+        getImagePropHeight() {
+            let diffHeightInPercentage = (100*this.getImageWidth())/this.getImageHeight();
+            return this.getWrapperHeight()*diffHeightInPercentage/100;
+        },
+        getImagePropWidth() {
+            let diffWidthInPercentage = (100*this.getImageHeight())/this.getImageWidth();
+            return this.getWrapperWidth()*diffWidthInPercentage/100;
         }
     }
 };function normalizeComponent(template, style, script, scopeId, isFunctionalTemplate, moduleIdentifier
@@ -217,11 +230,11 @@ __vue_render__._withStripped = true;
   /* style */
   const __vue_inject_styles__ = function (inject) {
     if (!inject) return
-    inject("data-v-3d5b0b78_0", { source: "\n.cascade-gallery-image[data-v-3d5b0b78] {\n    width: 100%;\n    height: 100%;\n}\n.cascade-gallery-image *[data-v-3d5b0b78] {\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n}\n.cascade-gallery-image .cascade-gallery-image-wrapper[data-v-3d5b0b78] {\n    overflow: hidden;\n    position: relative;\n    width: 100%;\n    height: 100%;\n}\n.cascade-gallery-image .cascade-gallery-image-wrapper img[data-v-3d5b0b78] {\n    position: absolute;\n    height: 100%;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/Image.vue"],"names":[],"mappings":";AAuEA;IACA,WAAA;IACA,YAAA;AACA;AACA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;AACA;AACA;IACA,gBAAA;IACA,kBAAA;IACA,WAAA;IACA,YAAA;AACA;AACA;IACA,kBAAA;IACA,YAAA;AACA","file":"Image.vue","sourcesContent":["<script>\r\n    export default {\r\n        name: \"cascade-gallery-image\",\r\n        props: {\r\n            images: { type: Array },\r\n            default_index: { type: Number },\r\n            config: { type: Object }\r\n        },\r\n        data() {\r\n            return {\r\n                image: {\r\n                    element: null,\r\n                    styles: {\r\n                        width: 'auto',\r\n                        height: 'auto',\r\n                        top: 0,\r\n                        left: 0\r\n                    }\r\n                }\r\n            };\r\n        },\r\n        methods: {\r\n            showImage(event) {\r\n                this.image.element = event.target;\r\n                this.resizeImageSize();\r\n\r\n                this.config.loaded = true;\r\n            },\r\n            resizeImageSize() {\r\n                let wrapperWidth = this.config.width;\r\n                let wrapperHeight = this.config.height;\r\n                let imageWidth = this.image.element.offsetWidth;\r\n                let imageHeight = this.image.element.offsetHeight;\r\n\r\n                let diffHeightInPercentage = (100*imageWidth)/imageHeight;\r\n                let imagePropHeight = wrapperHeight*diffHeightInPercentage/100;\r\n                let diffWidthInPercentage = (100*imageHeight)/imageWidth;\r\n                let imagePropWidth = wrapperWidth*diffWidthInPercentage/100;\r\n\r\n                console.log(this.images[this.default_index]?this.images[this.default_index]:this.images[0]);\r\n                // console.log('100*'+imageWidth+'/'+imageHeight);\r\n                // console.log(wrapperHeight+'*'+imagePropHeight+'/100');\r\n                // console.log(imagePropHeight);\r\n                // console.log(imagePropWidth);\r\n                // console.log(imagePropHeight < wrapperWidth);\r\n\r\n                if(imagePropHeight < wrapperWidth) {\r\n                    this.image.styles.width = '100%';\r\n                    this.image.styles.top = '-'+(imagePropWidth-wrapperHeight)/2+'px';\r\n                    console.log(this.image.styles.top);\r\n                } else {\r\n                    this.image.styles.height = '100%';\r\n                    this.image.styles.left = '-'+(imagePropHeight-wrapperWidth)/2+'px';\r\n                }\r\n\r\n            }\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-image\">\r\n        <div class=\"cascade-gallery-image-wrapper\">\r\n            <img :src=\"images[default_index]?images[default_index]:images[0]\"\r\n                 :style=\"image.styles\"\r\n                 @load=\"showImage($event)\"/>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style scoped>\r\n    .cascade-gallery-image {\r\n        width: 100%;\r\n        height: 100%;\r\n    }\r\n    .cascade-gallery-image * {\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n    }\r\n    .cascade-gallery-image .cascade-gallery-image-wrapper {\r\n        overflow: hidden;\r\n        position: relative;\r\n        width: 100%;\r\n        height: 100%;\r\n    }\r\n    .cascade-gallery-image .cascade-gallery-image-wrapper img {\r\n        position: absolute;\r\n        height: 100%;\r\n    }\r\n</style>"]}, media: undefined });
+    inject("data-v-5506d4c2_0", { source: "\n.cascade-gallery-image[data-v-5506d4c2] {\n    width: 100%;\n    height: 100%;\n}\n.cascade-gallery-image *[data-v-5506d4c2] {\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n}\n.cascade-gallery-image .cascade-gallery-image-wrapper[data-v-5506d4c2] {\n    overflow: hidden;\n    position: relative;\n    width: 100%;\n    height: 100%;\n}\n.cascade-gallery-image .cascade-gallery-image-wrapper img[data-v-5506d4c2] {\n    position: absolute;\n    height: 100%;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/Image.vue"],"names":[],"mappings":";AAoFA;IACA,WAAA;IACA,YAAA;AACA;AACA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;AACA;AACA;IACA,gBAAA;IACA,kBAAA;IACA,WAAA;IACA,YAAA;AACA;AACA;IACA,kBAAA;IACA,YAAA;AACA","file":"Image.vue","sourcesContent":["<script>\r\n    export default {\r\n        name: \"cascade-gallery-image\",\r\n        props: {\r\n            images: { type: Array },\r\n            default_index: { type: Number },\r\n            config: { type: Object }\r\n        },\r\n        data() {\r\n            return {\r\n                image: {\r\n                    element: null,\r\n                    styles: {\r\n                        width: 'auto',\r\n                        height: 'auto',\r\n                        top: 0,\r\n                        left: 0\r\n                    }\r\n                }\r\n            };\r\n        },\r\n        methods: {\r\n            showImage(event) {\r\n                this.image.element = event.target;\r\n                this.setImageStyles();\r\n\r\n                this.config.loaded = true;\r\n            },\r\n            setImageStyles() {\r\n                let imagePropHeight = this.getImagePropHeight();\r\n                let imagePropWidth = this.getImagePropWidth();\r\n\r\n\r\n                console.log(this.images[this.default_index]?this.images[this.default_index]:this.images[0]);\r\n                // console.log('100*'+imageWidth+'/'+imageHeight);\r\n                // console.log(wrapperHeight+'*'+imagePropHeight+'/100');\r\n                // console.log(imagePropHeight);\r\n                // console.log(imagePropWidth);\r\n                // console.log(imagePropHeight < wrapperWidth);\r\n\r\n                if(this.getImagePropHeight() < this.getWrapperWidth()) {\r\n                    this.image.styles.width = '100%';\r\n                    this.image.styles.top = '-'+(this.getImagePropWidth()-this.getWrapperHeight())/2+'px';\r\n                } else {\r\n                    this.image.styles.height = '100%';\r\n                    this.image.styles.left = '-'+(this.getImagePropHeight()-this.getWrapperWidth())/2+'px';\r\n                }\r\n\r\n            },\r\n            getImageHeight() {\r\n                return this.image.element.offsetHeight;\r\n            },\r\n            getImageWidth() {\r\n                return this.image.element.offsetWidth;\r\n            },\r\n            getWrapperHeight() {\r\n                return this.config.height;\r\n            },\r\n            getWrapperWidth() {\r\n                return this.config.width;\r\n            },\r\n            getImagePropHeight() {\r\n                let diffHeightInPercentage = (100*this.getImageWidth())/this.getImageHeight();\r\n                return this.getWrapperHeight()*diffHeightInPercentage/100;\r\n            },\r\n            getImagePropWidth() {\r\n                let diffWidthInPercentage = (100*this.getImageHeight())/this.getImageWidth();\r\n                return this.getWrapperWidth()*diffWidthInPercentage/100;\r\n            }\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-image\">\r\n        <div class=\"cascade-gallery-image-wrapper\">\r\n            <img :src=\"images[default_index]?images[default_index]:images[0]\"\r\n                 :style=\"image.styles\"\r\n                 @load=\"showImage($event)\"/>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style scoped>\r\n    .cascade-gallery-image {\r\n        width: 100%;\r\n        height: 100%;\r\n    }\r\n    .cascade-gallery-image * {\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n    }\r\n    .cascade-gallery-image .cascade-gallery-image-wrapper {\r\n        overflow: hidden;\r\n        position: relative;\r\n        width: 100%;\r\n        height: 100%;\r\n    }\r\n    .cascade-gallery-image .cascade-gallery-image-wrapper img {\r\n        position: absolute;\r\n        height: 100%;\r\n    }\r\n</style>"]}, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__ = "data-v-3d5b0b78";
+  const __vue_scope_id__ = "data-v-5506d4c2";
   /* module identifier */
   const __vue_module_identifier__ = undefined;
   /* functional template */
