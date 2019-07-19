@@ -10,9 +10,6 @@
         },
         data() {
             return {};
-        },
-        mounted() {
-            console.log(this.size);
         }
     }
 </script>
@@ -20,7 +17,7 @@
 <template>
     <div class="cascade-gallery">
         <div class="cascade-gallery-wrapper" v-if="size == 'small'">
-            <small-template :images="images"></small-template>
+            <small-template :images.sync="images"></small-template>
         </div>
         <div class="cascade-gallery-wrapper" v-else-if="size == 'large'">
             large

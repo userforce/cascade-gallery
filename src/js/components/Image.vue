@@ -21,14 +21,6 @@
                 }
             };
         },
-        // watch: {
-        //     config: {
-        //         handler: function (configState) {
-        //             console.log(configState);
-        //         },
-        //         deep: true
-        //     }
-        // },
         methods: {
             loadConfig(event) {
                 this.image.element = event.target;
@@ -38,9 +30,6 @@
             waitPreviousImage() {
                 let self = this;
                 let waitForPrevious = setInterval(function() {
-                    if(self.index == 1) {
-                        // console.log(self.previousImageLoaded());
-                    }
                     if (self.previousImageLoaded()) {
                         self.showImage();
                         clearInterval(waitForPrevious);

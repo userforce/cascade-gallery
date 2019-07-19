@@ -34,6 +34,14 @@
             this.window.height = this.$el.parentNode.offsetHeight;
             this.prepareImagesConfig();
         },
+        watch: {
+            images() {
+                for ( let i = this.currentImageIndex+1; i <= this.images.length; i++ ) {
+                    this.setNextImageConfig(i);
+                }
+                this.setGalleryHeight()
+            }
+        },
         methods: {
             prepareImagesConfig() {
                 for(let index in this.images) {
@@ -41,28 +49,6 @@
                 }
                 this.setGalleryHeight();
                 this.ready = true;
-            },
-            setGalleryHeight() {
-                let height = 0;
-                let columnsHeights = [];
-                let currentColumn = 0;
-                for (let imageIndex in this.config.images) {
-                    let image = this.config.images[imageIndex];
-                    if (currentColumn >= this.columnsAmount) {
-                        currentColumn = 0;
-                    }
-                    if (!columnsHeights[currentColumn]) {
-                        columnsHeights[currentColumn] = 0;
-                    }
-                    columnsHeights[currentColumn] += image.height;
-                    currentColumn++;
-                }
-                for (let index in columnsHeights) {
-                    if (columnsHeights[index] > this.galleryHeight) {
-                        this.galleryHeight = columnsHeights[index];
-                    }
-                    console.log(this.galleryHeight);
-                }
             },
             setNextImageConfig(index) {
                 this.currentImageIndex = index;
@@ -199,6 +185,27 @@
                     top: this.config.images[index].top + 'px'
                 }
             },
+            setGalleryHeight() {
+                let height = 0;
+                let columnsHeights = [];
+                let currentColumn = 0;
+                for (let imageIndex in this.config.images) {
+                    let image = this.config.images[imageIndex];
+                    if (currentColumn >= this.columnsAmount) {
+                        currentColumn = 0;
+                    }
+                    if (!columnsHeights[currentColumn]) {
+                        columnsHeights[currentColumn] = 0;
+                    }
+                    columnsHeights[currentColumn] += image.height;
+                    currentColumn++;
+                }
+                for (let index in columnsHeights) {
+                    if (columnsHeights[index] > this.galleryHeight) {
+                        this.galleryHeight = columnsHeights[index];
+                    }
+                }
+            },
         }
     }
 </script>
@@ -208,9 +215,10 @@
          v-if="ready"
          :style="{ height: galleryHeight+'px' }">
         <div class="cascade-gallery-image-block"
+             v-if="config.images[index]"
              :style="styles(index)"
              v-for="(image, index) in images" >
-            <cascade-gallery-image :images="image['src']"
+            <cascade-gallery-image :images.sync="image['src']"
                                    :config.sync="config"
                                    :index="index"
                                    :defaultIndex="image['default_index']">
