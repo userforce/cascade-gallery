@@ -10,8 +10,10 @@
         },
         data() {
             return {
+                galleryHeight: 0,
                 ready: false,
                 lineIndex: 0,
+                columnsAmount: 0,
                 previousLineStartIndex: 0,
                 lastLineStartIndex: 0,
                 currentImageIndex: 0,
@@ -35,11 +37,34 @@
         methods: {
             prepareImagesConfig() {
                 for(let index in this.images) {
-                    this.setNextLineConfig(index);
+                    this.setNextImageConfig(index);
                 }
+                this.setGalleryHeight();
                 this.ready = true;
             },
-            setNextLineConfig(index) {
+            setGalleryHeight() {
+                let height = 0;
+                let columnsHeights = [];
+                let currentColumn = 0;
+                for (let imageIndex in this.config.images) {
+                    let image = this.config.images[imageIndex];
+                    if (currentColumn >= this.columnsAmount) {
+                        currentColumn = 0;
+                    }
+                    if (!columnsHeights[currentColumn]) {
+                        columnsHeights[currentColumn] = 0;
+                    }
+                    columnsHeights[currentColumn] += image.height;
+                    currentColumn++;
+                }
+                for (let index in columnsHeights) {
+                    if (columnsHeights[index] > this.galleryHeight) {
+                        this.galleryHeight = columnsHeights[index];
+                    }
+                    console.log(this.galleryHeight);
+                }
+            },
+            setNextImageConfig(index) {
                 this.currentImageIndex = index;
                 this.config.images[index] = {
                     width: this.getWidth(),
@@ -83,6 +108,9 @@
                 let width = this.getRandomWidth();
                 this.isEndOfTheLine = false;
                 if (!this.isFirstLine()) {
+                    if (!this.columnsAmount) {
+                        this.columnsAmount = this.lastLineStartIndex - this.previousLineStartIndex;
+                    }
                     let previousLineSibling = this.config.images[this.getPreviousLineSibling()];
                     width = previousLineSibling.width;
                     let length = this.lastLineStartIndex - this.previousLineStartIndex;
@@ -177,13 +205,15 @@
 
 <template>
     <div class="cascade-gallery-columns-block"
-         v-if="ready">
+         v-if="ready"
+         :style="{ height: galleryHeight+'px' }">
         <div class="cascade-gallery-image-block"
              :style="styles(index)"
              v-for="(image, index) in images" >
             <cascade-gallery-image :images="image['src']"
-                                   :config="config.images[index]"
-                                   :default_index="image['default_index']">
+                                   :config.sync="config"
+                                   :index="index"
+                                   :defaultIndex="image['default_index']">
             </cascade-gallery-image>
         </div>
     </div>
