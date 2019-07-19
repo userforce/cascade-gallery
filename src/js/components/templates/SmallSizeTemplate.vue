@@ -19,6 +19,7 @@
                 isEndOfTheLine: false,
                 hasNewImages: false,
                 newImagesStartIndex: 0,
+
                 config: {
                     maxWidth: 300,
                     minWidth: 200,
@@ -87,7 +88,7 @@
                 this.setGalleryHeight();
             },
             prepareForNewImages() {
-                if (!this.newImagesStartIndex%this.columnsAmount) {
+                if (this.newImagesStartIndex%this.columnsAmount > 0) {
                     this.lastLineStartIndex = this.previousLineStartIndex;
                     this.previousLineStartIndex = this.lastLineStartIndex - this.columnsAmount;
                     this.lineIndex--;
