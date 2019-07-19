@@ -7,10 +7,10 @@
 </head>
 <body style="padding: 0; margin: 0;">
 <div id="app">
-    <cascade-gallery v-bind:images="images" v-bind:size="'small'"></cascade-gallery>
-    <button @click="addImages(5)">Add 5 images</button>
-<!--    <cascade-gallery v-bind:images="images" v-bind:size="'medium'"></cascade-gallery>-->
-<!--    <cascade-gallery v-bind:images="images" v-bind:size="'large'"></cascade-gallery>-->
+    <div style="width: 1200px; margin: 0 auto;">
+        <cascade-gallery v-bind:images="images" v-bind:size="'small'"></cascade-gallery>
+        <button @click="addImages(5)">Add 5 images</button>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -21,13 +21,6 @@
         },
         data() {
             let images = [
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-
-                this.generateRandomConfig(),
                 this.generateRandomConfig(),
                 this.generateRandomConfig(),
                 this.generateRandomConfig(),

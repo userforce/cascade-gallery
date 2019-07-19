@@ -11,13 +11,14 @@
         data() {
             return {
                 galleryHeight: 0,
-                ready: false,
                 lineIndex: 0,
                 columnsAmount: 0,
                 previousLineStartIndex: 0,
                 lastLineStartIndex: 0,
                 currentImageIndex: 0,
                 isEndOfTheLine: false,
+                hasNewImages: false,
+                newImagesStartIndex: 0,
                 config: {
                     maxWidth: 300,
                     minWidth: 200,
@@ -36,9 +37,7 @@
         },
         watch: {
             images() {
-                for ( let i = this.currentImageIndex+1; i <= this.images.length; i++ ) {
-                    this.setNextImageConfig(i);
-                }
+                this.addNewImages();
                 this.setGalleryHeight()
             }
         },
@@ -48,7 +47,6 @@
                     this.setNextImageConfig(index);
                 }
                 this.setGalleryHeight();
-                this.ready = true;
             },
             setNextImageConfig(index) {
                 this.currentImageIndex = index;
@@ -57,9 +55,17 @@
                     loaded: false
                 };
                 this.currentImageIndex = index;
+
+                this.prepareCurrentLine();
+            },
+            prepareCurrentLine() {
+                let startIndex = this.lastLineStartIndex;
                 if(this.isEndOfTheLine) {
-                    let startIndex = this.lastLineStartIndex;
                     for(let index = startIndex; index < this.config.images.length; index++) {
+                        if (this.hasNewImages) {
+                            index = this.newImagesStartIndex;
+                            this.hasNewImages = false;
+                        }
                         this.currentImageIndex = index;
                         this.config.images[index].height = this.getHeight();
                         this.config.images[index].left = this.getPositionX();
@@ -67,7 +73,24 @@
                     }
                     this.previousLineStartIndex = this.lastLineStartIndex;
                     this.lastLineStartIndex = this.currentImageIndex + 1;
-                    this.prepareNextLine();
+                    this.lineIndex++;
+                    this.isEndOfTheLine = false;
+                }
+            },
+            addNewImages() {
+                this.hasNewImages = true;
+                this.newImagesStartIndex = this.currentImageIndex+1;
+                this.prepareForNewImages();
+                for ( let index = this.newImagesStartIndex; index < this.images.length; index++ ) {
+                    this.setNextImageConfig(index);
+                }
+                this.setGalleryHeight();
+            },
+            prepareForNewImages() {
+                if (!this.newImagesStartIndex%this.columnsAmount) {
+                    this.lastLineStartIndex = this.previousLineStartIndex;
+                    this.previousLineStartIndex = this.lastLineStartIndex - this.columnsAmount;
+                    this.lineIndex--;
                     this.isEndOfTheLine = false;
                 }
             },
@@ -115,9 +138,6 @@
             },
             getPreviousLineSibling() {
                 return this.previousLineStartIndex + ( this.currentImageIndex - this.lastLineStartIndex );
-            },
-            prepareNextLine() {
-                this.lineIndex++;
             },
             getRandomWidth() {
                 return this.getRandomNumber(this.config.minWidth, this.config.maxWidth);
@@ -212,7 +232,6 @@
 
 <template>
     <div class="cascade-gallery-columns-block"
-         v-if="ready"
          :style="{ height: galleryHeight+'px' }">
         <div class="cascade-gallery-image-block"
              v-if="config.images[index]"

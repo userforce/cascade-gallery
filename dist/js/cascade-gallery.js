@@ -283,13 +283,14 @@ __vue_render__._withStripped = true;
     data() {
         return {
             galleryHeight: 0,
-            ready: false,
             lineIndex: 0,
             columnsAmount: 0,
             previousLineStartIndex: 0,
             lastLineStartIndex: 0,
             currentImageIndex: 0,
             isEndOfTheLine: false,
+            hasNewImages: false,
+            newImagesStartIndex: 0,
             config: {
                 maxWidth: 300,
                 minWidth: 200,
@@ -308,9 +309,7 @@ __vue_render__._withStripped = true;
     },
     watch: {
         images() {
-            for ( let i = this.currentImageIndex+1; i <= this.images.length; i++ ) {
-                this.setNextImageConfig(i);
-            }
+            this.addNewImages();
             this.setGalleryHeight();
         }
     },
@@ -320,7 +319,6 @@ __vue_render__._withStripped = true;
                 this.setNextImageConfig(index);
             }
             this.setGalleryHeight();
-            this.ready = true;
         },
         setNextImageConfig(index) {
             this.currentImageIndex = index;
@@ -329,9 +327,17 @@ __vue_render__._withStripped = true;
                 loaded: false
             };
             this.currentImageIndex = index;
+
+            this.prepareCurrentLine();
+        },
+        prepareCurrentLine() {
+            let startIndex = this.lastLineStartIndex;
             if(this.isEndOfTheLine) {
-                let startIndex = this.lastLineStartIndex;
                 for(let index = startIndex; index < this.config.images.length; index++) {
+                    if (this.hasNewImages) {
+                        index = this.newImagesStartIndex;
+                        this.hasNewImages = false;
+                    }
                     this.currentImageIndex = index;
                     this.config.images[index].height = this.getHeight();
                     this.config.images[index].left = this.getPositionX();
@@ -339,7 +345,24 @@ __vue_render__._withStripped = true;
                 }
                 this.previousLineStartIndex = this.lastLineStartIndex;
                 this.lastLineStartIndex = this.currentImageIndex + 1;
-                this.prepareNextLine();
+                this.lineIndex++;
+                this.isEndOfTheLine = false;
+            }
+        },
+        addNewImages() {
+            this.hasNewImages = true;
+            this.newImagesStartIndex = this.currentImageIndex+1;
+            this.prepareForNewImages();
+            for ( let index = this.newImagesStartIndex; index < this.images.length; index++ ) {
+                this.setNextImageConfig(index);
+            }
+            this.setGalleryHeight();
+        },
+        prepareForNewImages() {
+            if (!this.newImagesStartIndex%this.columnsAmount) {
+                this.lastLineStartIndex = this.previousLineStartIndex;
+                this.previousLineStartIndex = this.lastLineStartIndex - this.columnsAmount;
+                this.lineIndex--;
                 this.isEndOfTheLine = false;
             }
         },
@@ -387,9 +410,6 @@ __vue_render__._withStripped = true;
         },
         getPreviousLineSibling() {
             return this.previousLineStartIndex + ( this.currentImageIndex - this.lastLineStartIndex );
-        },
-        prepareNextLine() {
-            this.lineIndex++;
         },
         getRandomWidth() {
             return this.getRandomNumber(this.config.minWidth, this.config.maxWidth);
@@ -486,46 +506,44 @@ var __vue_render__$1 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
-  return _vm.ready
-    ? _c(
-        "div",
-        {
-          staticClass: "cascade-gallery-columns-block",
-          style: { height: _vm.galleryHeight + "px" }
-        },
-        _vm._l(_vm.images, function(image, index) {
-          return _vm.config.images[index]
-            ? _c(
-                "div",
-                {
-                  staticClass: "cascade-gallery-image-block",
-                  style: _vm.styles(index)
+  return _c(
+    "div",
+    {
+      staticClass: "cascade-gallery-columns-block",
+      style: { height: _vm.galleryHeight + "px" }
+    },
+    _vm._l(_vm.images, function(image, index) {
+      return _vm.config.images[index]
+        ? _c(
+            "div",
+            {
+              staticClass: "cascade-gallery-image-block",
+              style: _vm.styles(index)
+            },
+            [
+              _c("cascade-gallery-image", {
+                attrs: {
+                  images: image["src"],
+                  config: _vm.config,
+                  index: index,
+                  defaultIndex: image["default_index"]
                 },
-                [
-                  _c("cascade-gallery-image", {
-                    attrs: {
-                      images: image["src"],
-                      config: _vm.config,
-                      index: index,
-                      defaultIndex: image["default_index"]
-                    },
-                    on: {
-                      "update:images": function($event) {
-                        return _vm.$set(image, "src", $event)
-                      },
-                      "update:config": function($event) {
-                        _vm.config = $event;
-                      }
-                    }
-                  })
-                ],
-                1
-              )
-            : _vm._e()
-        }),
-        0
-      )
-    : _vm._e()
+                on: {
+                  "update:images": function($event) {
+                    return _vm.$set(image, "src", $event)
+                  },
+                  "update:config": function($event) {
+                    _vm.config = $event;
+                  }
+                }
+              })
+            ],
+            1
+          )
+        : _vm._e()
+    }),
+    0
+  )
 };
 var __vue_staticRenderFns__$1 = [];
 __vue_render__$1._withStripped = true;
@@ -533,11 +551,11 @@ __vue_render__$1._withStripped = true;
   /* style */
   const __vue_inject_styles__$1 = function (inject) {
     if (!inject) return
-    inject("data-v-c78657dc_0", { source: "\n.cascade-gallery-columns-block[data-v-c78657dc]{\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n    width: 100%;\n    position: relative;\n}\n.cascade-gallery-image-block[data-v-c78657dc] {\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n    margin: 0;\n    padding: 0;\n    position: absolute;\n    overflow: hidden;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/SmallSizeTemplate.vue"],"names":[],"mappings":";AAsOA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;IACA,WAAA;IACA,kBAAA;AACA;AACA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;IACA,SAAA;IACA,UAAA;IACA,kBAAA;IACA,gBAAA;AACA","file":"SmallSizeTemplate.vue","sourcesContent":["<script>\r\n    import CascadeGalleryImage from '../Image.vue';\r\n    export default {\r\n        name: \"cascade-gallery-small-template\",\r\n        components: {\r\n            'cascade-gallery-image': CascadeGalleryImage\r\n        },\r\n        props: {\r\n            images: { type: Array }\r\n        },\r\n        data() {\r\n            return {\r\n                galleryHeight: 0,\r\n                ready: false,\r\n                lineIndex: 0,\r\n                columnsAmount: 0,\r\n                previousLineStartIndex: 0,\r\n                lastLineStartIndex: 0,\r\n                currentImageIndex: 0,\r\n                isEndOfTheLine: false,\r\n                config: {\r\n                    maxWidth: 300,\r\n                    minWidth: 200,\r\n                    images: [],\r\n                },\r\n                window: {\r\n                    width: 0,\r\n                    height: 0\r\n                }\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.width = this.$el.parentNode.offsetWidth;\r\n            this.window.height = this.$el.parentNode.offsetHeight;\r\n            this.prepareImagesConfig();\r\n        },\r\n        watch: {\r\n            images() {\r\n                for ( let i = this.currentImageIndex+1; i <= this.images.length; i++ ) {\r\n                    this.setNextImageConfig(i);\r\n                }\r\n                this.setGalleryHeight()\r\n            }\r\n        },\r\n        methods: {\r\n            prepareImagesConfig() {\r\n                for(let index in this.images) {\r\n                    this.setNextImageConfig(index);\r\n                }\r\n                this.setGalleryHeight();\r\n                this.ready = true;\r\n            },\r\n            setNextImageConfig(index) {\r\n                this.currentImageIndex = index;\r\n                this.config.images[index] = {\r\n                    width: this.getWidth(),\r\n                    loaded: false\r\n                };\r\n                this.currentImageIndex = index;\r\n                if(this.isEndOfTheLine) {\r\n                    let startIndex = this.lastLineStartIndex;\r\n                    for(let index = startIndex; index < this.config.images.length; index++) {\r\n                        this.currentImageIndex = index;\r\n                        this.config.images[index].height = this.getHeight();\r\n                        this.config.images[index].left = this.getPositionX();\r\n                        this.config.images[index].top = this.getPositionY();\r\n                    }\r\n                    this.previousLineStartIndex = this.lastLineStartIndex;\r\n                    this.lastLineStartIndex = this.currentImageIndex + 1;\r\n                    this.prepareNextLine();\r\n                    this.isEndOfTheLine = false;\r\n                }\r\n            },\r\n            getPositionX() {\r\n                let posX = 0;\r\n                if (this.currentImageIndex - this.lastLineStartIndex != 0) {\r\n                    let previousImage = this.config.images[this.currentImageIndex - 1];\r\n                    posX = previousImage.width + previousImage.left;\r\n                }\r\n                return posX;\r\n            },\r\n            getPositionY() {\r\n                let posY = 0;\r\n                if (!this.isFirstLine()) {\r\n                    let previousLineSibling = this.config.images[this.getPreviousLineSibling()];\r\n                    posY = previousLineSibling.height + previousLineSibling.top;\r\n                }\r\n                return posY;\r\n            },\r\n            getHeight() {\r\n                return this.getRandomHeight();\r\n            },\r\n            getWidth() {\r\n                let width = this.getRandomWidth();\r\n                this.isEndOfTheLine = false;\r\n                if (!this.isFirstLine()) {\r\n                    if (!this.columnsAmount) {\r\n                        this.columnsAmount = this.lastLineStartIndex - this.previousLineStartIndex;\r\n                    }\r\n                    let previousLineSibling = this.config.images[this.getPreviousLineSibling()];\r\n                    width = previousLineSibling.width;\r\n                    let length = this.lastLineStartIndex - this.previousLineStartIndex;\r\n                    this.isEndOfTheLine = this.currentImageIndex == (length - 1) + this.lastLineStartIndex\r\n                        || this.currentImageIndex == this.images.length - 1;\r\n                    return width;\r\n                } else if(this.notEnoughSpaceInLine(width)) {\r\n                    this.isEndOfTheLine = true;\r\n                    return this.adjustSiblingsWidth(width);\r\n                }\r\n                return width;\r\n            },\r\n            getCurrentImageWidth() {\r\n                let previousLineSibling = this.getPreviousLineSibling();\r\n                return this.config.images[previousLineSibling].width;\r\n            },\r\n            getPreviousLineSibling() {\r\n                return this.previousLineStartIndex + ( this.currentImageIndex - this.lastLineStartIndex );\r\n            },\r\n            prepareNextLine() {\r\n                this.lineIndex++;\r\n            },\r\n            getRandomWidth() {\r\n                return this.getRandomNumber(this.config.minWidth, this.config.maxWidth);\r\n            },\r\n            getRandomHeight() {\r\n                let approximateLineLength = Math.round((this.window.width/this.config.minWidth) * 10) / 10;\r\n                let quarter = Math.round((this.window.width/approximateLineLength) * 10) / 10;\r\n                return quarter + this.getBacklash(quarter)*2;\r\n            },\r\n            getLineWidth() {\r\n                let lineWidth = 0;\r\n                for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {\r\n                    lineWidth += parseInt(this.config.images[index].width);\r\n                }\r\n                return lineWidth;\r\n            },\r\n            notEnoughSpaceInLine(width) {\r\n                return this.getLineWidth() + width + this.getBacklash(this.config.minWidth) > this.window.width;\r\n            },\r\n            getBacklash(size) {\r\n                return this.getRandomNumber(0, Math.round((size/5)));\r\n            },\r\n            adjustSiblingsWidth(width) {\r\n                let limit = parseInt(this.config.maxWidth);\r\n                let iterator = 0;\r\n                while (!this.isAligned(width) && iterator < limit) {\r\n                    for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {\r\n                        let mustDecay = this.config.images[index].width > this.config.minWidth;\r\n                        if(mustDecay) {\r\n                            this.config.images[index].width = parseInt(this.config.images[index].width) - 1;\r\n                        }\r\n                        let limitReached = iterator === limit - 1;\r\n                        if (limitReached) {\r\n                            return this.getLastPartWidth();\r\n                        }\r\n                        if (this.isAligned(width)) {\r\n                            return width;\r\n                        }\r\n                    }\r\n                    iterator++;\r\n                }\r\n            },\r\n            getLastPartWidth() {\r\n                return this.window.width - this.getLineWidth()\r\n            },\r\n            isAligned(width) {\r\n                return width + this.getLineWidth() === this.window.width;\r\n            },\r\n            getLineLengthDiff(width) {\r\n                return (this.getLineWidth() + width) - this.window.width;\r\n            },\r\n            getRandomNumber(min, max) {\r\n                min = Math.ceil(min);\r\n                max = Math.floor(max);\r\n                return Math.floor(Math.random() * (max - min + 1)) + min;\r\n            },\r\n            isFirstLine() {\r\n                return !parseInt(this.lineIndex);\r\n            },\r\n            styles(index) {\r\n                return {\r\n                    width: this.config.images[index].width + 'px',\r\n                    height: this.config.images[index].height + 'px',\r\n                    left: this.config.images[index].left + 'px',\r\n                    top: this.config.images[index].top + 'px'\r\n                }\r\n            },\r\n            setGalleryHeight() {\r\n                let height = 0;\r\n                let columnsHeights = [];\r\n                let currentColumn = 0;\r\n                for (let imageIndex in this.config.images) {\r\n                    let image = this.config.images[imageIndex];\r\n                    if (currentColumn >= this.columnsAmount) {\r\n                        currentColumn = 0;\r\n                    }\r\n                    if (!columnsHeights[currentColumn]) {\r\n                        columnsHeights[currentColumn] = 0;\r\n                    }\r\n                    columnsHeights[currentColumn] += image.height;\r\n                    currentColumn++;\r\n                }\r\n                for (let index in columnsHeights) {\r\n                    if (columnsHeights[index] > this.galleryHeight) {\r\n                        this.galleryHeight = columnsHeights[index];\r\n                    }\r\n                }\r\n            },\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-columns-block\"\r\n         v-if=\"ready\"\r\n         :style=\"{ height: galleryHeight+'px' }\">\r\n        <div class=\"cascade-gallery-image-block\"\r\n             v-if=\"config.images[index]\"\r\n             :style=\"styles(index)\"\r\n             v-for=\"(image, index) in images\" >\r\n            <cascade-gallery-image :images.sync=\"image['src']\"\r\n                                   :config.sync=\"config\"\r\n                                   :index=\"index\"\r\n                                   :defaultIndex=\"image['default_index']\">\r\n            </cascade-gallery-image>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style scoped>\r\n    .cascade-gallery-columns-block{\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n        width: 100%;\r\n        position: relative;\r\n    }\r\n    .cascade-gallery-image-block {\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n        margin: 0;\r\n        padding: 0;\r\n        position: absolute;\r\n        overflow: hidden;\r\n    }\r\n</style>"]}, media: undefined });
+    inject("data-v-5e2c21f0_0", { source: "\n.cascade-gallery-columns-block[data-v-5e2c21f0]{\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n    width: 100%;\n    position: relative;\n}\n.cascade-gallery-image-block[data-v-5e2c21f0] {\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n    margin: 0;\n    padding: 0;\n    position: absolute;\n    overflow: hidden;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/SmallSizeTemplate.vue"],"names":[],"mappings":";AAyPA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;IACA,WAAA;IACA,kBAAA;AACA;AACA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;IACA,SAAA;IACA,UAAA;IACA,kBAAA;IACA,gBAAA;AACA","file":"SmallSizeTemplate.vue","sourcesContent":["<script>\r\n    import CascadeGalleryImage from '../Image.vue';\r\n    export default {\r\n        name: \"cascade-gallery-small-template\",\r\n        components: {\r\n            'cascade-gallery-image': CascadeGalleryImage\r\n        },\r\n        props: {\r\n            images: { type: Array }\r\n        },\r\n        data() {\r\n            return {\r\n                galleryHeight: 0,\r\n                lineIndex: 0,\r\n                columnsAmount: 0,\r\n                previousLineStartIndex: 0,\r\n                lastLineStartIndex: 0,\r\n                currentImageIndex: 0,\r\n                isEndOfTheLine: false,\r\n                hasNewImages: false,\r\n                newImagesStartIndex: 0,\r\n                config: {\r\n                    maxWidth: 300,\r\n                    minWidth: 200,\r\n                    images: [],\r\n                },\r\n                window: {\r\n                    width: 0,\r\n                    height: 0\r\n                }\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.width = this.$el.parentNode.offsetWidth;\r\n            this.window.height = this.$el.parentNode.offsetHeight;\r\n            this.prepareImagesConfig();\r\n        },\r\n        watch: {\r\n            images() {\r\n                this.addNewImages();\r\n                this.setGalleryHeight()\r\n            }\r\n        },\r\n        methods: {\r\n            prepareImagesConfig() {\r\n                for(let index in this.images) {\r\n                    this.setNextImageConfig(index);\r\n                }\r\n                this.setGalleryHeight();\r\n            },\r\n            setNextImageConfig(index) {\r\n                this.currentImageIndex = index;\r\n                this.config.images[index] = {\r\n                    width: this.getWidth(),\r\n                    loaded: false\r\n                };\r\n                this.currentImageIndex = index;\r\n\r\n                this.prepareCurrentLine();\r\n            },\r\n            prepareCurrentLine() {\r\n                let startIndex = this.lastLineStartIndex;\r\n                if(this.isEndOfTheLine) {\r\n                    for(let index = startIndex; index < this.config.images.length; index++) {\r\n                        if (this.hasNewImages) {\r\n                            index = this.newImagesStartIndex;\r\n                            this.hasNewImages = false;\r\n                        }\r\n                        this.currentImageIndex = index;\r\n                        this.config.images[index].height = this.getHeight();\r\n                        this.config.images[index].left = this.getPositionX();\r\n                        this.config.images[index].top = this.getPositionY();\r\n                    }\r\n                    this.previousLineStartIndex = this.lastLineStartIndex;\r\n                    this.lastLineStartIndex = this.currentImageIndex + 1;\r\n                    this.lineIndex++;\r\n                    this.isEndOfTheLine = false;\r\n                }\r\n            },\r\n            addNewImages() {\r\n                this.hasNewImages = true;\r\n                this.newImagesStartIndex = this.currentImageIndex+1;\r\n                this.prepareForNewImages();\r\n                for ( let index = this.newImagesStartIndex; index < this.images.length; index++ ) {\r\n                    this.setNextImageConfig(index);\r\n                }\r\n                this.setGalleryHeight();\r\n            },\r\n            prepareForNewImages() {\r\n                if (!this.newImagesStartIndex%this.columnsAmount) {\r\n                    this.lastLineStartIndex = this.previousLineStartIndex;\r\n                    this.previousLineStartIndex = this.lastLineStartIndex - this.columnsAmount;\r\n                    this.lineIndex--;\r\n                    this.isEndOfTheLine = false;\r\n                }\r\n            },\r\n            getPositionX() {\r\n                let posX = 0;\r\n                if (this.currentImageIndex - this.lastLineStartIndex != 0) {\r\n                    let previousImage = this.config.images[this.currentImageIndex - 1];\r\n                    posX = previousImage.width + previousImage.left;\r\n                }\r\n                return posX;\r\n            },\r\n            getPositionY() {\r\n                let posY = 0;\r\n                if (!this.isFirstLine()) {\r\n                    let previousLineSibling = this.config.images[this.getPreviousLineSibling()];\r\n                    posY = previousLineSibling.height + previousLineSibling.top;\r\n                }\r\n                return posY;\r\n            },\r\n            getHeight() {\r\n                return this.getRandomHeight();\r\n            },\r\n            getWidth() {\r\n                let width = this.getRandomWidth();\r\n                this.isEndOfTheLine = false;\r\n                if (!this.isFirstLine()) {\r\n                    if (!this.columnsAmount) {\r\n                        this.columnsAmount = this.lastLineStartIndex - this.previousLineStartIndex;\r\n                    }\r\n                    let previousLineSibling = this.config.images[this.getPreviousLineSibling()];\r\n                    width = previousLineSibling.width;\r\n                    let length = this.lastLineStartIndex - this.previousLineStartIndex;\r\n                    this.isEndOfTheLine = this.currentImageIndex == (length - 1) + this.lastLineStartIndex\r\n                        || this.currentImageIndex == this.images.length - 1;\r\n                    return width;\r\n                } else if(this.notEnoughSpaceInLine(width)) {\r\n                    this.isEndOfTheLine = true;\r\n                    return this.adjustSiblingsWidth(width);\r\n                }\r\n                return width;\r\n            },\r\n            getCurrentImageWidth() {\r\n                let previousLineSibling = this.getPreviousLineSibling();\r\n                return this.config.images[previousLineSibling].width;\r\n            },\r\n            getPreviousLineSibling() {\r\n                return this.previousLineStartIndex + ( this.currentImageIndex - this.lastLineStartIndex );\r\n            },\r\n            getRandomWidth() {\r\n                return this.getRandomNumber(this.config.minWidth, this.config.maxWidth);\r\n            },\r\n            getRandomHeight() {\r\n                let approximateLineLength = Math.round((this.window.width/this.config.minWidth) * 10) / 10;\r\n                let quarter = Math.round((this.window.width/approximateLineLength) * 10) / 10;\r\n                return quarter + this.getBacklash(quarter)*2;\r\n            },\r\n            getLineWidth() {\r\n                let lineWidth = 0;\r\n                for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {\r\n                    lineWidth += parseInt(this.config.images[index].width);\r\n                }\r\n                return lineWidth;\r\n            },\r\n            notEnoughSpaceInLine(width) {\r\n                return this.getLineWidth() + width + this.getBacklash(this.config.minWidth) > this.window.width;\r\n            },\r\n            getBacklash(size) {\r\n                return this.getRandomNumber(0, Math.round((size/5)));\r\n            },\r\n            adjustSiblingsWidth(width) {\r\n                let limit = parseInt(this.config.maxWidth);\r\n                let iterator = 0;\r\n                while (!this.isAligned(width) && iterator < limit) {\r\n                    for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {\r\n                        let mustDecay = this.config.images[index].width > this.config.minWidth;\r\n                        if(mustDecay) {\r\n                            this.config.images[index].width = parseInt(this.config.images[index].width) - 1;\r\n                        }\r\n                        let limitReached = iterator === limit - 1;\r\n                        if (limitReached) {\r\n                            return this.getLastPartWidth();\r\n                        }\r\n                        if (this.isAligned(width)) {\r\n                            return width;\r\n                        }\r\n                    }\r\n                    iterator++;\r\n                }\r\n            },\r\n            getLastPartWidth() {\r\n                return this.window.width - this.getLineWidth()\r\n            },\r\n            isAligned(width) {\r\n                return width + this.getLineWidth() === this.window.width;\r\n            },\r\n            getLineLengthDiff(width) {\r\n                return (this.getLineWidth() + width) - this.window.width;\r\n            },\r\n            getRandomNumber(min, max) {\r\n                min = Math.ceil(min);\r\n                max = Math.floor(max);\r\n                return Math.floor(Math.random() * (max - min + 1)) + min;\r\n            },\r\n            isFirstLine() {\r\n                return !parseInt(this.lineIndex);\r\n            },\r\n            styles(index) {\r\n                return {\r\n                    width: this.config.images[index].width + 'px',\r\n                    height: this.config.images[index].height + 'px',\r\n                    left: this.config.images[index].left + 'px',\r\n                    top: this.config.images[index].top + 'px'\r\n                }\r\n            },\r\n            setGalleryHeight() {\r\n                let height = 0;\r\n                let columnsHeights = [];\r\n                let currentColumn = 0;\r\n                for (let imageIndex in this.config.images) {\r\n                    let image = this.config.images[imageIndex];\r\n                    if (currentColumn >= this.columnsAmount) {\r\n                        currentColumn = 0;\r\n                    }\r\n                    if (!columnsHeights[currentColumn]) {\r\n                        columnsHeights[currentColumn] = 0;\r\n                    }\r\n                    columnsHeights[currentColumn] += image.height;\r\n                    currentColumn++;\r\n                }\r\n                for (let index in columnsHeights) {\r\n                    if (columnsHeights[index] > this.galleryHeight) {\r\n                        this.galleryHeight = columnsHeights[index];\r\n                    }\r\n                }\r\n            },\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-columns-block\"\r\n         :style=\"{ height: galleryHeight+'px' }\">\r\n        <div class=\"cascade-gallery-image-block\"\r\n             v-if=\"config.images[index]\"\r\n             :style=\"styles(index)\"\r\n             v-for=\"(image, index) in images\" >\r\n            <cascade-gallery-image :images.sync=\"image['src']\"\r\n                                   :config.sync=\"config\"\r\n                                   :index=\"index\"\r\n                                   :defaultIndex=\"image['default_index']\">\r\n            </cascade-gallery-image>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style scoped>\r\n    .cascade-gallery-columns-block{\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n        width: 100%;\r\n        position: relative;\r\n    }\r\n    .cascade-gallery-image-block {\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n        margin: 0;\r\n        padding: 0;\r\n        position: absolute;\r\n        overflow: hidden;\r\n    }\r\n</style>"]}, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__$1 = "data-v-c78657dc";
+  const __vue_scope_id__$1 = "data-v-5e2c21f0";
   /* module identifier */
   const __vue_module_identifier__$1 = undefined;
   /* functional template */
@@ -591,13 +609,7 @@ var __vue_render__$2 = function() {
           ],
           1
         )
-      : _vm.size == "large"
-      ? _c("div", { staticClass: "cascade-gallery-wrapper" }, [
-          _vm._v("\n        large\n    ")
-        ])
-      : _c("div", { staticClass: "cascade-gallery-wrapper" }, [
-          _vm._v("\n        medium\n    ")
-        ])
+      : _vm._e()
   ])
 };
 var __vue_staticRenderFns__$2 = [];
@@ -606,11 +618,11 @@ __vue_render__$2._withStripped = true;
   /* style */
   const __vue_inject_styles__$2 = function (inject) {
     if (!inject) return
-    inject("data-v-bdfc8dd0_0", { source: "\n.cascade-gallery-wrapper[data-v-bdfc8dd0] {\n    width: 1200px;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/Layout.vue"],"names":[],"mappings":";AA+BA;IACA,aAAA;AACA","file":"Layout.vue","sourcesContent":["<script>\r\n    import SmallSizeTemplate from './templates/SmallSizeTemplate.vue';\r\n    export default {\r\n        components: {\r\n            'small-template': SmallSizeTemplate\r\n        },\r\n        props: {\r\n            images: { type: Array },\r\n            size: { type: String }\r\n        },\r\n        data() {\r\n            return {};\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery\">\r\n        <div class=\"cascade-gallery-wrapper\" v-if=\"size == 'small'\">\r\n            <small-template :images.sync=\"images\"></small-template>\r\n        </div>\r\n        <div class=\"cascade-gallery-wrapper\" v-else-if=\"size == 'large'\">\r\n            large\r\n        </div>\r\n        <div class=\"cascade-gallery-wrapper\" v-else>\r\n            medium\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style scoped>\r\n    .cascade-gallery-wrapper {\r\n        width: 1200px;\r\n    }\r\n</style>"]}, media: undefined });
+    inject("data-v-3b66040e_0", { source: "\n.cascade-gallery-wrapper[data-v-3b66040e] {\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/Layout.vue"],"names":[],"mappings":";AAyBA;AACA","file":"Layout.vue","sourcesContent":["<script>\r\n    import SmallSizeTemplate from './templates/SmallSizeTemplate.vue';\r\n    export default {\r\n        components: {\r\n            'small-template': SmallSizeTemplate\r\n        },\r\n        props: {\r\n            images: { type: Array },\r\n            size: { type: String }\r\n        },\r\n        data() {\r\n            return {};\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery\">\r\n        <div class=\"cascade-gallery-wrapper\" v-if=\"size == 'small'\">\r\n            <small-template :images.sync=\"images\"></small-template>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style scoped>\r\n    .cascade-gallery-wrapper {\r\n    }\r\n</style>"]}, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__$2 = "data-v-bdfc8dd0";
+  const __vue_scope_id__$2 = "data-v-3b66040e";
   /* module identifier */
   const __vue_module_identifier__$2 = undefined;
   /* functional template */

@@ -19,17 +19,10 @@
         <div class="cascade-gallery-wrapper" v-if="size == 'small'">
             <small-template :images.sync="images"></small-template>
         </div>
-        <div class="cascade-gallery-wrapper" v-else-if="size == 'large'">
-            large
-        </div>
-        <div class="cascade-gallery-wrapper" v-else>
-            medium
-        </div>
     </div>
 </template>
 
 <style scoped>
     .cascade-gallery-wrapper {
-        width: 1200px;
     }
 </style>
