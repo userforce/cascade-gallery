@@ -5,11 +5,12 @@
     <script type="text/javascript" src="../dist/js/cascade-gallery.js"></script>
     <title>Cascade gallery</title>
 </head>
-<body>
+<body style="padding: 0; margin: 0;">
 <div id="app">
-    <cascade-gallery v-bind:images="images" v-bind:size="'small'"></cascade-gallery>
-<!--    <cascade-gallery v-bind:images="images" v-bind:size="'medium'"></cascade-gallery>-->
-<!--    <cascade-gallery v-bind:images="images" v-bind:size="'large'"></cascade-gallery>-->
+    <div style="width: 1200px; margin: 0 auto;">
+        <cascade-gallery v-bind:images="images" v-bind:size="'small'"></cascade-gallery>
+        <button @click="addImages(5)">Add 5 images</button>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -29,19 +30,15 @@
                 this.generateRandomConfig(),
                 this.generateRandomConfig(),
                 this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig()
             ];
             return { images: images };
         },
         methods: {
+            addImages(amount) {
+                for(let iterator = 1; iterator <= amount; iterator++) {
+                    this.images.push(this.generateRandomConfig());
+                }
+            },
             generateRandomConfig() {
                 return {
                     url: 'https://ibmachine.com/machine/view/7257',
