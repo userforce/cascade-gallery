@@ -60,7 +60,6 @@
                             break;
                         }
                     }
-                    this.columnsAmount = this.config.images.length;
                 }
                 this.setGalleryHeight();
             },
@@ -133,9 +132,7 @@
                 let width = this.getRandomWidth();
                 this.isEndOfTheLine = false;
                 if (!this.isFirstLine()) {
-                    if (!this.columnsAmount) {
-                        this.columnsAmount = this.lastLineStartIndex - this.previousLineStartIndex;
-                    }
+                    this.columnsAmount = this.lastLineStartIndex - this.previousLineStartIndex;
                     let previousLineSibling = this.config.images[this.getPreviousLineSibling()];
                     width = previousLineSibling.width;
                     let length = this.lastLineStartIndex - this.previousLineStartIndex;
@@ -225,6 +222,9 @@
             setGalleryHeight() {
                 let columnsHeights = [];
                 let currentColumn = 0;
+                if (this.columnsAmount < 1) {
+                    this.columnsAmount = this.config.images.length;
+                }
                 for (let imageIndex in this.config.images) {
                     let image = this.config.images[imageIndex];
                     if (currentColumn >= this.columnsAmount) {
