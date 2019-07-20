@@ -19,7 +19,7 @@
                 isEndOfTheLine: false,
                 hasNewImages: false,
                 newImagesStartIndex: 0,
-
+                firstLineIsNotComplete: true,
                 config: {
                     maxWidth: 300,
                     minWidth: 200,
@@ -46,6 +46,21 @@
             prepareImagesConfig() {
                 for(let index in this.images) {
                     this.setNextImageConfig(index);
+                }
+                let firstLineIsNotComplete = this.getLineWidth() < this.window.width && this.lineIndex < 1;
+                if(firstLineIsNotComplete) {
+                    let index = this.currentImageIndex;
+                    let limit = 5;
+                    let start = 0;
+                    while (this.firstLineIsNotComplete) {
+                        index++;
+                        this.setNextImageConfig(index);
+                        start++;
+                        if (start > limit) {
+                            break;
+                        }
+                    }
+                    this.columnsAmount = this.config.images.length;
                 }
                 this.setGalleryHeight();
             },
@@ -129,6 +144,7 @@
                     return width;
                 } else if(this.notEnoughSpaceInLine(width)) {
                     this.isEndOfTheLine = true;
+                    this.firstLineIsNotComplete = false;
                     return this.adjustSiblingsWidth(width);
                 }
                 return width;
@@ -207,7 +223,6 @@
                 }
             },
             setGalleryHeight() {
-                let height = 0;
                 let columnsHeights = [];
                 let currentColumn = 0;
                 for (let imageIndex in this.config.images) {

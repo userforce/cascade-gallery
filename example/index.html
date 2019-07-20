@@ -9,7 +9,7 @@
 <div id="app">
     <div style="width: 1200px; margin: 0 auto;">
         <cascade-gallery v-bind:images="images" v-bind:size="'small'"></cascade-gallery>
-        <button @click="addImages(5)">Add 5 images</button>
+        <button @click="addImages(1)">Add 5 images</button>
     </div>
 </div>
 
@@ -21,8 +21,6 @@
         },
         data() {
             let images = [
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
                 this.generateRandomConfig(),
             ];
             return { images: images };
