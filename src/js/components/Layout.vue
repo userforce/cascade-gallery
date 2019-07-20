@@ -1,8 +1,8 @@
 <script>
-    import SmallSizeTemplate from './templates/SmallSizeTemplate.vue';
+    import CascadeGalleryTemplate from './templates/Template.vue';
     export default {
         components: {
-            'small-template': SmallSizeTemplate
+            'cascade-gallery-template': CascadeGalleryTemplate
         },
         props: {
             images: { type: Array },
@@ -17,7 +17,7 @@
 <template>
     <div class="cascade-gallery">
         <div class="cascade-gallery-wrapper" v-if="size == 'small'">
-            <small-template :images.sync="images"></small-template>
+            <cascade-gallery-template :images.sync="images"></cascade-gallery-template>
         </div>
     </div>
 </template>
