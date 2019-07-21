@@ -1,14 +1,23 @@
 <script>
+    import CascadeGalleryLoader from './spinner/Spinner.vue';
+    import constants from '../constants';
+
     export default {
-        name: "cascade-gallery-image",
+        name: constants.IMAGE_COMPONENT_NAME,
+        components: (function(){
+            let components = {};
+            components[constants.SPINNER_COMPONENT_NAME] = CascadeGalleryLoader;
+            return components;
+        })(),
         props: {
-            images: { type: Array },
-            defaultIndex: { type: Number },
-            config: { type: Object },
-            index: { type: Number }
+            images: {type: Array},
+            defaultIndex: {type: Number},
+            config: {type: Object},
+            index: {type: Number}
         },
         data() {
             return {
+                showSpinner: false,
                 image: {
                     element: null,
                     styles: {
@@ -17,9 +26,12 @@
                         top: 0,
                         left: 0
                     },
-                    classes: ['cascade-gallery-image-anim-hide']
+                    classes: [constants.ANIMATION_CSS_CLASS_HIDE]
                 }
             };
+        },
+        mounted() {
+            this.$on()
         },
         methods: {
             loadConfig(event) {
@@ -29,7 +41,7 @@
             },
             waitPreviousImage() {
                 let self = this;
-                let waitForPrevious = setInterval(function() {
+                let waitForPrevious = setInterval(function () {
                     if (self.previousImageLoaded()) {
                         self.showImage();
                         clearInterval(waitForPrevious);
@@ -39,21 +51,22 @@
             showImage() {
                 let self = this;
                 self.animate();
-                let waitForPrevious = setTimeout(function() {
+                let waitForPrevious = setTimeout(function () {
                     self.setLoaded();
+                    self.$emit(constants.LOADED_EVENT_NAME);
                 }, 170);
             },
             setLoaded() {
                 this.config.images[this.index].loaded = true;
             },
             setImageStyles() {
-                if(this.getImagePropHeight() < this.getWrapperWidth()) {
+                if (this.getImagePropHeight() < this.getWrapperWidth()) {
                     this.image.styles.width = '100%';
-                    this.image.styles.top = '-'+(this.getImagePropWidth()-this.getWrapperHeight())/2+'px';
+                    this.image.styles.top = '-' + (this.getImagePropWidth() - this.getWrapperHeight()) / 2 + 'px';
                     return true;
                 } else {
                     this.image.styles.height = '100%';
-                    this.image.styles.left = '-'+(this.getImagePropHeight()-this.getWrapperWidth())/2+'px';
+                    this.image.styles.left = '-' + (this.getImagePropHeight() - this.getWrapperWidth()) / 2 + 'px';
                     return true;
                 }
             },
@@ -70,66 +83,84 @@
                 return this.config.images[this.index].width;
             },
             getImagePropHeight() {
-                let diffHeightInPercentage = (100*this.getImageWidth())/this.getImageHeight();
-                return this.getWrapperHeight()*diffHeightInPercentage/100;
+                let diffHeightInPercentage = (100 * this.getImageWidth()) / this.getImageHeight();
+                return this.getWrapperHeight() * diffHeightInPercentage / 100;
             },
             getImagePropWidth() {
-                let diffWidthInPercentage = (100*this.getImageHeight())/this.getImageWidth();
-                return this.getWrapperWidth()*diffWidthInPercentage/100;
+                let diffWidthInPercentage = (100 * this.getImageHeight()) / this.getImageWidth();
+                return this.getWrapperWidth() * diffWidthInPercentage / 100;
+            },
+            isFirstImage() {
+                return this.index == 0;
             },
             previousImageLoaded() {
-                if (this.index == 0) {
+                if (this.isFirstImage()) {
                     return true;
                 }
                 return this.config.images[this.index - 1].loaded;
             },
             animate() {
-                this.image.classes.push('cascade-gallery-image-anim-fall');
-            }
+                this.image.classes.push(constants.ANIMATION_CSS_CLASS_APPEND);
+            },
         }
     }
 </script>
 
 <template>
-    <div class="cascade-gallery-image">
-        <div class="cascade-gallery-image-wrapper">
+    <div class="cgl-image">
+        <div class="cgl-image-wrapper">
             <img :src="images[defaultIndex]?images[defaultIndex]:images[0]"
-                 :class="this.image.classes"
+                 :class="image.classes"
                  :style="image.styles"
                  @load="loadConfig($event)"/>
+            <div class="cgl-loader-box"
+                v-if="showSpinner">
+                <cgl-spinner></cgl-spinner>
+            </div>
         </div>
     </div>
 </template>
 
-<style scoped>
-    .cascade-gallery-image {
+<style>
+    .cgl-image {
         width: 100%;
         height: 100%;
     }
-    .cascade-gallery-image * {
+
+    .cgl-image * {
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
     }
-    .cascade-gallery-image .cascade-gallery-image-wrapper {
+
+    .cgl-image .cgl-image-wrapper {
         overflow: hidden;
         position: relative;
         width: 100%;
         height: 100%;
         border: 5px solid transparent;
     }
-    .cascade-gallery-image .cascade-gallery-image-wrapper img {
+
+    .cgl-image .cgl-image-wrapper img {
         position: absolute;
         height: 100%;
     }
-    .cascade-gallery-image .cascade-gallery-image-wrapper img.cascade-gallery-image-anim-hide {
+
+    .cgl-image .cgl-image-wrapper img.cgl-image-anim-hide {
         opacity: 0;
     }
-    .cascade-gallery-image .cascade-gallery-image-wrapper img.cascade-gallery-image-anim-fall {
+
+    .cgl-image .cgl-image-wrapper img.cgl-image-anim-append {
         -webkit-transition: all .35s ease-in;
         -moz-transition: all .35s ease-in;
         -o-transition: all .35s ease-in;
         transition: all .35s ease-in;
         opacity: 1;
+    }
+    .cgl-image .cgl-image-wrapper .cgl-loader-box {
+        position: relative;
+        left: 50%;
+        margin-left: -15px;
+        top: 35%;
     }
 </style>
