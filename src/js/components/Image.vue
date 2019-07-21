@@ -17,7 +17,7 @@
         },
         data() {
             return {
-                showSpinner: false,
+                showSpinner: true,
                 image: {
                     element: null,
                     styles: {
@@ -30,9 +30,6 @@
                 }
             };
         },
-        mounted() {
-            this.$on()
-        },
         methods: {
             loadConfig(event) {
                 this.image.element = event.target;
@@ -43,6 +40,7 @@
                 let self = this;
                 let waitForPrevious = setInterval(function () {
                     if (self.previousImageLoaded()) {
+                        self.showSpinner = false;
                         self.showImage();
                         clearInterval(waitForPrevious);
                     }
@@ -53,7 +51,6 @@
                 self.animate();
                 let waitForPrevious = setTimeout(function () {
                     self.setLoaded();
-                    self.$emit(constants.LOADED_EVENT_NAME);
                 }, 170);
             },
             setLoaded() {
@@ -102,6 +99,13 @@
             animate() {
                 this.image.classes.push(constants.ANIMATION_CSS_CLASS_APPEND);
             },
+        },
+        watch: {
+            config: {
+                images(i) {
+                    console.log(i);
+                }
+            }
         }
     }
 </script>
@@ -109,12 +113,14 @@
 <template>
     <div class="cgl-image">
         <div class="cgl-image-wrapper">
-            <img :src="images[defaultIndex]?images[defaultIndex]:images[0]"
-                 :class="image.classes"
-                 :style="image.styles"
-                 @load="loadConfig($event)"/>
+            <div class="cgl-image-back">
+                <img :src="images[defaultIndex]?images[defaultIndex]:images[0]"
+                     :class="image.classes"
+                     :style="image.styles"
+                     @load="loadConfig($event)"/>
+            </div>
             <div class="cgl-loader-box"
-                v-if="showSpinner">
+                v-show="showSpinner">
                 <cgl-spinner></cgl-spinner>
             </div>
         </div>
@@ -138,12 +144,27 @@
         position: relative;
         width: 100%;
         height: 100%;
-        border: 5px solid transparent;
+        border: 2px solid transparent;
     }
 
     .cgl-image .cgl-image-wrapper img {
         position: absolute;
+    }
+
+    .cgl-image .cgl-image-wrapper .cgl-image-back {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
         height: 100%;
+        background: rgba(0,0,0,0.08);
+        background: -moz-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);
+        background: -webkit-gradient(left bottom, right top, color-stop(0%, rgba(0,0,0,0.08)), color-stop(46%, rgba(0,0,0,0.04)), color-stop(46%, rgba(0,0,0,0.04)), color-stop(100%, rgba(255,255,255,0.1)));
+        background: -webkit-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);
+        background: -o-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);
+        background: -ms-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);
+        background: linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#ffffff', GradientType=1 );
     }
 
     .cgl-image .cgl-image-wrapper img.cgl-image-anim-hide {

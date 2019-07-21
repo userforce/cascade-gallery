@@ -1,4 +1,5 @@
 export default {
+
     // COMPONENTS
     LAYOUT_COMPONENT_NAME: "cgl-layout",
     TEMPLATE_COMPONENT_NAME: "cgl-template",
@@ -6,7 +7,7 @@ export default {
     SPINNER_COMPONENT_NAME: "cgl-spinner",
 
     // EVENTS
-    LOADED_EVENT_NAME: "cglImageLoaded",
+    LOADED_EVENT_NAME: "cgl-image-loaded",
 
     // CSS
     ANIMATION_CSS_CLASS_HIDE: "cgl-image-anim-hide",

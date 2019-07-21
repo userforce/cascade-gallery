@@ -8,45 +8,49 @@
     <div class="spinner">
         <div class="spinner-1"></div>
         <div class="spinner-2"></div>
+        <div class="spinner-3"></div>
+        <div class="spinner-4"></div>
+        <div class="spinner-5"></div>
     </div>
 </template>
 
 <style>
-    .spinner-1, .spinner-2{
-        border: 3px solid transparent;
-        border-top: 3px solid #999;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
+    .spinner-1, .spinner-2, .spinner-3, .spinner-4, .spinner-5 {
+        width: 3px;
+        height: 7px;
         position: absolute;
-        left: 0;
-        top: 0;
-        animation: rotate .55s ease-out infinite;
+        bottom: 0px;
+        background: #cccccc;
     }
-    .spinner-2 {
-        animation: rotate 1.1s linear infinite;
+    .spinner-1{
+        left: 5px;
+        animation: jump 1s .1s ease-out infinite;
     }
-
-    @keyframes rotate {
+    .spinner-2{
+        left: 10px;
+        animation: jump 1s .2s ease-out infinite;
+    }
+    .spinner-3{
+        left: 15px;
+        animation: jump 1s .3s ease-out infinite;
+    }
+    .spinner-4{
+        left: 20px;
+        animation: jump 1s .4s ease-out infinite;
+    }
+    .spinner-5{
+        left: 25px;
+        animation: jump 1s .5s ease-out infinite;
+    }
+    @keyframes jump {
         0% {
-            transform: rotate(0deg);
-            opacity: .3;
+            bottom: 0px;
         }
-        20% {
-            transform: rotate(150deg);
-            opacity: .7;
-        }
-        40% {
-            transform: rotate(250deg);
-            opacity: 1;
-        }
-        70% {
-            transform: rotate(300deg);
-            opacity: .7;
+        50% {
+            bottom: 10px;
         }
         100% {
-            transform: rotate(360deg);
-            opacity: .3;
+            bottom: 0px;
         }
     }
 </style>

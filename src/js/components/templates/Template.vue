@@ -258,9 +258,9 @@
              :style="styles(index)"
              v-for="(image, index) in images" >
             <cgl-image :images.sync="image['src']"
-                                   :config.sync="config"
-                                   :index="index"
-                                   :defaultIndex="image['default_index']">
+                       :config.sync="config"
+                       :index="index"
+                       :defaultIndex="image['default_index']">
             </cgl-image>
         </div>
     </div>
