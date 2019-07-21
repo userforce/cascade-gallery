@@ -1,5 +1,5 @@
 ## Cascade gallery
-VueJs component generates image gallery with a random image sizes.
+VueJs cascade gallery generates random sizes for images.
 
 #### Installation
 ```javascript
