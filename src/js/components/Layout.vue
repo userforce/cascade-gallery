@@ -1,15 +1,17 @@
 <script>
-    import CascadeGalleryTemplate from './templates/Template.vue';
+    import Template from './templates/Template.vue';
+    import constants from '../constants';
+
     export default {
-        components: {
-            'cascade-gallery-template': CascadeGalleryTemplate
-        },
+        name: constants.LAYOUT_COMPONENT_NAME,
+        components: (function(){
+            let components = {};
+            components[constants.TEMPLATE_COMPONENT_NAME] = Template;
+            return components;
+        })(),
         props: {
             images: { type: Array },
             size: { type: String }
-        },
-        data() {
-            return {};
         }
     }
 </script>
@@ -17,12 +19,10 @@
 <template>
     <div class="cascade-gallery">
         <div class="cascade-gallery-wrapper" v-if="size == 'small'">
-            <cascade-gallery-template :images.sync="images"></cascade-gallery-template>
+            <cgl-template :images.sync="images"></cgl-template>
         </div>
     </div>
 </template>
 
-<style scoped>
-    .cascade-gallery-wrapper {
-    }
+<style>
 </style>

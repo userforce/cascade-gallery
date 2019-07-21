@@ -1,10 +1,14 @@
 <script>
     import CascadeGalleryImage from '../Image.vue';
+    import constants from '../../constants';
+
     export default {
-        name: "cascade-gallery-small-template",
-        components: {
-            'cascade-gallery-image': CascadeGalleryImage
-        },
+        name: constants.TEMPLATE_COMPONENT_NAME,
+        components: (function(){
+            let components = {};
+            components[constants.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;
+            return components;
+        })(),
         props: {
             images: { type: Array }
         },
@@ -253,11 +257,11 @@
              v-if="config.images[index]"
              :style="styles(index)"
              v-for="(image, index) in images" >
-            <cascade-gallery-image :images.sync="image['src']"
-                                   :config.sync="config"
-                                   :index="index"
-                                   :defaultIndex="image['default_index']">
-            </cascade-gallery-image>
+            <cgl-image :images.sync="image['src']"
+                       :config.sync="config"
+                       :index="index"
+                       :defaultIndex="image['default_index']">
+            </cgl-image>
         </div>
     </div>
 </template>
