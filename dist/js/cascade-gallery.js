@@ -186,7 +186,7 @@ __vue_render__._withStripped = true;
     __vue_module_identifier__,
     browser,
     undefined
-  );var constants = {
+  );var c = {
 
     // COMPONENTS
     LAYOUT_COMPONENT_NAME: "cgl-layout",
@@ -200,11 +200,22 @@ __vue_render__._withStripped = true;
     // CSS
     ANIMATION_CSS_CLASS_HIDE: "cgl-image-anim-hide",
     ANIMATION_CSS_CLASS_APPEND: "cgl-image-anim-append",
+
+    // CONFIG KEYS
+    CONFIG_WIDTH_RANGE_KEY: 'width-range',
+    CONFIG_HEIGHT_RANGE_KEY: 'height-range',
+
+    CONFIG_RANGE_KEY_FROM: 'from',
+    CONFIG_RANGE_KEY_TO: 'to',
+
+    // CONFIG VALUES
+    CONFIG_WIDTH_FROM: 200,
+    CONFIG_WIDTH_TO: 300
 };var script$1 = {
-    name: constants.IMAGE_COMPONENT_NAME,
+    name: c.IMAGE_COMPONENT_NAME,
     components: (function(){
         let components = {};
-        components[constants.SPINNER_COMPONENT_NAME] = CascadeGalleryLoader;
+        components[c.SPINNER_COMPONENT_NAME] = CascadeGalleryLoader;
         return components;
     })(),
     props: {
@@ -224,7 +235,7 @@ __vue_render__._withStripped = true;
                     top: 0,
                     left: 0
                 },
-                classes: [constants.ANIMATION_CSS_CLASS_HIDE]
+                classes: [c.ANIMATION_CSS_CLASS_HIDE]
             }
         };
     },
@@ -295,7 +306,7 @@ __vue_render__._withStripped = true;
             return this.config.images[this.index - 1].loaded;
         },
         animate() {
-            this.image.classes.push(constants.ANIMATION_CSS_CLASS_APPEND);
+            this.image.classes.push(c.ANIMATION_CSS_CLASS_APPEND);
         },
     },
     watch: {
@@ -380,10 +391,10 @@ __vue_render__$1._withStripped = true;
     browser,
     undefined
   );var script$2 = {
-    name: constants.TEMPLATE_COMPONENT_NAME,
+    name: c.TEMPLATE_COMPONENT_NAME,
     components: (function(){
         let components = {};
-        components[constants.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;
+        components[c.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;
         return components;
     })(),
     props: {
@@ -699,16 +710,138 @@ __vue_render__$2._withStripped = true;
     __vue_module_identifier__$2,
     browser,
     undefined
-  );var script$3 = {
-    name: constants.LAYOUT_COMPONENT_NAME,
+  );let Validator = function() {
+
+    let self = this;
+
+    /**
+     * @param value
+     * @returns Boolean
+     */
+    let isNumber = function(value) {
+        return !!value.toString().match(/^[\d]+$/g)
+    };
+
+    /**
+     * @param config
+     * @param rangeKey
+     * @returns Boolean
+     */
+    let validateRanges = function(config, rangeKey) {
+        console.log(rangeKey);
+        if (config.hasOwnProperty(rangeKey)) {
+            let isValidWidthConfig = self.hasRanges(config, rangeKey);
+            if (!isValidWidthConfig) return false;
+        }
+        return true;
+    };
+
+    /**
+     * @param message
+     * @param option
+     */
+    let logError = function(path) {
+        let message = 'Config error in: [';
+        for (let item in path) {
+            message += path[item].toString()+'.';
+        }
+        console.error(message.substring(0, message.length - 1)+']');
+    };
+
+    /**
+     * @param input
+     * @returns Boolean
+     */
+    self.validate = function (input) {
+        if (!!input) {
+            let isValidWidth = validateRanges(input, c.CONFIG_WIDTH_RANGE_KEY);
+            let isValidHeight = validateRanges(input, c.CONFIG_HEIGHT_RANGE_KEY);
+            return isValidWidth && isValidHeight;
+        }
+        return true;
+    };
+
+    /**
+     * @param config
+     * @returns Boolean
+     */
+    self.hasWidthRanges = function(config) {
+        let hasWidth = config.hasOwnProperty(c.CONFIG_WIDTH_RANGE_KEY);
+        return hasWidth ? self.hasRanges(config, c.CONFIG_WIDTH_RANGE_KEY) : false;
+    };
+
+    /**
+     * Checks if the given config option has predefined ranges
+     * with valid keys.
+     * @see constants.js
+     *
+     * @param config
+     * @param key
+     * @returns Boolean
+     */
+    self.hasRanges = function(config, key) {
+        let hasFrom = config[key].hasOwnProperty(c.CONFIG_RANGE_KEY_FROM);
+        let isValidFrom = hasFrom ? isNumber(config[key][c.CONFIG_RANGE_KEY_FROM]) : false;
+        let hasTo = config[key].hasOwnProperty(c.CONFIG_RANGE_KEY_TO);
+        let isValidTo = hasTo ? isNumber(config[key][c.CONFIG_RANGE_KEY_TO]) : false;
+        if (!isValidFrom) logError([key,c.CONFIG_RANGE_KEY_FROM]);
+        if (!isValidTo) logError([key,c.CONFIG_RANGE_KEY_TO]);
+        return isValidFrom && isValidTo;
+    };
+
+
+
+};
+
+var validator = new Validator();var script$3 = {
+    name: c.LAYOUT_COMPONENT_NAME,
     components: (function(){
         let components = {};
-        components[constants.TEMPLATE_COMPONENT_NAME] = Template;
+        components[c.TEMPLATE_COMPONENT_NAME] = Template;
         return components;
     })(),
     props: {
-        images: { type: Array },
-        size: { type: String }
+        images: {
+            type: Array
+        },
+        config: {
+            type: Object,
+            validator: validator.validate
+        }
+    },
+    data() {
+        let default_config = {};
+
+        // Set default width range
+        default_config[c.CONFIG_WIDTH_RANGE_KEY] = {};
+        default_config[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_FROM] = c.CONFIG_WIDTH_FROM;
+        default_config[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_TO] = c.CONFIG_WIDTH_TO;
+
+        return {
+            default: default_config
+        }
+    },
+    methods: {
+
+        /**
+         * Retrieve config from props or get defaults.
+         * @returns Object
+         */
+        getConfig() {
+            let widthRanges = this.getWidthRanges(this.config);
+            return {};
+        },
+
+        /**
+         * @param config
+         * @returns Boolean
+         */
+        getWidthRanges(config) {
+            let hasWidthRange = validator.hasWidthRanges(config);
+            let defaultWidthRange = this.default[c.CONFIG_WIDTH_RANGE_KEY];
+            return hasWidthRange ? config[c.CONFIG_WIDTH_RANGE_KEY] : defaultWidthRange;
+        },
+
     }
 };/* script */
 const __vue_script__$3 = script$3;
@@ -719,23 +852,21 @@ var __vue_render__$3 = function() {
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
   return _c("div", { staticClass: "cascade-gallery" }, [
-    _vm.size == "small"
-      ? _c(
-          "div",
-          { staticClass: "cascade-gallery-wrapper" },
-          [
-            _c("cgl-template", {
-              attrs: { images: _vm.images },
-              on: {
-                "update:images": function($event) {
-                  _vm.images = $event;
-                }
-              }
-            })
-          ],
-          1
-        )
-      : _vm._e()
+    _c(
+      "div",
+      { staticClass: "cascade-gallery-wrapper" },
+      [
+        _c("cgl-template", {
+          attrs: { images: _vm.images },
+          on: {
+            "update:images": function($event) {
+              _vm.images = $event;
+            }
+          }
+        })
+      ],
+      1
+    )
   ])
 };
 var __vue_staticRenderFns__$3 = [];
@@ -744,7 +875,7 @@ __vue_render__$3._withStripped = true;
   /* style */
   const __vue_inject_styles__$3 = function (inject) {
     if (!inject) return
-    inject("data-v-58b774ea_0", { source: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", map: {"version":3,"sources":[],"names":[],"mappings":"","file":"Layout.vue"}, media: undefined });
+    inject("data-v-d1b07fc0_0", { source: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", map: {"version":3,"sources":[],"names":[],"mappings":"","file":"Layout.vue"}, media: undefined });
 
   };
   /* scoped */

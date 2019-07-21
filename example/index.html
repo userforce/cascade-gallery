@@ -8,7 +8,7 @@
 <body style="padding: 0; margin: 0;">
 <div id="app">
     <div style="width: 1200px; margin: 0 auto;">
-        <cascade-gallery :images="images"></cascade-gallery>
+        <cascade-gallery :images="images" :config="config"></cascade-gallery>
         <button @click="addImages(5)">Add 5 images</button>
     </div>
 </div>
@@ -31,7 +31,15 @@
                 this.generateRandomConfig(),
                 this.generateRandomConfig(),
             ];
-            return { images: images };
+            return {
+                images: images,
+                config: {
+                    'width-range': {
+                        from: '200',
+                        to: '300'
+                    }
+                }
+            };
         },
         methods: {
             addImages(amount) {
@@ -41,9 +49,6 @@
             },
             generateRandomConfig() {
                 return {
-                    url: 'https://ibmachine.com/machine/view/7257',
-                    title: '<a href="https://ibmachine.com/machine/view/7257">Pharetra pharetra massa.</a>',
-                    description: this.getDescription(),
                     default_index: this.getRandomIndex(),
                     src: this.getImages()
                 };

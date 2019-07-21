@@ -1,6 +1,9 @@
 ## Cascade gallery
 VueJs cascade gallery generates random sizes for images.
 
+#### Dependencies
+- VueJs 2.X
+
 #### Installation
 ```javascript
 npm install cascade-gallery
