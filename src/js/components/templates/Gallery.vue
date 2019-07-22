@@ -46,12 +46,22 @@
             this.prepareConfigImages();
         },
         watch: {
+            /**
+             * Watch for the images list and add incoming images
+             * TODO: Rebuild configuration on image removing
+             */
             images() {
                 this.addNewImages();
                 this.setGalleryHeight()
             }
         },
         methods: {
+
+            /**
+             * Prepare configuration options
+             * Not all configuration options is handled in this
+             * method, just those that must be prepared in advance
+             */
             prepareConfigOptions() {
                 if (validator.hasRangesFor(this.options, c.CONFIG_WIDTH_RANGE_KEY, false)) {
                     this.config.maxWidth = this.options[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_TO];
@@ -65,6 +75,15 @@
                     this.config[c.CONFIG_DELAY_KEY] = this.options[c.CONFIG_DELAY_KEY];
                 }
             },
+
+            /**
+             * After configuration options are ready apply them to
+             * the images block (parent)
+             * That is invoked just on mounting
+             * NOTE: By defining image configuration we meant image block
+             *       (parent) configuration so image it self can detect
+             *       future sizes or displaying modes
+             */
             prepareConfigImages() {
                 for(let index in this.images) {
                     this.setNextImageConfig(index);
@@ -85,8 +104,17 @@
                 }
                 this.setGalleryHeight();
             },
+
+            /**
+             * Sets configuration for the current image in the list
+             * @param index Given image index
+             */
             setNextImageConfig(index) {
                 this.currentImageIndex = index;
+                /**
+                 * Before a setting the height we have to define widths
+                 * of the future columns (images in the first line)
+                 */
                 this.config.images[index] = {
                     width: this.getWidth(),
                     loaded: false
@@ -95,6 +123,12 @@
 
                 this.prepareCurrentLine();
             },
+
+            /**
+             * After wee have all of the widths for given images we check
+             * the line order number that we left, and continue to set
+             * other image block properties
+             */
             prepareCurrentLine() {
                 let startIndex = this.lastLineStartIndex;
                 if(this.isEndOfTheLine) {
@@ -114,6 +148,11 @@
                     this.isEndOfTheLine = false;
                 }
             },
+
+            /**
+             * After new images was added to the images list we prepare the
+             * new state of gallery config and continue to build it
+             */
             addNewImages() {
                 this.hasNewImages = true;
                 this.newImagesStartIndex = this.currentImageIndex+1;
@@ -123,6 +162,11 @@
                 }
                 this.setGalleryHeight();
             },
+
+            /**
+             * Resets the state of the previous gallery configuration
+             * @see this.addNewImages()
+             */
             prepareForNewImages() {
                 if (this.newImagesStartIndex%this.columnsAmount > 0) {
                     this.lastLineStartIndex = this.previousLineStartIndex;
@@ -131,6 +175,11 @@
                     this.isEndOfTheLine = false;
                 }
             },
+
+            /**
+             * Detects left X axe position for the current image
+             * @returns Number
+             */
             getPositionX() {
                 let posX = 0;
                 if (this.currentImageIndex - this.lastLineStartIndex != 0) {
@@ -139,6 +188,11 @@
                 }
                 return posX;
             },
+
+            /**
+             * Detects top Y axe position for the current image
+             * @returns Number
+             */
             getPositionY() {
                 let posY = 0;
                 if (!this.isFirstLine()) {
@@ -147,9 +201,21 @@
                 }
                 return posY;
             },
+
+            /**
+             * Generate random/given height for the current image
+             * @returns Number
+             */
             getHeight() {
                 return this.getRandomHeight();
             },
+
+            /**
+             * Generates random width/given also if the generated width do
+             * not fit in the last remained portion of the parent block
+             * width all the images blocks will be adjusted
+             * @returns Number
+             */
             getWidth() {
                 let width = this.getRandomWidth();
                 this.isEndOfTheLine = false;
@@ -168,16 +234,43 @@
                 }
                 return width;
             },
+
+            /**
+             * Get the width for the current image block from the image block
+             * on the same order number of the previous line to keep the columns
+             * width equal in the each line
+             * TODO: display one image block in the tow lines
+             * @see this.getPreviousLineSibling()
+             * @returns Number
+             */
             getCurrentImageWidth() {
                 let previousLineSibling = this.getPreviousLineSibling();
                 return this.config.images[previousLineSibling].width;
             },
+
+            /**
+             * Find index of the previous line block image that has the
+             * same order number
+             * @see this.getCurrentImageWidth()
+             * @returns Number
+             */
             getPreviousLineSibling() {
                 return this.previousLineStartIndex + ( this.currentImageIndex - this.lastLineStartIndex );
             },
+
+            /**
+             * Generate random width in the given range
+             * @returns Number
+             */
             getRandomWidth() {
                 return this.getRandomNumber(this.config.minWidth, this.config.maxWidth);
             },
+
+            /**
+             * Generate random height in the given range. By default and average
+             * height will be picked base on images width range
+             * @returns Number
+             */
             getRandomHeight() {
                 if (!this.config.minHeight || !this.config.maxHeight) {
                     let amountOfImages = Math.round((this.window.width/this.config.minWidth) * 10) / 10;
@@ -186,6 +279,12 @@
                 }
                 return this.getRandomNumber(this.config.minHeight, this.config.maxHeight);
             },
+
+            /**
+             * Counts the current line width based on the current images
+             * blocks in the line widths sum
+             * @returns Number
+             */
             getLineWidth() {
                 let lineWidth = 0;
                 for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {
@@ -193,12 +292,35 @@
                 }
                 return lineWidth;
             },
+
+            /**
+             * Checks if the sum of the width images blocks is to big to leave
+             * space for one another image
+             * @see this.getWidth()
+             * @returns Boolean
+             */
             notEnoughSpaceInLine(width) {
                 return this.getLineWidth() + width + this.getBacklash(this.config.minWidth) > this.window.width;
             },
-            getBacklash(size) {
-                return this.getRandomNumber(0, Math.round((size/5)));
+
+            /**
+             * Is used to add little bet more space to the last image in order
+             * to increase visual consistency on random width generating
+             * @see this.notEnoughSpaceInLine()
+             * @returns Number
+             */
+            getBacklash(width) {
+                return this.getRandomNumber(0, Math.round((width/5)));
             },
+
+            /**
+             * After it was detected that last image block width has not enough
+             * space in the line other blocks width will be adjusted. If the
+             * given proportion are tow wide spreader and after minimize all images
+             * to the given minWidth it is still not enough space the remaining
+             * space in the line will be set as the current image with
+             * @returns Number
+             */
             adjustSiblingsWidth(width) {
                 let limit = parseInt(this.config.maxWidth);
                 let iterator = 0;
@@ -219,23 +341,53 @@
                     iterator++;
                 }
             },
+
+            /**
+             * Get the remaining width in the line
+             * @see this.adjustSiblingsWidth()
+             * @returns Number
+             */
             getLastPartWidth() {
                 return this.window.width - this.getLineWidth()
             },
+
+            /**
+             * Check if there is enough space for the last image block width
+             * @returns Boolean
+             */
             isAligned(width) {
                 return width + this.getLineWidth() === this.window.width;
             },
+
+            /**
+             * Get the difference between window and the current image blocks width
+             * @returns Number
+             */
             getLineLengthDiff(width) {
                 return (this.getLineWidth() + width) - this.window.width;
             },
+
+            /**
+             * Generates random number in the given range
+             * @returns Number
+             */
             getRandomNumber(min, max) {
                 min = Math.ceil(min);
                 max = Math.floor(max);
                 return Math.floor(Math.random() * (max - min + 1)) + min;
             },
+
+            /**
+             * Checks if the current line is the first
+             * @returns Boolean
+             */
             isFirstLine() {
                 return !parseInt(this.lineIndex);
             },
+
+            /**
+             * After all configuration was prepared apply them to the DOM
+             */
             styles(index) {
                 return {
                     width: this.config.images[index].width + 'px',
@@ -244,6 +396,13 @@
                     top: this.config.images[index].top + 'px'
                 }
             },
+
+            /**
+             * Finds the tallest column and sets the height of the gallery
+             * That needs as an workaround to the css position absolute of
+             * the gallery wrapper
+             * @returns Number
+             */
             setGalleryHeight() {
                 let columnsHeights = [];
                 let currentColumn = 0;
