@@ -140,10 +140,6 @@
                         if (this.isLastInTheLine(index)) {
                             this.config.images[index][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';
                         }
-                        if (index !== 0 && index === this.columnsAmount) {
-                            this.config.images[index-1][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';
-                        }
-
                         if (this.isFirstLine()) {
                             this.config.images[index][c.CONFIG_GAP_KEY]['border-top-width'] = '0px';
                         }
@@ -155,7 +151,7 @@
              * Check if the given image index is the last in the line
              */
             isLastInTheLine(index) {
-                return (this.columnsAmount > 0 && (this.columnsAmount + this.lastLineStartIndex) - 1 === index);
+                return this.config.images[index].width + this.getLineWidth() === this.window.width;
             },
 
             /**
