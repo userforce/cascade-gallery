@@ -41,7 +41,7 @@ config: [
 ### Configuration
 
 ```javascript
-<cascade-gallery :images="config" :config="config"></cascade-gallery>
+<cascade-gallery :images="images" :config="config"></cascade-gallery>
 ```
 ```javascript
 data() {
