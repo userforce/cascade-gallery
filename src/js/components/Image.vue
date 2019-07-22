@@ -1,12 +1,13 @@
 <script>
     import CascadeGalleryLoader from './spinner/Spinner.vue';
-    import constants from '../constants';
+    import c from '../constants';
+    import validator from "../validator";
 
     export default {
-        name: constants.IMAGE_COMPONENT_NAME,
+        name: c.IMAGE_COMPONENT_NAME,
         components: (function(){
             let components = {};
-            components[constants.SPINNER_COMPONENT_NAME] = CascadeGalleryLoader;
+            components[c.SPINNER_COMPONENT_NAME] = CascadeGalleryLoader;
             return components;
         })(),
         props: {
@@ -26,7 +27,7 @@
                         top: 0,
                         left: 0
                     },
-                    classes: [constants.ANIMATION_CSS_CLASS_HIDE]
+                    classes: [c.ANIMATION_CSS_CLASS_HIDE]
                 }
             };
         },
@@ -51,7 +52,7 @@
                 self.animate();
                 let waitForPrevious = setTimeout(function () {
                     self.setLoaded();
-                }, 170);
+                }, self.config[c.CONFIG_DELAY_KEY]);
             },
             setLoaded() {
                 this.config.images[this.index].loaded = true;
@@ -97,15 +98,8 @@
                 return this.config.images[this.index - 1].loaded;
             },
             animate() {
-                this.image.classes.push(constants.ANIMATION_CSS_CLASS_APPEND);
+                this.image.classes.push(c.ANIMATION_CSS_CLASS_APPEND);
             },
-        },
-        watch: {
-            config: {
-                images(i) {
-                    console.log(i);
-                }
-            }
         }
     }
 </script>

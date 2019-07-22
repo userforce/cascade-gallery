@@ -26,12 +26,14 @@
         },
         data() {
             let default_config = {};
-
             // Set default width range
             default_config[c.CONFIG_WIDTH_RANGE_KEY] = {};
             default_config[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_FROM] = c.CONFIG_WIDTH_FROM;
             default_config[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_TO] = c.CONFIG_WIDTH_TO;
-
+            // Set default height range
+            default_config[c.CONFIG_HEIGHT_RANGE_KEY] = {};
+            // Set default animation range
+            default_config[c.CONFIG_DELAY_KEY] = c.CONFIG_APPENDING_DELAY;
             return {
                 default: default_config
             }
@@ -43,18 +45,32 @@
              * @returns Object
              */
             getConfig() {
-                let widthRanges = this.getWidthRanges(this.config);
-                return {};
+                let config = {};
+                config[c.CONFIG_WIDTH_RANGE_KEY] = this.getRangeFor(this.config, c.CONFIG_WIDTH_RANGE_KEY);
+                config[c.CONFIG_HEIGHT_RANGE_KEY] = this.getRangeFor(this.config, c.CONFIG_HEIGHT_RANGE_KEY);
+                config[c.CONFIG_DELAY_KEY] = this.getDelay();
+                return config;
+            },
+
+            /**
+             * @returns Number
+             */
+            getDelay() {
+                if (validator.hasDelay(this.config)) {
+                    return this.config[c.CONFIG_DELAY_KEY];
+                }
+                return this.default[c.CONFIG_DELAY_KEY];
             },
 
             /**
              * @param config
+             * @param key Range option key
              * @returns Boolean
              */
-            getWidthRanges(config) {
-                let hasWidthRange = validator.hasWidthRanges(config);
-                let defaultWidthRange = this.default[c.CONFIG_WIDTH_RANGE_KEY];
-                return hasWidthRange ? config[c.CONFIG_WIDTH_RANGE_KEY] : defaultWidthRange;
+            getRangeFor(config, key) {
+                let hasRange = validator.hasRangesFor(config, key);
+                let defaultRange = this.default[key];
+                return hasRange ? config[key] : defaultRange;
             },
 
         }
@@ -64,7 +80,7 @@
 <template>
     <div class="cascade-gallery">
         <div class="cascade-gallery-wrapper">
-            <cgl-template :images.sync="images"></cgl-template>
+            <cgl-template :images.sync="images" :options="getConfig()"></cgl-template>
         </div>
     </div>
 </template>

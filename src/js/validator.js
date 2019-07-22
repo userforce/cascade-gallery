@@ -5,32 +5,11 @@ let Validator = function() {
     let self = this;
 
     /**
-     * @param value
-     * @returns Boolean
-     */
-    let isNumber = function(value) {
-        return !!value.toString().match(/^[\d]+$/g)
-    };
-
-    /**
-     * @param config
-     * @param rangeKey
-     * @returns Boolean
-     */
-    let validateRanges = function(config, rangeKey) {
-        if (config.hasOwnProperty(rangeKey)) {
-            let isValidWidthConfig = self.hasRanges(config, rangeKey);
-            if (!isValidWidthConfig) return false;
-        }
-        return true;
-    };
-
-    /**
-     * @param message
-     * @param option
+     * @param path
+     * @returns void
      */
     let logError = function(path) {
-        let message = 'Config error in: [';
+        let message = 'Config error: [';
         for (let item in path) {
             message += path[item].toString()+'.';
         }
@@ -42,10 +21,12 @@ let Validator = function() {
      * @returns Boolean
      */
     self.validate = function (input) {
-        if (!!input) {
-            let isValidWidth = validateRanges(input, c.CONFIG_WIDTH_RANGE_KEY);
-            let isValidHeight = validateRanges(input, c.CONFIG_HEIGHT_RANGE_KEY);
-            return isValidWidth && isValidHeight;
+        if (typeof input == "object") {
+            let hasWidth = self.hasConfig(input, c.CONFIG_WIDTH_RANGE_KEY);
+            let isValidWidth = self.hasRangesFor(input, c.CONFIG_WIDTH_RANGE_KEY);
+            let hasHeight = self.hasConfig(input, c.CONFIG_HEIGHT_RANGE_KEY);
+            let isValidHeight = self.hasRangesFor(input, c.CONFIG_HEIGHT_RANGE_KEY);
+            return (!hasWidth || isValidWidth) && (!hasHeight || isValidHeight);
         }
         return true;
     };
@@ -54,9 +35,39 @@ let Validator = function() {
      * @param config
      * @returns Boolean
      */
-    self.hasWidthRanges = function(config) {
-        let hasWidth = config.hasOwnProperty(c.CONFIG_WIDTH_RANGE_KEY);
-        return hasWidth ? self.hasRanges(config, c.CONFIG_WIDTH_RANGE_KEY) : false;
+    self.hasDelay = function(config) {
+        return config.hasOwnProperty(c.CONFIG_DELAY_KEY) ? self.isNumber(config[c.CONFIG_DELAY_KEY]) : false;
+    };
+
+    /**
+     * @param value
+     * @returns Boolean
+     */
+    self.isNumber = function(value) {
+        return !!value.toString().match(/^[\d.]+$/g)
+    };
+
+    /**
+     * @param config
+     * @param rangeKey
+     * @param showErrors
+     * @returns Boolean
+     */
+    self.hasRangesFor = function(config, rangeKey, showErrors = true) {
+        if (typeof config !== "object") return false;
+        if (self.hasConfig(config, rangeKey)) {
+            return self.hasRanges(config, rangeKey, showErrors);
+        }
+        return false;
+    };
+
+    /**
+     * @param config
+     * @param rangeKey
+     * @returns Boolean
+     */
+    self.hasConfig = function(config, rangeKey) {
+        return config.hasOwnProperty(rangeKey);
     };
 
     /**
@@ -66,16 +77,25 @@ let Validator = function() {
      *
      * @param config
      * @param key
+     * @param showErrors
      * @returns Boolean
      */
-    self.hasRanges = function(config, key) {
+    self.hasRanges = function(config, key, showErrors) {
+        let isValid = false;
         let hasFrom = config[key].hasOwnProperty(c.CONFIG_RANGE_KEY_FROM);
-        let isValidFrom = hasFrom ? isNumber(config[key][c.CONFIG_RANGE_KEY_FROM]) : false;
+        let isValidFrom = hasFrom ? self.isNumber(config[key][c.CONFIG_RANGE_KEY_FROM]) : false;
         let hasTo = config[key].hasOwnProperty(c.CONFIG_RANGE_KEY_TO);
-        let isValidTo = hasTo ? isNumber(config[key][c.CONFIG_RANGE_KEY_TO]) : false;
-        if (!isValidFrom) logError([key,c.CONFIG_RANGE_KEY_FROM]);
-        if (!isValidTo) logError([key,c.CONFIG_RANGE_KEY_TO]);
-        return isValidFrom && isValidTo;
+        let isValidTo = hasTo ? self.isNumber(config[key][c.CONFIG_RANGE_KEY_TO]) : false;
+
+        if (isValidFrom && isValidTo) {
+            isValid = config[key][c.CONFIG_RANGE_KEY_TO] >= config[key][c.CONFIG_RANGE_KEY_FROM];
+        }
+        if (showErrors) {
+            if (!isValidFrom) logError([key,c.CONFIG_RANGE_KEY_FROM]);
+            if (!isValidTo) logError([key,c.CONFIG_RANGE_KEY_TO]);
+            if (!isValid) logError([key]);
+        }
+        return isValid;
     };
 
 
