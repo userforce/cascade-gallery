@@ -96,6 +96,7 @@
                     this.image.styles.left = '-' + (this.getImagePropHeight() - this.getWrapperWidth()) / 2 + 'px';
                     return true;
                 }
+                console.log(this.config.images[this.index][c.CONFIG_GAP_KEY]);
             },
 
             /**

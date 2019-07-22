@@ -74,6 +74,9 @@
                 if (validator.hasDelay(this.options)) {
                     this.config[c.CONFIG_DELAY_KEY] = this.options[c.CONFIG_DELAY_KEY];
                 }
+                if (validator.hasGap(this.options)) {
+                    this.config[c.CONFIG_GAP_KEY] = this.options[c.CONFIG_GAP_KEY];
+                }
             },
 
             /**
@@ -120,8 +123,39 @@
                     loaded: false
                 };
                 this.currentImageIndex = index;
-
+                this.prepareGapStyles();
                 this.prepareCurrentLine();
+            },
+
+            /**
+             * Prepare gap configuration
+             */
+            prepareGapStyles() {
+                let gap = this.config[c.CONFIG_GAP_KEY];
+                if (gap > 0) {
+                    for(let index = this.lastLineStartIndex; index <= this.currentImageIndex; index++) {
+                        this.config.images[index][c.CONFIG_GAP_KEY] = {};
+                        this.config.images[index][c.CONFIG_GAP_KEY]['border-top-width'] = gap+'px';
+                        this.config.images[index][c.CONFIG_GAP_KEY]['border-right-width'] = gap+'px';
+                        if (this.isLastInTheLine(index)) {
+                            this.config.images[index][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';
+                        }
+                        if (index !== 0 && index === this.columnsAmount) {
+                            this.config.images[index-1][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';
+                        }
+
+                        if (this.isFirstLine()) {
+                            this.config.images[index][c.CONFIG_GAP_KEY]['border-top-width'] = '0px';
+                        }
+                    }
+                }
+            },
+
+            /**
+             * Check if the given image index is the last in the line
+             */
+            isLastInTheLine(index) {
+                return (this.columnsAmount > 0 && (this.columnsAmount + this.lastLineStartIndex) - 1 === index);
             },
 
             /**
@@ -388,13 +422,36 @@
             /**
              * After all configuration was prepared apply them to the DOM
              */
-            styles(index) {
-                return {
+            getStyles(index) {
+                let styles = {
                     width: this.config.images[index].width + 'px',
                     height: this.config.images[index].height + 'px',
                     left: this.config.images[index].left + 'px',
                     top: this.config.images[index].top + 'px'
+                };
+                styles = this.addGapStyles(styles, index);
+                return styles;
+            },
+
+            /**
+             * Add specific styles for the gap between columns
+             * @return Object
+             */
+            addGapStyles(styles, index) {
+                if (validator.hasGap(this.options)) {
+                    for (let key in this.config.images[index][c.CONFIG_GAP_KEY]) {
+                        styles[key] = this.config.images[index][c.CONFIG_GAP_KEY][key]
+                    }
+
+
+
+                    // styles['border-width'] = this.options[c.CONFIG_GAP_KEY]+'px';
+                    // if (this.config.images[index].hasOwnProperty(c.CONFIG_GAP_KEY)) {
+                    //
+                    // }
                 }
+
+                return styles;
             },
 
             /**
@@ -435,18 +492,18 @@
          :style="{ height: galleryHeight+'px' }">
         <div class="cascade-gallery-image-block"
              v-if="config.images[index]"
-             :style="styles(index)"
+             :style="getStyles(index)"
              v-for="(image, index) in images" >
             <cgl-image :images.sync="image['src']"
                        :config.sync="config"
                        :index="index"
                        :defaultIndex="image['default_index']">
             </cgl-image>
-<!--            <cgl-modal :images.sync="image['src']"-->
-<!--                       :config.sync="config"-->
-<!--                       :index="index"-->
-<!--                       :defaultIndex="image['default_index']">-->
-<!--            </cgl-modal>-->
+            <cgl-modal :images.sync="image['src']"
+                       :config.sync="config"
+                       :index="index"
+                       :defaultIndex="image['default_index']">
+            </cgl-modal>
         </div>
     </div>
 </template>
@@ -468,5 +525,6 @@
         position: absolute;
         left: 0;
         top: 0;
+        border: 0px solid transparent;
     }
 </style>

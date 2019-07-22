@@ -2,7 +2,7 @@ export default {
 
     // COMPONENTS
     LAYOUT_COMPONENT_NAME: "cgl-layout",
-    GALLERY_COMPONENT_NAME: "cgl-template",
+    GALLERY_COMPONENT_NAME: "cgl-gallery",
     MODAL_COMPONENT_NAME: "cgl-modal",
     IMAGE_COMPONENT_NAME: "cgl-image",
     SPINNER_COMPONENT_NAME: "cgl-spinner",
@@ -28,5 +28,7 @@ export default {
     // OTHER
     CONFIG_DELAY_KEY: 'appending-delay',
     CONFIG_APPENDING_DELAY: 75,
+    CONFIG_GAP_KEY: 'gap',
+    CONFIG_GAP: 0,
 
 }

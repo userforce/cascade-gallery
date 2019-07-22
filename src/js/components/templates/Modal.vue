@@ -10,22 +10,23 @@
         data() {
             return {
                 window: {
-                    width
+                    width: window.innerWidth,
+                    height: window.innerHeight
                 }
             };
         },
         mounted() {
             this.window.width = window.innerWidth;
             this.window.height = window.innerHeight;
-            window.onresize(this.resizeModal);
+
             this.prepareModal();
         },
         methods: {
             resizeModal(event) {
-                console.log(this.window.width);
+                //console.log(this.window.width);
             },
             prepareModal() {
-                console.log(this.window.width);
+                //console.log(this.window.width);
             }
         }
     }

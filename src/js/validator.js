@@ -40,6 +40,14 @@ let Validator = function() {
     };
 
     /**
+     * @param config
+     * @returns Boolean
+     */
+    self.hasGap = function(config) {
+        return config.hasOwnProperty(c.CONFIG_GAP_KEY) ? self.isNumber(config[c.CONFIG_GAP_KEY]) : false;
+    };
+
+    /**
      * @param value
      * @returns Boolean
      */
