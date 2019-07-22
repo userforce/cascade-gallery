@@ -12,4 +12,20 @@ export default {
     // CSS
     ANIMATION_CSS_CLASS_HIDE: "cgl-image-anim-hide",
     ANIMATION_CSS_CLASS_APPEND: "cgl-image-anim-append",
+
+    // CONFIG KEYS
+    CONFIG_WIDTH_RANGE_KEY: 'width-range',
+    CONFIG_HEIGHT_RANGE_KEY: 'height-range',
+
+    CONFIG_RANGE_KEY_FROM: 'min',
+    CONFIG_RANGE_KEY_TO: 'max',
+
+    // CONFIG VALUES
+    CONFIG_WIDTH_FROM: 200,
+    CONFIG_WIDTH_TO: 300,
+
+    // OTHER
+    CONFIG_DELAY_KEY: 'appending-delay',
+    CONFIG_APPENDING_DELAY: 75,
+
 }

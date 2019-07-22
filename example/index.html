@@ -5,10 +5,10 @@
     <script type="text/javascript" src="../dist/js/cascade-gallery.js"></script>
     <title>Cascade gallery</title>
 </head>
-<body style="padding: 0; margin: 0;">
+<body style="padding: 0; margin: 0; background: url('https://ibmachine.com/assets/frontend/img/background-header.png') repeat;">
 <div id="app">
     <div style="width: 1200px; margin: 0 auto;">
-        <cascade-gallery :images="images"></cascade-gallery>
+        <cascade-gallery :images="images" :config="config"></cascade-gallery>
         <button @click="addImages(5)">Add 5 images</button>
     </div>
 </div>
@@ -31,7 +31,43 @@
                 this.generateRandomConfig(),
                 this.generateRandomConfig(),
             ];
-            return { images: images };
+            return {
+                images: images,
+                config: {
+
+                    /**
+                     * milliseconds between loaded and for load images
+                     */
+                    'appending-delay': 150,
+
+                    /**
+                     * max and min for image width in pixels
+                     * min can't me bigger then max
+                     * the random number in between will be picked
+                     * both can be the same size
+                     * if it will be enough space to place last image after
+                     * all images will decay to min width last image will
+                     * take the width of the remained space.
+                     * defaults {max: 300, min: 200}
+                     */
+                    'width-range': {
+                        min: 350,
+                        max: 400
+                    },
+
+                    /**
+                     * max and min for image width in pixels (same as for width)
+                     *
+                     * for defaults is taken approximate image width for
+                     * the given (default) image min width and
+                     * sums it with it self fifth part.
+                     */
+                    'height-range': {
+                        min: 200,
+                        max: 240
+                    }
+                }
+            };
         },
         methods: {
             addImages(amount) {
@@ -41,9 +77,6 @@
             },
             generateRandomConfig() {
                 return {
-                    url: 'https://ibmachine.com/machine/view/7257',
-                    title: '<a href="https://ibmachine.com/machine/view/7257">Pharetra pharetra massa.</a>',
-                    description: this.getDescription(),
                     default_index: this.getRandomIndex(),
                     src: this.getImages()
                 };

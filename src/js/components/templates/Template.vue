@@ -1,16 +1,18 @@
 <script>
     import CascadeGalleryImage from '../Image.vue';
-    import constants from '../../constants';
+    import c from '../../constants';
+    import validator from '../../validator';
 
     export default {
-        name: constants.TEMPLATE_COMPONENT_NAME,
+        name: c.TEMPLATE_COMPONENT_NAME,
         components: (function(){
             let components = {};
-            components[constants.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;
+            components[c.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;
             return components;
         })(),
         props: {
-            images: { type: Array }
+            images: { type: Array },
+            options: { type: Object }
         },
         data() {
             return {
@@ -25,8 +27,8 @@
                 newImagesStartIndex: 0,
                 firstLineIsNotComplete: true,
                 config: {
-                    maxWidth: 300,
-                    minWidth: 200,
+                    maxWidth: c.CONFIG_WIDTH_TO,
+                    minWidth: c.CONFIG_WIDTH_FROM,
                     images: [],
                 },
                 window: {
@@ -38,7 +40,8 @@
         mounted() {
             this.window.width = this.$el.parentNode.offsetWidth;
             this.window.height = this.$el.parentNode.offsetHeight;
-            this.prepareImagesConfig();
+            this.prepareConfigOptions();
+            this.prepareConfigImages();
         },
         watch: {
             images() {
@@ -47,7 +50,20 @@
             }
         },
         methods: {
-            prepareImagesConfig() {
+            prepareConfigOptions() {
+                if (validator.hasRangesFor(this.options, c.CONFIG_WIDTH_RANGE_KEY, false)) {
+                    this.config.maxWidth = this.options[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_TO];
+                    this.config.minWidth = this.options[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_FROM];
+                }
+                if (validator.hasRangesFor(this.options, c.CONFIG_HEIGHT_RANGE_KEY, false)) {
+                    this.config.maxHeight = this.options[c.CONFIG_HEIGHT_RANGE_KEY][c.CONFIG_RANGE_KEY_TO];
+                    this.config.minHeight = this.options[c.CONFIG_HEIGHT_RANGE_KEY][c.CONFIG_RANGE_KEY_FROM];
+                }
+                if (validator.hasDelay(this.options)) {
+                    this.config[c.CONFIG_DELAY_KEY] = this.options[c.CONFIG_DELAY_KEY];
+                }
+            },
+            prepareConfigImages() {
                 for(let index in this.images) {
                     this.setNextImageConfig(index);
                 }
@@ -161,9 +177,12 @@
                 return this.getRandomNumber(this.config.minWidth, this.config.maxWidth);
             },
             getRandomHeight() {
-                let approximateLineLength = Math.round((this.window.width/this.config.minWidth) * 10) / 10;
-                let quarter = Math.round((this.window.width/approximateLineLength) * 10) / 10;
-                return quarter + this.getBacklash(quarter)*2;
+                if (!this.config.minHeight || !this.config.maxHeight) {
+                    let amountOfImages = Math.round((this.window.width/this.config.minWidth) * 10) / 10;
+                    let approximateImageWidth = Math.round((this.window.width/amountOfImages) * 10) / 10;
+                    return approximateImageWidth + this.getBacklash(approximateImageWidth);
+                }
+                return this.getRandomNumber(this.config.minHeight, this.config.maxHeight);
             },
             getLineWidth() {
                 let lineWidth = 0;
@@ -189,6 +208,7 @@
                         }
                         let limitReached = iterator === limit - 1;
                         if (limitReached) {
+                            console.log(this.getLastPartWidth());
                             return this.getLastPartWidth();
                         }
                         if (this.isAligned(width)) {
