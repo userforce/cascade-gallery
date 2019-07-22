@@ -1,7 +1,6 @@
 <script>
-    import CascadeGalleryLoader from './spinner/Spinner.vue';
-    import c from '../constants';
-    import validator from "../validator";
+    import CascadeGalleryLoader from '../spinner/Spinner.vue';
+    import c from '../../constants';
 
     export default {
         name: c.IMAGE_COMPONENT_NAME,
@@ -32,11 +31,21 @@
             };
         },
         methods: {
+
+            /**
+             * On image load prepare image config
+             * @param event
+             */
             loadConfig(event) {
                 this.image.element = event.target;
                 this.setImageStyles();
                 this.waitPreviousImage();
             },
+
+            /**
+             * Wait until previous image is loaded and
+             * just after that display the current one
+             */
             waitPreviousImage() {
                 let self = this;
                 let waitForPrevious = setInterval(function () {
@@ -47,6 +56,10 @@
                     }
                 }, 10);
             },
+
+            /**
+             * Display the image after a given delay time.
+             */
             showImage() {
                 let self = this;
                 self.animate();
@@ -54,9 +67,25 @@
                     self.setLoaded();
                 }, self.config[c.CONFIG_DELAY_KEY]);
             },
+
+            /**
+             * Loaded property is synced with Gallery that
+             * can be read in the next image which is
+             * waiting current one loading time
+             */
             setLoaded() {
                 this.config.images[this.index].loaded = true;
             },
+
+            /**
+             * Displays image in the best way, if the image is
+             * taller then image block it will proportionally
+             * set it by width otherwise will set it by height
+             * also align it by center the same way.
+             * @see this.getImagePropHeight()
+             * @see this.getImagePropWidth()
+             * @returns {boolean}
+             */
             setImageStyles() {
                 if (this.getImagePropHeight() < this.getWrapperWidth()) {
                     this.image.styles.width = '100%';
@@ -68,35 +97,86 @@
                     return true;
                 }
             },
+
+            /**
+             * Gets image height from element
+             * @returns Number
+             */
             getImageHeight() {
                 return this.image.element.offsetHeight;
             },
+
+            /**
+             * Gets image width from element
+             * @returns Number
+             */
             getImageWidth() {
                 return this.image.element.offsetWidth;
             },
+
+            /**
+             * Gets image block (parent) height from element
+             * @returns Number
+             */
             getWrapperHeight() {
                 return this.config.images[this.index].height;
             },
+
+            /**
+             * Gets image block (parent) width from element
+             * @returns Number
+             */
             getWrapperWidth() {
                 return this.config.images[this.index].width;
             },
+
+            /**
+             * Finds in advance the image height if it is
+             * proportionally resize to the (parent) image
+             * block height
+             * @returns Number
+             */
             getImagePropHeight() {
                 let diffHeightInPercentage = (100 * this.getImageWidth()) / this.getImageHeight();
                 return this.getWrapperHeight() * diffHeightInPercentage / 100;
             },
+
+            /**
+             * Finds in advance the image width if it was
+             * proportionally resized to the (parent) image
+             * block width
+             * @returns Number
+             */
             getImagePropWidth() {
                 let diffWidthInPercentage = (100 * this.getImageHeight()) / this.getImageWidth();
                 return this.getWrapperWidth() * diffWidthInPercentage / 100;
             },
+
+            /**
+             * Check if the image is the first in list
+             * @returns Boolean
+             */
             isFirstImage() {
                 return this.index == 0;
             },
+
+            /**
+             * Check if previous image was loaded
+             * @see this.waitPreviousImage()
+             * @returns Boolean
+             */
             previousImageLoaded() {
                 if (this.isFirstImage()) {
                     return true;
                 }
                 return this.config.images[this.index - 1].loaded;
             },
+
+            /**
+             * Add animation classes to the image
+             * TODO: css animations
+             * @returns Boolean
+             */
             animate() {
                 this.image.classes.push(c.ANIMATION_CSS_CLASS_APPEND);
             },
@@ -138,7 +218,6 @@
         position: relative;
         width: 100%;
         height: 100%;
-        border: 2px solid transparent;
     }
 
     .cgl-image .cgl-image-wrapper img {

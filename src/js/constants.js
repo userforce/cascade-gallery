@@ -2,7 +2,8 @@ export default {
 
     // COMPONENTS
     LAYOUT_COMPONENT_NAME: "cgl-layout",
-    TEMPLATE_COMPONENT_NAME: "cgl-template",
+    GALLERY_COMPONENT_NAME: "cgl-template",
+    MODAL_COMPONENT_NAME: "cgl-modal",
     IMAGE_COMPONENT_NAME: "cgl-image",
     SPINNER_COMPONENT_NAME: "cgl-spinner",
 

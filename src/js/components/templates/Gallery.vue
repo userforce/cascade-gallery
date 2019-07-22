@@ -1,13 +1,15 @@
 <script>
-    import CascadeGalleryImage from '../Image.vue';
+    import CascadeGalleryImage from './Image.vue';
+    import CascadeGalleryModal from './Modal.vue';
     import c from '../../constants';
     import validator from '../../validator';
 
     export default {
-        name: c.TEMPLATE_COMPONENT_NAME,
+        name: c.GALLERY_COMPONENT_NAME,
         components: (function(){
             let components = {};
             components[c.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;
+            components[c.MODAL_COMPONENT_NAME] = CascadeGalleryModal;
             return components;
         })(),
         props: {
@@ -208,7 +210,6 @@
                         }
                         let limitReached = iterator === limit - 1;
                         if (limitReached) {
-                            console.log(this.getLastPartWidth());
                             return this.getLastPartWidth();
                         }
                         if (this.isAligned(width)) {
@@ -282,11 +283,16 @@
                        :index="index"
                        :defaultIndex="image['default_index']">
             </cgl-image>
+<!--            <cgl-modal :images.sync="image['src']"-->
+<!--                       :config.sync="config"-->
+<!--                       :index="index"-->
+<!--                       :defaultIndex="image['default_index']">-->
+<!--            </cgl-modal>-->
         </div>
     </div>
 </template>
 
-<style scoped>
+<style>
     .cascade-gallery-columns-block{
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
@@ -301,6 +307,7 @@
         margin: 0;
         padding: 0;
         position: absolute;
-        overflow: hidden;
+        left: 0;
+        top: 0;
     }
 </style>

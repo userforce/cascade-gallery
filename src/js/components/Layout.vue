@@ -1,5 +1,5 @@
 <script>
-    import Template from './templates/Template.vue';
+    import CascadeGallery from './templates/Gallery.vue';
     import validator from '../validator';
     /**
      * For the purpose of keeping lines shorter use [c] letter
@@ -12,7 +12,7 @@
         name: c.LAYOUT_COMPONENT_NAME,
         components: (function(){
             let components = {};
-            components[c.TEMPLATE_COMPONENT_NAME] = Template;
+            components[c.GALLERY_COMPONENT_NAME] = CascadeGallery;
             return components;
         })(),
         props: {
@@ -84,6 +84,3 @@
         </div>
     </div>
 </template>
-
-<style>
-</style>
