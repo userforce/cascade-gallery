@@ -1,5 +1,5 @@
 <script>
-    import Template from './templates/Template.vue';
+    import CascadeGallery from './templates/Gallery.vue';
     import validator from '../validator';
     /**
      * For the purpose of keeping lines shorter use [c] letter
@@ -12,7 +12,7 @@
         name: c.LAYOUT_COMPONENT_NAME,
         components: (function(){
             let components = {};
-            components[c.TEMPLATE_COMPONENT_NAME] = Template;
+            components[c.GALLERY_COMPONENT_NAME] = CascadeGallery;
             return components;
         })(),
         props: {
@@ -32,8 +32,10 @@
             default_config[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_TO] = c.CONFIG_WIDTH_TO;
             // Set default height range
             default_config[c.CONFIG_HEIGHT_RANGE_KEY] = {};
-            // Set default animation range
+            // Set default animation delay
             default_config[c.CONFIG_DELAY_KEY] = c.CONFIG_APPENDING_DELAY;
+            // Set default animation range
+            default_config[c.CONFIG_GAP_KEY] = c.CONFIG_GAP;
             return {
                 default: default_config
             }
@@ -49,6 +51,7 @@
                 config[c.CONFIG_WIDTH_RANGE_KEY] = this.getRangeFor(this.config, c.CONFIG_WIDTH_RANGE_KEY);
                 config[c.CONFIG_HEIGHT_RANGE_KEY] = this.getRangeFor(this.config, c.CONFIG_HEIGHT_RANGE_KEY);
                 config[c.CONFIG_DELAY_KEY] = this.getDelay();
+                config[c.CONFIG_GAP_KEY] = this.getGap();
                 return config;
             },
 
@@ -60,6 +63,16 @@
                     return this.config[c.CONFIG_DELAY_KEY];
                 }
                 return this.default[c.CONFIG_DELAY_KEY];
+            },
+
+            /**
+             * @returns Number
+             */
+            getGap() {
+                if (validator.hasGap(this.config)) {
+                    return this.config[c.CONFIG_GAP_KEY];
+                }
+                return this.default[c.CONFIG_GAP_KEY];
             },
 
             /**
@@ -80,10 +93,7 @@
 <template>
     <div class="cascade-gallery">
         <div class="cascade-gallery-wrapper">
-            <cgl-template :images.sync="images" :options="getConfig()"></cgl-template>
+            <cgl-gallery :images.sync="images" :options="getConfig()"></cgl-gallery>
         </div>
     </div>
 </template>
-
-<style>
-</style>
