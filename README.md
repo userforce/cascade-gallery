@@ -23,7 +23,7 @@ components: {
 ```
 • prepare minimal configuration
 ```javascript
-config: [
+images: [
     {
         src: [
             'https://ibmachine.com/images/machine/87/7257/9004.jpg',
@@ -35,7 +35,7 @@ config: [
 ```
 • invoke cascade gallery
 ```javascript
-<cascade-gallery :images="config"></cascade-gallery>
+<cascade-gallery :images="images"></cascade-gallery>
 ```
 
 ### Configuration
