@@ -1,6 +1,5 @@
 <script>
     import CascadeGalleryImage from './Image.vue';
-    import CascadeGalleryModal from './Modal.vue';
     import c from '../../constants';
     import validator from '../../validator';
 
@@ -9,7 +8,6 @@
         components: (function(){
             let components = {};
             components[c.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;
-            components[c.MODAL_COMPONENT_NAME] = CascadeGalleryModal;
             return components;
         })(),
         props: {
@@ -212,7 +210,7 @@
              */
             getPositionX() {
                 let posX = 0;
-                if (this.currentImageIndex - this.lastLineStartIndex != 0) {
+                if (this.currentImageIndex - this.lastLineStartIndex !== 0) {
                     let previousImage = this.config.images[this.currentImageIndex - 1];
                     posX = previousImage.width + previousImage.left;
                 }
@@ -479,6 +477,10 @@
                     }
                 }
             },
+
+            test(index) {
+                console.log(this.config.images[index]);
+            }
         }
     }
 </script>
@@ -490,16 +492,10 @@
              v-if="config.images[index]"
              :style="getStyles(index)"
              v-for="(image, index) in images" >
-            <cgl-image :images.sync="image['src']"
+            <cgl-image :imagesData="image"
                        :config.sync="config"
-                       :index="index"
-                       :defaultIndex="image['default_index']">
+                       :index="index">
             </cgl-image>
-            <cgl-modal :images.sync="image['src']"
-                       :config.sync="config"
-                       :index="index"
-                       :defaultIndex="image['default_index']">
-            </cgl-modal>
         </div>
     </div>
 </template>

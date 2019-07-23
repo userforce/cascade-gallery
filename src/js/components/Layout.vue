@@ -16,9 +16,7 @@
             return components;
         })(),
         props: {
-            images: {
-                type: Array
-            },
+            images: { type: Array },
             config: {
                 type: Object,
                 validator: validator.validate

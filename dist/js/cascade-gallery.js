@@ -218,23 +218,175 @@ __vue_render__._withStripped = true;
     CONFIG_APPENDING_DELAY: 75,
     CONFIG_GAP_KEY: 'gap',
     CONFIG_GAP: 0,
+    DEFAULT_INDEX_KEY: 'default-index'
 
 };var script$1 = {
+    name: c.GALLERY_COMPONENT_NAME,
+    props: {
+        images: { type: Object },
+        config: { type: Object },
+        index: { type: Number },
+        defaultIndex: { type: Number }
+    },
+    data() {
+        return {
+            imageBlock: {},
+            currentImageIndex: this.defaultIndex,
+            diff: 0,
+            window: {
+                width: window.innerWidth,
+                height: window.innerHeight
+            },
+            styles: {
+                left: 0,
+                top: '200%'
+            },
+            transitionClass: 'cascade-gallery-modal-image-transition'
+        };
+    },
+    mounted() {
+        this.window.width = window.innerWidth;
+        this.window.height = window.innerHeight;
+    },
+    methods: {
+        /**
+         * 'closeModal' event is listened in the mounted method of the
+         * image component and it is closing the modal
+         */
+        closeModal() {
+            this.$parent.$emit('closeModal');
+        },
+
+        setImagePositionStyles() {
+
+        },
+
+        dragImage(event) {
+            let self = this;
+            self.addEventListeners(event.target, ["mousedown", "touchstart"], function(event) {
+                let imageLeft = event.target.offsetLeft;
+                let mouseLeft = null;
+                if (event.type === "touchstart") {
+                    mouseLeft = event.touches[0].pageX;
+                } else {
+                    mouseLeft = event.pageX;
+                }
+                self.diff = mouseLeft - imageLeft;
+                event.target.className = '';
+                self.addEventListeners(event.target, ["mousemove", "touchmove"], self.dragElement);
+            });
+            self.addEventListeners(event.target, ["mouseup", "touchend"], function(event) {
+                event.target.className = self.transitionClass;
+                event.target.removeEventListener("mousemove", self.dragElement);
+                event.target.removeEventListener("touchmove", self.dragElement);
+                self.setPosition(event);
+            });
+        },
+
+        dragElement(event) {
+            event.preventDefault();
+            let imageLeft = event.pageX - this.diff;
+            if (event.type === "touchmove") {
+                imageLeft = event.touches[0].pageX - this.diff;
+            }
+            this.setImagePositionX(imageLeft);
+        },
+
+        addEventListeners(target, events, listener) {
+            for (let index in events) {
+                let event = events[index];
+                target.addEventListener(events[index], listener, false);
+            }
+        },
+
+        setImagePositionX(position) {
+            this.styles.left = position.toString()+'px';
+        },
+
+        setPosition(event) {
+            this.styles.left = (event.target.parentNode.offsetWidth/2 - event.target.offsetWidth/2)+'px';
+            this.styles.top = (event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2)+'px';
+        },
+
+        prepareImage(event) {
+            this.setPosition(event);
+            this.dragImage(event);
+        }
+    }
+};/* script */
+const __vue_script__$1 = script$1;
+
+/* template */
+var __vue_render__$1 = function() {
+  var _vm = this;
+  var _h = _vm.$createElement;
+  var _c = _vm._self._c || _h;
+  return _c("div", { staticClass: "cascade-gallery-modal" }, [
+    _c(
+      "div",
+      { staticClass: "cascade-gallery-modal-image-wrapper" },
+      _vm._l(_vm.images.src, function(url, index) {
+        return _vm.currentImageIndex === index
+          ? _c("div", { staticClass: "cascade-gallery-modal-image" }, [
+              _c("img", {
+                staticClass: "cascade-gallery-modal-image-transition",
+                style: _vm.styles,
+                attrs: { src: url },
+                on: { load: _vm.prepareImage }
+              })
+            ])
+          : _vm._e()
+      }),
+      0
+    )
+  ])
+};
+var __vue_staticRenderFns__$1 = [];
+__vue_render__$1._withStripped = true;
+
+  /* style */
+  const __vue_inject_styles__$1 = function (inject) {
+    if (!inject) return
+    inject("data-v-c56ee738_0", { source: "\n.cascade-gallery-modal{\n    position: fixed;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    background: rgba(0,0,0,.8);\n    z-index: 5000;\n}\n.cascade-gallery-modal-image {\n    width: 100%;\n    height: 90%;\n    position: fixed;\n    top: 5%;\n    left: 0;\n}\n.cascade-gallery-modal-image img {\n    touch-action: none;\n    max-height: 100%;\n    max-width: 100%;\n    position: absolute;\n}\n.cascade-gallery-modal-image-transition {\n    -webkit-transition: left .34s ease-out;\n    -moz-transition: left .34s ease-out;\n    -o-transition: left .34s ease-out;\n    transition: left .34s ease-out;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Modal.vue"],"names":[],"mappings":";AAoHA;IACA,eAAA;IACA,OAAA;IACA,MAAA;IACA,WAAA;IACA,YAAA;IACA,0BAAA;IACA,aAAA;AACA;AACA;IACA,WAAA;IACA,WAAA;IACA,eAAA;IACA,OAAA;IACA,OAAA;AACA;AACA;IACA,kBAAA;IACA,gBAAA;IACA,eAAA;IACA,kBAAA;AACA;AACA;IACA,sCAAA;IACA,mCAAA;IACA,iCAAA;IACA,8BAAA;AACA","file":"Modal.vue","sourcesContent":["<script>\r\n    import c from '../../constants';\r\n\r\n    export default {\r\n        name: c.GALLERY_COMPONENT_NAME,\r\n        props: {\r\n            images: { type: Object },\r\n            config: { type: Object },\r\n            index: { type: Number },\r\n            defaultIndex: { type: Number }\r\n        },\r\n        data() {\r\n            return {\r\n                imageBlock: {},\r\n                currentImageIndex: this.defaultIndex,\r\n                diff: 0,\r\n                window: {\r\n                    width: window.innerWidth,\r\n                    height: window.innerHeight\r\n                },\r\n                styles: {\r\n                    left: 0,\r\n                    top: '200%'\r\n                },\r\n                transitionClass: 'cascade-gallery-modal-image-transition'\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.width = window.innerWidth;\r\n            this.window.height = window.innerHeight;\r\n        },\r\n        methods: {\r\n            /**\r\n             * 'closeModal' event is listened in the mounted method of the\r\n             * image component and it is closing the modal\r\n             */\r\n            closeModal() {\r\n                this.$parent.$emit('closeModal');\r\n            },\r\n\r\n            setImagePositionStyles() {\r\n\r\n            },\r\n\r\n            dragImage(event) {\r\n                let self = this;\r\n                let events = [\"touchstart\", \"mousedown\"];\r\n                self.addEventListeners(event.target, [\"mousedown\", \"touchstart\"], function(event) {\r\n                    let imageLeft = event.target.offsetLeft;\r\n                    let mouseLeft = null;\r\n                    if (event.type === \"touchstart\") {\r\n                        mouseLeft = event.touches[0].pageX;\r\n                    } else {\r\n                        mouseLeft = event.pageX;\r\n                    }\r\n                    self.diff = mouseLeft - imageLeft;\r\n                    event.target.className = '';\r\n                    self.addEventListeners(event.target, [\"mousemove\", \"touchmove\"], self.dragElement);\r\n                });\r\n                self.addEventListeners(event.target, [\"mouseup\", \"touchend\"], function(event) {\r\n                    event.target.className = self.transitionClass;\r\n                    event.target.removeEventListener(\"mousemove\", self.dragElement);\r\n                    event.target.removeEventListener(\"touchmove\", self.dragElement);\r\n                    self.setPosition(event);\r\n                });\r\n            },\r\n\r\n            dragElement(event) {\r\n                event.preventDefault();\r\n                let imageLeft = event.pageX - this.diff;\r\n                if (event.type === \"touchmove\") {\r\n                    imageLeft = event.touches[0].pageX - this.diff;\r\n                }\r\n                this.setImagePositionX(imageLeft);\r\n            },\r\n\r\n            addEventListeners(target, events, listener) {\r\n                for (let index in events) {\r\n                    let event = events[index];\r\n                    target.addEventListener(events[index], listener, false);\r\n                }\r\n            },\r\n\r\n            setImagePositionX(position) {\r\n                this.styles.left = position.toString()+'px';\r\n            },\r\n\r\n            setPosition(event) {\r\n                this.styles.left = (event.target.parentNode.offsetWidth/2 - event.target.offsetWidth/2)+'px';\r\n                this.styles.top = (event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2)+'px';\r\n            },\r\n\r\n            prepareImage(event) {\r\n                this.setPosition(event);\r\n                this.dragImage(event);\r\n            }\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-modal\">\r\n        <div class=\"cascade-gallery-modal-image-wrapper\">\r\n            <div class=\"cascade-gallery-modal-image\"\r\n                 v-for=\"(url, index) in images.src\"\r\n                 v-if=\"currentImageIndex === index\">\r\n                <img class=\"cascade-gallery-modal-image-transition\"\r\n                     :src=\"url\"\r\n                     :style=\"styles\"\r\n                     @load=\"prepareImage\"/>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cascade-gallery-modal{\r\n        position: fixed;\r\n        left: 0;\r\n        top: 0;\r\n        width: 100%;\r\n        height: 100%;\r\n        background: rgba(0,0,0,.8);\r\n        z-index: 5000;\r\n    }\r\n    .cascade-gallery-modal-image {\r\n        width: 100%;\r\n        height: 90%;\r\n        position: fixed;\r\n        top: 5%;\r\n        left: 0;\r\n    }\r\n    .cascade-gallery-modal-image img {\r\n        touch-action: none;\r\n        max-height: 100%;\r\n        max-width: 100%;\r\n        position: absolute;\r\n    }\r\n    .cascade-gallery-modal-image-transition {\r\n        -webkit-transition: left .34s ease-out;\r\n        -moz-transition: left .34s ease-out;\r\n        -o-transition: left .34s ease-out;\r\n        transition: left .34s ease-out;\r\n    }\r\n</style>"]}, media: undefined });
+
+  };
+  /* scoped */
+  const __vue_scope_id__$1 = undefined;
+  /* module identifier */
+  const __vue_module_identifier__$1 = undefined;
+  /* functional template */
+  const __vue_is_functional_template__$1 = false;
+  /* style inject SSR */
+  
+
+  
+  var CascadeGalleryModal = normalizeComponent_1(
+    { render: __vue_render__$1, staticRenderFns: __vue_staticRenderFns__$1 },
+    __vue_inject_styles__$1,
+    __vue_script__$1,
+    __vue_scope_id__$1,
+    __vue_is_functional_template__$1,
+    __vue_module_identifier__$1,
+    browser,
+    undefined
+  );var script$2 = {
     name: c.IMAGE_COMPONENT_NAME,
     components: (function(){
         let components = {};
         components[c.SPINNER_COMPONENT_NAME] = CascadeGalleryLoader;
+        components[c.MODAL_COMPONENT_NAME] = CascadeGalleryModal;
         return components;
     })(),
     props: {
-        images: {type: Array},
-        defaultIndex: {type: Number},
+        imagesData: {type: Object},
         config: {type: Object},
         index: {type: Number}
     },
     data() {
         return {
+            showModal: false,
             showSpinner: true,
+            defaultIndex: this.imagesData[c.DEFAULT_INDEX_KEY] ? this.imagesData[c.DEFAULT_INDEX_KEY] : 0,
             image: {
                 element: null,
                 styles: {
@@ -246,6 +398,12 @@ __vue_render__._withStripped = true;
                 classes: [c.ANIMATION_CSS_CLASS_HIDE]
             }
         };
+    },
+    mounted() {
+        let self = this;
+        this.$on('closeModal', function () {
+            self.setShowModal(false);
+        });
     },
     methods: {
 
@@ -313,7 +471,6 @@ __vue_render__._withStripped = true;
                 this.image.styles.left = '-' + (this.getImagePropHeight() - this.getWrapperWidth()) / 2 + 'px';
                 return true;
             }
-            console.log(this.config.images[this.index][c.CONFIG_GAP_KEY]);
         },
 
         /**
@@ -375,7 +532,7 @@ __vue_render__._withStripped = true;
          * @returns Boolean
          */
         isFirstImage() {
-            return this.index == 0;
+            return parseInt(this.index) === 0;
         },
 
         /**
@@ -398,107 +555,13 @@ __vue_render__._withStripped = true;
         animate() {
             this.image.classes.push(c.ANIMATION_CSS_CLASS_APPEND);
         },
-    }
-};/* script */
-const __vue_script__$1 = script$1;
 
-/* template */
-var __vue_render__$1 = function() {
-  var _vm = this;
-  var _h = _vm.$createElement;
-  var _c = _vm._self._c || _h;
-  return _c("div", { staticClass: "cgl-image" }, [
-    _c("div", { staticClass: "cgl-image-wrapper" }, [
-      _c("div", { staticClass: "cgl-image-back" }, [
-        _c("img", {
-          class: _vm.image.classes,
-          style: _vm.image.styles,
-          attrs: {
-            src: _vm.images[_vm.defaultIndex]
-              ? _vm.images[_vm.defaultIndex]
-              : _vm.images[0]
-          },
-          on: {
-            load: function($event) {
-              return _vm.loadConfig($event)
-            }
-          }
-        })
-      ]),
-      _vm._v(" "),
-      _c(
-        "div",
-        {
-          directives: [
-            {
-              name: "show",
-              rawName: "v-show",
-              value: _vm.showSpinner,
-              expression: "showSpinner"
-            }
-          ],
-          staticClass: "cgl-loader-box"
-        },
-        [_c("cgl-spinner")],
-        1
-      )
-    ])
-  ])
-};
-var __vue_staticRenderFns__$1 = [];
-__vue_render__$1._withStripped = true;
-
-  /* style */
-  const __vue_inject_styles__$1 = function (inject) {
-    if (!inject) return
-    inject("data-v-24e3a98a_0", { source: "\n.cgl-image {\n    width: 100%;\n    height: 100%;\n}\n.cgl-image * {\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n}\n.cgl-image .cgl-image-wrapper {\n    overflow: hidden;\n    position: relative;\n    width: 100%;\n    height: 100%;\n}\n.cgl-image .cgl-image-wrapper img {\n    position: absolute;\n}\n.cgl-image .cgl-image-wrapper .cgl-image-back {\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    background: rgba(0,0,0,0.08);\n    background: -moz-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\n    background: -webkit-gradient(left bottom, right top, color-stop(0%, rgba(0,0,0,0.08)), color-stop(46%, rgba(0,0,0,0.04)), color-stop(46%, rgba(0,0,0,0.04)), color-stop(100%, rgba(255,255,255,0.1)));\n    background: -webkit-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\n    background: -o-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\n    background: -ms-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\n    background: linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\n    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#ffffff', GradientType=1 );\n}\n.cgl-image .cgl-image-wrapper img.cgl-image-anim-hide {\n    opacity: 0;\n}\n.cgl-image .cgl-image-wrapper img.cgl-image-anim-append {\n    -webkit-transition: all .35s ease-in;\n    -moz-transition: all .35s ease-in;\n    -o-transition: all .35s ease-in;\n    transition: all .35s ease-in;\n    opacity: 1;\n}\n.cgl-image .cgl-image-wrapper .cgl-loader-box {\n    position: relative;\n    left: 50%;\n    margin-left: -15px;\n    top: 35%;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Image.vue"],"names":[],"mappings":";AA6MA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;AACA;AAEA;IACA,gBAAA;IACA,kBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,kBAAA;AACA;AAEA;IACA,kBAAA;IACA,OAAA;IACA,MAAA;IACA,WAAA;IACA,YAAA;IACA,4BAAA;IACA,oIAAA;IACA,qMAAA;IACA,uIAAA;IACA,kIAAA;IACA,mIAAA;IACA,+HAAA;IACA,oHAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,oCAAA;IACA,iCAAA;IACA,+BAAA;IACA,4BAAA;IACA,UAAA;AACA;AACA;IACA,kBAAA;IACA,SAAA;IACA,kBAAA;IACA,QAAA;AACA","file":"Image.vue","sourcesContent":["<script>\r\n    import CascadeGalleryLoader from '../spinner/Spinner.vue';\r\n    import c from '../../constants';\r\n\r\n    export default {\r\n        name: c.IMAGE_COMPONENT_NAME,\r\n        components: (function(){\r\n            let components = {};\r\n            components[c.SPINNER_COMPONENT_NAME] = CascadeGalleryLoader;\r\n            return components;\r\n        })(),\r\n        props: {\r\n            images: {type: Array},\r\n            defaultIndex: {type: Number},\r\n            config: {type: Object},\r\n            index: {type: Number}\r\n        },\r\n        data() {\r\n            return {\r\n                showSpinner: true,\r\n                image: {\r\n                    element: null,\r\n                    styles: {\r\n                        width: 'auto',\r\n                        height: 'auto',\r\n                        top: 0,\r\n                        left: 0\r\n                    },\r\n                    classes: [c.ANIMATION_CSS_CLASS_HIDE]\r\n                }\r\n            };\r\n        },\r\n        methods: {\r\n\r\n            /**\r\n             * On image load prepare image config\r\n             * @param event\r\n             */\r\n            loadConfig(event) {\r\n                this.image.element = event.target;\r\n                this.setImageStyles();\r\n                this.waitPreviousImage();\r\n            },\r\n\r\n            /**\r\n             * Wait until previous image is loaded and\r\n             * just after that display the current one\r\n             */\r\n            waitPreviousImage() {\r\n                let self = this;\r\n                let waitForPrevious = setInterval(function () {\r\n                    if (self.previousImageLoaded()) {\r\n                        self.showSpinner = false;\r\n                        self.showImage();\r\n                        clearInterval(waitForPrevious);\r\n                    }\r\n                }, 10);\r\n            },\r\n\r\n            /**\r\n             * Display the image after a given delay time.\r\n             */\r\n            showImage() {\r\n                let self = this;\r\n                self.animate();\r\n                let waitForPrevious = setTimeout(function () {\r\n                    self.setLoaded();\r\n                }, self.config[c.CONFIG_DELAY_KEY]);\r\n            },\r\n\r\n            /**\r\n             * Loaded property is synced with Gallery that\r\n             * can be read in the next image which is\r\n             * waiting current one loading time\r\n             */\r\n            setLoaded() {\r\n                this.config.images[this.index].loaded = true;\r\n            },\r\n\r\n            /**\r\n             * Displays image in the best way, if the image is\r\n             * taller then image block it will proportionally\r\n             * set it by width otherwise will set it by height\r\n             * also align it by center the same way.\r\n             * @see this.getImagePropHeight()\r\n             * @see this.getImagePropWidth()\r\n             * @returns {boolean}\r\n             */\r\n            setImageStyles() {\r\n                if (this.getImagePropHeight() < this.getWrapperWidth()) {\r\n                    this.image.styles.width = '100%';\r\n                    this.image.styles.top = '-' + (this.getImagePropWidth() - this.getWrapperHeight()) / 2 + 'px';\r\n                    return true;\r\n                } else {\r\n                    this.image.styles.height = '100%';\r\n                    this.image.styles.left = '-' + (this.getImagePropHeight() - this.getWrapperWidth()) / 2 + 'px';\r\n                    return true;\r\n                }\r\n                console.log(this.config.images[this.index][c.CONFIG_GAP_KEY]);\r\n            },\r\n\r\n            /**\r\n             * Gets image height from element\r\n             * @returns Number\r\n             */\r\n            getImageHeight() {\r\n                return this.image.element.offsetHeight;\r\n            },\r\n\r\n            /**\r\n             * Gets image width from element\r\n             * @returns Number\r\n             */\r\n            getImageWidth() {\r\n                return this.image.element.offsetWidth;\r\n            },\r\n\r\n            /**\r\n             * Gets image block (parent) height from element\r\n             * @returns Number\r\n             */\r\n            getWrapperHeight() {\r\n                return this.config.images[this.index].height;\r\n            },\r\n\r\n            /**\r\n             * Gets image block (parent) width from element\r\n             * @returns Number\r\n             */\r\n            getWrapperWidth() {\r\n                return this.config.images[this.index].width;\r\n            },\r\n\r\n            /**\r\n             * Finds in advance the image height if it is\r\n             * proportionally resize to the (parent) image\r\n             * block height\r\n             * @returns Number\r\n             */\r\n            getImagePropHeight() {\r\n                let diffHeightInPercentage = (100 * this.getImageWidth()) / this.getImageHeight();\r\n                return this.getWrapperHeight() * diffHeightInPercentage / 100;\r\n            },\r\n\r\n            /**\r\n             * Finds in advance the image width if it was\r\n             * proportionally resized to the (parent) image\r\n             * block width\r\n             * @returns Number\r\n             */\r\n            getImagePropWidth() {\r\n                let diffWidthInPercentage = (100 * this.getImageHeight()) / this.getImageWidth();\r\n                return this.getWrapperWidth() * diffWidthInPercentage / 100;\r\n            },\r\n\r\n            /**\r\n             * Check if the image is the first in list\r\n             * @returns Boolean\r\n             */\r\n            isFirstImage() {\r\n                return this.index == 0;\r\n            },\r\n\r\n            /**\r\n             * Check if previous image was loaded\r\n             * @see this.waitPreviousImage()\r\n             * @returns Boolean\r\n             */\r\n            previousImageLoaded() {\r\n                if (this.isFirstImage()) {\r\n                    return true;\r\n                }\r\n                return this.config.images[this.index - 1].loaded;\r\n            },\r\n\r\n            /**\r\n             * Add animation classes to the image\r\n             * TODO: css animations\r\n             * @returns Boolean\r\n             */\r\n            animate() {\r\n                this.image.classes.push(c.ANIMATION_CSS_CLASS_APPEND);\r\n            },\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cgl-image\">\r\n        <div class=\"cgl-image-wrapper\">\r\n            <div class=\"cgl-image-back\">\r\n                <img :src=\"images[defaultIndex]?images[defaultIndex]:images[0]\"\r\n                     :class=\"image.classes\"\r\n                     :style=\"image.styles\"\r\n                     @load=\"loadConfig($event)\"/>\r\n            </div>\r\n            <div class=\"cgl-loader-box\"\r\n                v-show=\"showSpinner\">\r\n                <cgl-spinner></cgl-spinner>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cgl-image {\r\n        width: 100%;\r\n        height: 100%;\r\n    }\r\n\r\n    .cgl-image * {\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n    }\r\n\r\n    .cgl-image .cgl-image-wrapper {\r\n        overflow: hidden;\r\n        position: relative;\r\n        width: 100%;\r\n        height: 100%;\r\n    }\r\n\r\n    .cgl-image .cgl-image-wrapper img {\r\n        position: absolute;\r\n    }\r\n\r\n    .cgl-image .cgl-image-wrapper .cgl-image-back {\r\n        position: absolute;\r\n        left: 0;\r\n        top: 0;\r\n        width: 100%;\r\n        height: 100%;\r\n        background: rgba(0,0,0,0.08);\r\n        background: -moz-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\r\n        background: -webkit-gradient(left bottom, right top, color-stop(0%, rgba(0,0,0,0.08)), color-stop(46%, rgba(0,0,0,0.04)), color-stop(46%, rgba(0,0,0,0.04)), color-stop(100%, rgba(255,255,255,0.1)));\r\n        background: -webkit-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\r\n        background: -o-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\r\n        background: -ms-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\r\n        background: linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\r\n        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#ffffff', GradientType=1 );\r\n    }\r\n\r\n    .cgl-image .cgl-image-wrapper img.cgl-image-anim-hide {\r\n        opacity: 0;\r\n    }\r\n\r\n    .cgl-image .cgl-image-wrapper img.cgl-image-anim-append {\r\n        -webkit-transition: all .35s ease-in;\r\n        -moz-transition: all .35s ease-in;\r\n        -o-transition: all .35s ease-in;\r\n        transition: all .35s ease-in;\r\n        opacity: 1;\r\n    }\r\n    .cgl-image .cgl-image-wrapper .cgl-loader-box {\r\n        position: relative;\r\n        left: 50%;\r\n        margin-left: -15px;\r\n        top: 35%;\r\n    }\r\n</style>"]}, media: undefined });
-
-  };
-  /* scoped */
-  const __vue_scope_id__$1 = undefined;
-  /* module identifier */
-  const __vue_module_identifier__$1 = undefined;
-  /* functional template */
-  const __vue_is_functional_template__$1 = false;
-  /* style inject SSR */
-  
-
-  
-  var CascadeGalleryImage = normalizeComponent_1(
-    { render: __vue_render__$1, staticRenderFns: __vue_staticRenderFns__$1 },
-    __vue_inject_styles__$1,
-    __vue_script__$1,
-    __vue_scope_id__$1,
-    __vue_is_functional_template__$1,
-    __vue_module_identifier__$1,
-    browser,
-    undefined
-  );var script$2 = {
-    name: c.GALLERY_COMPONENT_NAME,
-    props: {
-        images: { type: Array },
-        config: { type: Object }
-    },
-    data() {
-        return {
-            window: {
-                width: window.innerWidth,
-                height: window.innerHeight
-            }
-        };
-    },
-    mounted() {
-        this.window.width = window.innerWidth;
-        this.window.height = window.innerHeight;
-
-        this.prepareModal();
-    },
-    methods: {
-        resizeModal(event) {
-            //console.log(this.window.width);
-        },
-        prepareModal() {
-            //console.log(this.window.width);
+        /**
+         * Display image modal
+         * @param value
+         */
+        setShowModal(value) {
+            this.showModal = value;
         }
     }
 };/* script */
@@ -509,7 +572,66 @@ var __vue_render__$2 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
-  return _c("div", { staticClass: "cascade-gallery-modal" })
+  return _c(
+    "div",
+    { staticClass: "cgl-image" },
+    [
+      _c("div", { staticClass: "cgl-image-wrapper" }, [
+        _c("div", { staticClass: "cgl-image-back" }, [
+          _c("img", {
+            class: _vm.image.classes,
+            style: _vm.image.styles,
+            attrs: { src: _vm.imagesData.src[_vm.defaultIndex] },
+            on: {
+              load: function($event) {
+                return _vm.loadConfig($event)
+              },
+              click: function($event) {
+                return _vm.setShowModal(true)
+              }
+            }
+          })
+        ]),
+        _vm._v(" "),
+        _c(
+          "div",
+          {
+            directives: [
+              {
+                name: "show",
+                rawName: "v-show",
+                value: _vm.showSpinner,
+                expression: "showSpinner"
+              }
+            ],
+            staticClass: "cgl-loader-box"
+          },
+          [_c("cgl-spinner")],
+          1
+        )
+      ]),
+      _vm._v(" "),
+      _vm.showModal
+        ? _c("cgl-modal", {
+            attrs: {
+              images: _vm.imagesData,
+              config: _vm.config,
+              index: _vm.index,
+              defaultIndex: _vm.defaultIndex
+            },
+            on: {
+              "update:images": function($event) {
+                _vm.imagesData = $event;
+              },
+              "update:config": function($event) {
+                _vm.config = $event;
+              }
+            }
+          })
+        : _vm._e()
+    ],
+    1
+  )
 };
 var __vue_staticRenderFns__$2 = [];
 __vue_render__$2._withStripped = true;
@@ -517,7 +639,7 @@ __vue_render__$2._withStripped = true;
   /* style */
   const __vue_inject_styles__$2 = function (inject) {
     if (!inject) return
-    inject("data-v-34c5a30e_0", { source: "\n.cascade-gallery-modal{\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Modal.vue"],"names":[],"mappings":";AAyCA;AAEA","file":"Modal.vue","sourcesContent":["<script>\r\n    import c from '../../constants';\r\n\r\n    export default {\r\n        name: c.GALLERY_COMPONENT_NAME,\r\n        props: {\r\n            images: { type: Array },\r\n            config: { type: Object }\r\n        },\r\n        data() {\r\n            return {\r\n                window: {\r\n                    width: window.innerWidth,\r\n                    height: window.innerHeight\r\n                }\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.width = window.innerWidth;\r\n            this.window.height = window.innerHeight;\r\n\r\n            this.prepareModal();\r\n        },\r\n        methods: {\r\n            resizeModal(event) {\r\n                //console.log(this.window.width);\r\n            },\r\n            prepareModal() {\r\n                //console.log(this.window.width);\r\n            }\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-modal\">\r\n\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cascade-gallery-modal{\r\n\r\n    }\r\n</style>"]}, media: undefined });
+    inject("data-v-2c5a35d6_0", { source: "\n.cgl-image {\n    width: 100%;\n    height: 100%;\n}\n.cgl-image * {\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n}\n.cgl-image .cgl-image-wrapper {\n    overflow: hidden;\n    position: relative;\n    width: 100%;\n    height: 100%;\n}\n.cgl-image .cgl-image-wrapper img {\n    position: absolute;\n}\n.cgl-image .cgl-image-wrapper .cgl-image-back {\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    background: rgba(0,0,0,0.08);\n    background: -moz-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\n    background: -webkit-gradient(left bottom, right top, color-stop(0%, rgba(0,0,0,0.08)), color-stop(46%, rgba(0,0,0,0.04)), color-stop(46%, rgba(0,0,0,0.04)), color-stop(100%, rgba(255,255,255,0.1)));\n    background: -webkit-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\n    background: -o-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\n    background: -ms-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\n    background: linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\n    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#ffffff', GradientType=1 );\n}\n.cgl-image .cgl-image-wrapper img.cgl-image-anim-hide {\n    opacity: 0;\n}\n.cgl-image .cgl-image-wrapper img.cgl-image-anim-append {\n    -webkit-transition: all .35s ease-in;\n    -moz-transition: all .35s ease-in;\n    -o-transition: all .35s ease-in;\n    transition: all .35s ease-in;\n    opacity: 1;\n}\n.cgl-image .cgl-image-wrapper .cgl-loader-box {\n    position: relative;\n    left: 50%;\n    margin-left: -15px;\n    top: 35%;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Image.vue"],"names":[],"mappings":";AAoOA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;AACA;AAEA;IACA,gBAAA;IACA,kBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,kBAAA;AACA;AAEA;IACA,kBAAA;IACA,OAAA;IACA,MAAA;IACA,WAAA;IACA,YAAA;IACA,4BAAA;IACA,oIAAA;IACA,qMAAA;IACA,uIAAA;IACA,kIAAA;IACA,mIAAA;IACA,+HAAA;IACA,oHAAA;AACA;AAEA;IACA,UAAA;AACA;AAEA;IACA,oCAAA;IACA,iCAAA;IACA,+BAAA;IACA,4BAAA;IACA,UAAA;AACA;AACA;IACA,kBAAA;IACA,SAAA;IACA,kBAAA;IACA,QAAA;AACA","file":"Image.vue","sourcesContent":["<script>\r\n    import CascadeGalleryLoader from '../spinner/Spinner.vue';\r\n    import CascadeGalleryModal from './Modal.vue';\r\n    import c from '../../constants';\r\n\r\n    export default {\r\n        name: c.IMAGE_COMPONENT_NAME,\r\n        components: (function(){\r\n            let components = {};\r\n            components[c.SPINNER_COMPONENT_NAME] = CascadeGalleryLoader;\r\n            components[c.MODAL_COMPONENT_NAME] = CascadeGalleryModal;\r\n            return components;\r\n        })(),\r\n        props: {\r\n            imagesData: {type: Object},\r\n            config: {type: Object},\r\n            index: {type: Number}\r\n        },\r\n        data() {\r\n            return {\r\n                showModal: false,\r\n                showSpinner: true,\r\n                defaultIndex: this.imagesData[c.DEFAULT_INDEX_KEY] ? this.imagesData[c.DEFAULT_INDEX_KEY] : 0,\r\n                image: {\r\n                    element: null,\r\n                    styles: {\r\n                        width: 'auto',\r\n                        height: 'auto',\r\n                        top: 0,\r\n                        left: 0\r\n                    },\r\n                    classes: [c.ANIMATION_CSS_CLASS_HIDE]\r\n                }\r\n            };\r\n        },\r\n        mounted() {\r\n            let self = this;\r\n            this.$on('closeModal', function () {\r\n                self.setShowModal(false)\r\n            });\r\n        },\r\n        methods: {\r\n\r\n            /**\r\n             * On image load prepare image config\r\n             * @param event\r\n             */\r\n            loadConfig(event) {\r\n                this.image.element = event.target;\r\n                this.setImageStyles();\r\n                this.waitPreviousImage();\r\n            },\r\n\r\n            /**\r\n             * Wait until previous image is loaded and\r\n             * just after that display the current one\r\n             */\r\n            waitPreviousImage() {\r\n                let self = this;\r\n                let waitForPrevious = setInterval(function () {\r\n                    if (self.previousImageLoaded()) {\r\n                        self.showSpinner = false;\r\n                        self.showImage();\r\n                        clearInterval(waitForPrevious);\r\n                    }\r\n                }, 10);\r\n            },\r\n\r\n            /**\r\n             * Display the image after a given delay time.\r\n             */\r\n            showImage() {\r\n                let self = this;\r\n                self.animate();\r\n                let waitForPrevious = setTimeout(function () {\r\n                    self.setLoaded();\r\n                }, self.config[c.CONFIG_DELAY_KEY]);\r\n            },\r\n\r\n            /**\r\n             * Loaded property is synced with Gallery that\r\n             * can be read in the next image which is\r\n             * waiting current one loading time\r\n             */\r\n            setLoaded() {\r\n                this.config.images[this.index].loaded = true;\r\n            },\r\n\r\n            /**\r\n             * Displays image in the best way, if the image is\r\n             * taller then image block it will proportionally\r\n             * set it by width otherwise will set it by height\r\n             * also align it by center the same way.\r\n             * @see this.getImagePropHeight()\r\n             * @see this.getImagePropWidth()\r\n             * @returns {boolean}\r\n             */\r\n            setImageStyles() {\r\n                if (this.getImagePropHeight() < this.getWrapperWidth()) {\r\n                    this.image.styles.width = '100%';\r\n                    this.image.styles.top = '-' + (this.getImagePropWidth() - this.getWrapperHeight()) / 2 + 'px';\r\n                    return true;\r\n                } else {\r\n                    this.image.styles.height = '100%';\r\n                    this.image.styles.left = '-' + (this.getImagePropHeight() - this.getWrapperWidth()) / 2 + 'px';\r\n                    return true;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Gets image height from element\r\n             * @returns Number\r\n             */\r\n            getImageHeight() {\r\n                return this.image.element.offsetHeight;\r\n            },\r\n\r\n            /**\r\n             * Gets image width from element\r\n             * @returns Number\r\n             */\r\n            getImageWidth() {\r\n                return this.image.element.offsetWidth;\r\n            },\r\n\r\n            /**\r\n             * Gets image block (parent) height from element\r\n             * @returns Number\r\n             */\r\n            getWrapperHeight() {\r\n                return this.config.images[this.index].height;\r\n            },\r\n\r\n            /**\r\n             * Gets image block (parent) width from element\r\n             * @returns Number\r\n             */\r\n            getWrapperWidth() {\r\n                return this.config.images[this.index].width;\r\n            },\r\n\r\n            /**\r\n             * Finds in advance the image height if it is\r\n             * proportionally resize to the (parent) image\r\n             * block height\r\n             * @returns Number\r\n             */\r\n            getImagePropHeight() {\r\n                let diffHeightInPercentage = (100 * this.getImageWidth()) / this.getImageHeight();\r\n                return this.getWrapperHeight() * diffHeightInPercentage / 100;\r\n            },\r\n\r\n            /**\r\n             * Finds in advance the image width if it was\r\n             * proportionally resized to the (parent) image\r\n             * block width\r\n             * @returns Number\r\n             */\r\n            getImagePropWidth() {\r\n                let diffWidthInPercentage = (100 * this.getImageHeight()) / this.getImageWidth();\r\n                return this.getWrapperWidth() * diffWidthInPercentage / 100;\r\n            },\r\n\r\n            /**\r\n             * Check if the image is the first in list\r\n             * @returns Boolean\r\n             */\r\n            isFirstImage() {\r\n                return parseInt(this.index) === 0;\r\n            },\r\n\r\n            /**\r\n             * Check if previous image was loaded\r\n             * @see this.waitPreviousImage()\r\n             * @returns Boolean\r\n             */\r\n            previousImageLoaded() {\r\n                if (this.isFirstImage()) {\r\n                    return true;\r\n                }\r\n                return this.config.images[this.index - 1].loaded;\r\n            },\r\n\r\n            /**\r\n             * Add animation classes to the image\r\n             * TODO: css animations\r\n             * @returns Boolean\r\n             */\r\n            animate() {\r\n                this.image.classes.push(c.ANIMATION_CSS_CLASS_APPEND);\r\n            },\r\n\r\n            /**\r\n             * Display image modal\r\n             * @param value\r\n             */\r\n            setShowModal(value) {\r\n                this.showModal = value;\r\n            }\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cgl-image\">\r\n        <div class=\"cgl-image-wrapper\">\r\n            <div class=\"cgl-image-back\">\r\n                <img :src=\"imagesData.src[defaultIndex]\"\r\n                     :class=\"image.classes\"\r\n                     :style=\"image.styles\"\r\n                     @load=\"loadConfig($event)\"\r\n                     @click=\"setShowModal(true)\"/>\r\n            </div>\r\n            <div class=\"cgl-loader-box\"\r\n                v-show=\"showSpinner\">\r\n                <cgl-spinner></cgl-spinner>\r\n            </div>\r\n        </div>\r\n        <cgl-modal :images.sync=\"imagesData\"\r\n                   :config.sync=\"config\"\r\n                   :index=\"index\"\r\n                   :defaultIndex=\"defaultIndex\"\r\n                   v-if=\"showModal\">\r\n        </cgl-modal>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cgl-image {\r\n        width: 100%;\r\n        height: 100%;\r\n    }\r\n\r\n    .cgl-image * {\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n    }\r\n\r\n    .cgl-image .cgl-image-wrapper {\r\n        overflow: hidden;\r\n        position: relative;\r\n        width: 100%;\r\n        height: 100%;\r\n    }\r\n\r\n    .cgl-image .cgl-image-wrapper img {\r\n        position: absolute;\r\n    }\r\n\r\n    .cgl-image .cgl-image-wrapper .cgl-image-back {\r\n        position: absolute;\r\n        left: 0;\r\n        top: 0;\r\n        width: 100%;\r\n        height: 100%;\r\n        background: rgba(0,0,0,0.08);\r\n        background: -moz-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\r\n        background: -webkit-gradient(left bottom, right top, color-stop(0%, rgba(0,0,0,0.08)), color-stop(46%, rgba(0,0,0,0.04)), color-stop(46%, rgba(0,0,0,0.04)), color-stop(100%, rgba(255,255,255,0.1)));\r\n        background: -webkit-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\r\n        background: -o-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\r\n        background: -ms-linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\r\n        background: linear-gradient(45deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.04) 46%, rgba(0,0,0,0.04) 46%, rgba(255,255,255,0.1) 100%);\r\n        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#ffffff', GradientType=1 );\r\n    }\r\n\r\n    .cgl-image .cgl-image-wrapper img.cgl-image-anim-hide {\r\n        opacity: 0;\r\n    }\r\n\r\n    .cgl-image .cgl-image-wrapper img.cgl-image-anim-append {\r\n        -webkit-transition: all .35s ease-in;\r\n        -moz-transition: all .35s ease-in;\r\n        -o-transition: all .35s ease-in;\r\n        transition: all .35s ease-in;\r\n        opacity: 1;\r\n    }\r\n    .cgl-image .cgl-image-wrapper .cgl-loader-box {\r\n        position: relative;\r\n        left: 50%;\r\n        margin-left: -15px;\r\n        top: 35%;\r\n    }\r\n</style>"]}, media: undefined });
 
   };
   /* scoped */
@@ -530,7 +652,7 @@ __vue_render__$2._withStripped = true;
   
 
   
-  var CascadeGalleryModal = normalizeComponent_1(
+  var CascadeGalleryImage = normalizeComponent_1(
     { render: __vue_render__$2, staticRenderFns: __vue_staticRenderFns__$2 },
     __vue_inject_styles__$2,
     __vue_script__$2,
@@ -654,7 +776,6 @@ var validator = new Validator();var script$3 = {
     components: (function(){
         let components = {};
         components[c.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;
-        components[c.MODAL_COMPONENT_NAME] = CascadeGalleryModal;
         return components;
     })(),
     props: {
@@ -857,7 +978,7 @@ var validator = new Validator();var script$3 = {
          */
         getPositionX() {
             let posX = 0;
-            if (this.currentImageIndex - this.lastLineStartIndex != 0) {
+            if (this.currentImageIndex - this.lastLineStartIndex !== 0) {
                 let previousImage = this.config.images[this.currentImageIndex - 1];
                 posX = previousImage.width + previousImage.left;
             }
@@ -1124,6 +1245,10 @@ var validator = new Validator();var script$3 = {
                 }
             }
         },
+
+        test(index) {
+            console.log(this.config.images[index]);
+        }
     }
 };/* script */
 const __vue_script__$3 = script$3;
@@ -1149,33 +1274,8 @@ var __vue_render__$3 = function() {
             },
             [
               _c("cgl-image", {
-                attrs: {
-                  images: image["src"],
-                  config: _vm.config,
-                  index: index,
-                  defaultIndex: image["default_index"]
-                },
+                attrs: { imagesData: image, config: _vm.config, index: index },
                 on: {
-                  "update:images": function($event) {
-                    return _vm.$set(image, "src", $event)
-                  },
-                  "update:config": function($event) {
-                    _vm.config = $event;
-                  }
-                }
-              }),
-              _vm._v(" "),
-              _c("cgl-modal", {
-                attrs: {
-                  images: image["src"],
-                  config: _vm.config,
-                  index: index,
-                  defaultIndex: image["default_index"]
-                },
-                on: {
-                  "update:images": function($event) {
-                    return _vm.$set(image, "src", $event)
-                  },
                   "update:config": function($event) {
                     _vm.config = $event;
                   }
@@ -1195,7 +1295,7 @@ __vue_render__$3._withStripped = true;
   /* style */
   const __vue_inject_styles__$3 = function (inject) {
     if (!inject) return
-    inject("data-v-678886f9_0", { source: "\n.cascade-gallery-columns-block{\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n    width: 100%;\n    position: relative;\n}\n.cascade-gallery-image-block {\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n    margin: 0;\n    padding: 0;\n    position: absolute;\n    left: 0;\n    top: 0;\n    border: 0px solid transparent;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Gallery.vue"],"names":[],"mappings":";AA2fA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;IACA,WAAA;IACA,kBAAA;AACA;AACA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;IACA,SAAA;IACA,UAAA;IACA,kBAAA;IACA,OAAA;IACA,MAAA;IACA,6BAAA;AACA","file":"Gallery.vue","sourcesContent":["<script>\r\n    import CascadeGalleryImage from './Image.vue';\r\n    import CascadeGalleryModal from './Modal.vue';\r\n    import c from '../../constants';\r\n    import validator from '../../validator';\r\n\r\n    export default {\r\n        name: c.GALLERY_COMPONENT_NAME,\r\n        components: (function(){\r\n            let components = {};\r\n            components[c.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;\r\n            components[c.MODAL_COMPONENT_NAME] = CascadeGalleryModal;\r\n            return components;\r\n        })(),\r\n        props: {\r\n            images: { type: Array },\r\n            options: { type: Object }\r\n        },\r\n        data() {\r\n            return {\r\n                galleryHeight: 0,\r\n                lineIndex: 0,\r\n                columnsAmount: 0,\r\n                previousLineStartIndex: 0,\r\n                lastLineStartIndex: 0,\r\n                currentImageIndex: 0,\r\n                isEndOfTheLine: false,\r\n                hasNewImages: false,\r\n                newImagesStartIndex: 0,\r\n                firstLineIsNotComplete: true,\r\n                config: {\r\n                    maxWidth: c.CONFIG_WIDTH_TO,\r\n                    minWidth: c.CONFIG_WIDTH_FROM,\r\n                    images: [],\r\n                },\r\n                window: {\r\n                    width: 0,\r\n                    height: 0\r\n                }\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.width = this.$el.parentNode.offsetWidth;\r\n            this.window.height = this.$el.parentNode.offsetHeight;\r\n            this.prepareConfigOptions();\r\n            this.prepareConfigImages();\r\n        },\r\n        watch: {\r\n            /**\r\n             * Watch for the images list and add incoming images\r\n             * TODO: Rebuild configuration on image removing\r\n             */\r\n            images() {\r\n                this.addNewImages();\r\n                this.setGalleryHeight()\r\n            }\r\n        },\r\n        methods: {\r\n\r\n            /**\r\n             * Prepare configuration options\r\n             * Not all configuration options is handled in this\r\n             * method, just those that must be prepared in advance\r\n             */\r\n            prepareConfigOptions() {\r\n                if (validator.hasRangesFor(this.options, c.CONFIG_WIDTH_RANGE_KEY, false)) {\r\n                    this.config.maxWidth = this.options[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_TO];\r\n                    this.config.minWidth = this.options[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_FROM];\r\n                }\r\n                if (validator.hasRangesFor(this.options, c.CONFIG_HEIGHT_RANGE_KEY, false)) {\r\n                    this.config.maxHeight = this.options[c.CONFIG_HEIGHT_RANGE_KEY][c.CONFIG_RANGE_KEY_TO];\r\n                    this.config.minHeight = this.options[c.CONFIG_HEIGHT_RANGE_KEY][c.CONFIG_RANGE_KEY_FROM];\r\n                }\r\n                if (validator.hasDelay(this.options)) {\r\n                    this.config[c.CONFIG_DELAY_KEY] = this.options[c.CONFIG_DELAY_KEY];\r\n                }\r\n                if (validator.hasGap(this.options)) {\r\n                    this.config[c.CONFIG_GAP_KEY] = this.options[c.CONFIG_GAP_KEY];\r\n                }\r\n            },\r\n\r\n            /**\r\n             * After configuration options are ready apply them to\r\n             * the images block (parent)\r\n             * That is invoked just on mounting\r\n             * NOTE: By defining image configuration we meant image block\r\n             *       (parent) configuration so image it self can detect\r\n             *       future sizes or displaying modes\r\n             */\r\n            prepareConfigImages() {\r\n                for(let index in this.images) {\r\n                    this.setNextImageConfig(index);\r\n                }\r\n                let firstLineIsNotComplete = this.getLineWidth() < this.window.width && this.lineIndex < 1;\r\n                if(firstLineIsNotComplete) {\r\n                    let index = this.currentImageIndex;\r\n                    let limit = 5;\r\n                    let start = 0;\r\n                    while (this.firstLineIsNotComplete) {\r\n                        index++;\r\n                        this.setNextImageConfig(index);\r\n                        start++;\r\n                        if (start > limit) {\r\n                            break;\r\n                        }\r\n                    }\r\n                }\r\n                this.setGalleryHeight();\r\n            },\r\n\r\n            /**\r\n             * Sets configuration for the current image in the list\r\n             * @param index Given image index\r\n             */\r\n            setNextImageConfig(index) {\r\n                this.currentImageIndex = index;\r\n                /**\r\n                 * Before a setting the height we have to define widths\r\n                 * of the future columns (images in the first line)\r\n                 */\r\n                this.config.images[index] = {\r\n                    width: this.getWidth(),\r\n                    loaded: false\r\n                };\r\n                this.currentImageIndex = index;\r\n                this.prepareGapStyles();\r\n                this.prepareCurrentLine();\r\n            },\r\n\r\n            /**\r\n             * Prepare gap configuration\r\n             */\r\n            prepareGapStyles() {\r\n                let gap = this.config[c.CONFIG_GAP_KEY];\r\n                if (gap > 0) {\r\n                    for(let index = this.lastLineStartIndex; index <= this.currentImageIndex; index++) {\r\n                        this.config.images[index][c.CONFIG_GAP_KEY] = {};\r\n                        this.config.images[index][c.CONFIG_GAP_KEY]['border-top-width'] = gap+'px';\r\n                        this.config.images[index][c.CONFIG_GAP_KEY]['border-right-width'] = gap+'px';\r\n                        if (this.isLastInTheLine(index)) {\r\n                            this.config.images[index][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';\r\n                        }\r\n                        if (this.isFirstLine()) {\r\n                            this.config.images[index][c.CONFIG_GAP_KEY]['border-top-width'] = '0px';\r\n                        }\r\n                    }\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Check if the given image index is the last in the line\r\n             */\r\n            isLastInTheLine(index) {\r\n                return this.config.images[index].width + this.getLineWidth() === this.window.width;\r\n            },\r\n\r\n            /**\r\n             * After wee have all of the widths for given images we check\r\n             * the line order number that we left, and continue to set\r\n             * other image block properties\r\n             */\r\n            prepareCurrentLine() {\r\n                let startIndex = this.lastLineStartIndex;\r\n                if(this.isEndOfTheLine) {\r\n                    for(let index = startIndex; index < this.config.images.length; index++) {\r\n                        if (this.hasNewImages) {\r\n                            index = this.newImagesStartIndex;\r\n                            this.hasNewImages = false;\r\n                        }\r\n                        this.currentImageIndex = index;\r\n                        this.config.images[index].height = this.getHeight();\r\n                        this.config.images[index].left = this.getPositionX();\r\n                        this.config.images[index].top = this.getPositionY();\r\n                    }\r\n                    this.previousLineStartIndex = this.lastLineStartIndex;\r\n                    this.lastLineStartIndex = this.currentImageIndex + 1;\r\n                    this.lineIndex++;\r\n                    this.isEndOfTheLine = false;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * After new images was added to the images list we prepare the\r\n             * new state of gallery config and continue to build it\r\n             */\r\n            addNewImages() {\r\n                this.hasNewImages = true;\r\n                this.newImagesStartIndex = this.currentImageIndex+1;\r\n                this.prepareForNewImages();\r\n                for ( let index = this.newImagesStartIndex; index < this.images.length; index++ ) {\r\n                    this.setNextImageConfig(index);\r\n                }\r\n                this.setGalleryHeight();\r\n            },\r\n\r\n            /**\r\n             * Resets the state of the previous gallery configuration\r\n             * @see this.addNewImages()\r\n             */\r\n            prepareForNewImages() {\r\n                if (this.newImagesStartIndex%this.columnsAmount > 0) {\r\n                    this.lastLineStartIndex = this.previousLineStartIndex;\r\n                    this.previousLineStartIndex = this.lastLineStartIndex - this.columnsAmount;\r\n                    this.lineIndex--;\r\n                    this.isEndOfTheLine = false;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Detects left X axe position for the current image\r\n             * @returns Number\r\n             */\r\n            getPositionX() {\r\n                let posX = 0;\r\n                if (this.currentImageIndex - this.lastLineStartIndex != 0) {\r\n                    let previousImage = this.config.images[this.currentImageIndex - 1];\r\n                    posX = previousImage.width + previousImage.left;\r\n                }\r\n                return posX;\r\n            },\r\n\r\n            /**\r\n             * Detects top Y axe position for the current image\r\n             * @returns Number\r\n             */\r\n            getPositionY() {\r\n                let posY = 0;\r\n                if (!this.isFirstLine()) {\r\n                    let previousLineSibling = this.config.images[this.getPreviousLineSibling()];\r\n                    posY = previousLineSibling.height + previousLineSibling.top;\r\n                }\r\n                return posY;\r\n            },\r\n\r\n            /**\r\n             * Generate random/given height for the current image\r\n             * @returns Number\r\n             */\r\n            getHeight() {\r\n                return this.getRandomHeight();\r\n            },\r\n\r\n            /**\r\n             * Generates random width/given also if the generated width do\r\n             * not fit in the last remained portion of the parent block\r\n             * width all the images blocks will be adjusted\r\n             * @returns Number\r\n             */\r\n            getWidth() {\r\n                let width = this.getRandomWidth();\r\n                this.isEndOfTheLine = false;\r\n                if (!this.isFirstLine()) {\r\n                    this.columnsAmount = this.lastLineStartIndex - this.previousLineStartIndex;\r\n                    let previousLineSibling = this.config.images[this.getPreviousLineSibling()];\r\n                    width = previousLineSibling.width;\r\n                    let length = this.lastLineStartIndex - this.previousLineStartIndex;\r\n                    this.isEndOfTheLine = this.currentImageIndex == (length - 1) + this.lastLineStartIndex\r\n                        || this.currentImageIndex == this.images.length - 1;\r\n                    return width;\r\n                } else if(this.notEnoughSpaceInLine(width)) {\r\n                    this.isEndOfTheLine = true;\r\n                    this.firstLineIsNotComplete = false;\r\n                    return this.adjustSiblingsWidth(width);\r\n                }\r\n                return width;\r\n            },\r\n\r\n            /**\r\n             * Get the width for the current image block from the image block\r\n             * on the same order number of the previous line to keep the columns\r\n             * width equal in the each line\r\n             * TODO: display one image block in the tow lines\r\n             * @see this.getPreviousLineSibling()\r\n             * @returns Number\r\n             */\r\n            getCurrentImageWidth() {\r\n                let previousLineSibling = this.getPreviousLineSibling();\r\n                return this.config.images[previousLineSibling].width;\r\n            },\r\n\r\n            /**\r\n             * Find index of the previous line block image that has the\r\n             * same order number\r\n             * @see this.getCurrentImageWidth()\r\n             * @returns Number\r\n             */\r\n            getPreviousLineSibling() {\r\n                return this.previousLineStartIndex + ( this.currentImageIndex - this.lastLineStartIndex );\r\n            },\r\n\r\n            /**\r\n             * Generate random width in the given range\r\n             * @returns Number\r\n             */\r\n            getRandomWidth() {\r\n                return this.getRandomNumber(this.config.minWidth, this.config.maxWidth);\r\n            },\r\n\r\n            /**\r\n             * Generate random height in the given range. By default and average\r\n             * height will be picked base on images width range\r\n             * @returns Number\r\n             */\r\n            getRandomHeight() {\r\n                if (!this.config.minHeight || !this.config.maxHeight) {\r\n                    let amountOfImages = Math.round((this.window.width/this.config.minWidth) * 10) / 10;\r\n                    let approximateImageWidth = Math.round((this.window.width/amountOfImages) * 10) / 10;\r\n                    return approximateImageWidth + this.getBacklash(approximateImageWidth);\r\n                }\r\n                return this.getRandomNumber(this.config.minHeight, this.config.maxHeight);\r\n            },\r\n\r\n            /**\r\n             * Counts the current line width based on the current images\r\n             * blocks in the line widths sum\r\n             * @returns Number\r\n             */\r\n            getLineWidth() {\r\n                let lineWidth = 0;\r\n                for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {\r\n                    lineWidth += parseInt(this.config.images[index].width);\r\n                }\r\n                return lineWidth;\r\n            },\r\n\r\n            /**\r\n             * Checks if the sum of the width images blocks is to big to leave\r\n             * space for one another image\r\n             * @see this.getWidth()\r\n             * @returns Boolean\r\n             */\r\n            notEnoughSpaceInLine(width) {\r\n                return this.getLineWidth() + width + this.getBacklash(this.config.minWidth) > this.window.width;\r\n            },\r\n\r\n            /**\r\n             * Is used to add little bet more space to the last image in order\r\n             * to increase visual consistency on random width generating\r\n             * @see this.notEnoughSpaceInLine()\r\n             * @returns Number\r\n             */\r\n            getBacklash(width) {\r\n                return this.getRandomNumber(0, Math.round((width/5)));\r\n            },\r\n\r\n            /**\r\n             * After it was detected that last image block width has not enough\r\n             * space in the line other blocks width will be adjusted. If the\r\n             * given proportion are tow wide spreader and after minimize all images\r\n             * to the given minWidth it is still not enough space the remaining\r\n             * space in the line will be set as the current image with\r\n             * @returns Number\r\n             */\r\n            adjustSiblingsWidth(width) {\r\n                let limit = parseInt(this.config.maxWidth);\r\n                let iterator = 0;\r\n                while (!this.isAligned(width) && iterator < limit) {\r\n                    for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {\r\n                        let mustDecay = this.config.images[index].width > this.config.minWidth;\r\n                        if(mustDecay) {\r\n                            this.config.images[index].width = parseInt(this.config.images[index].width) - 1;\r\n                        }\r\n                        let limitReached = iterator === limit - 1;\r\n                        if (limitReached) {\r\n                            return this.getLastPartWidth();\r\n                        }\r\n                        if (this.isAligned(width)) {\r\n                            return width;\r\n                        }\r\n                    }\r\n                    iterator++;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Get the remaining width in the line\r\n             * @see this.adjustSiblingsWidth()\r\n             * @returns Number\r\n             */\r\n            getLastPartWidth() {\r\n                return this.window.width - this.getLineWidth()\r\n            },\r\n\r\n            /**\r\n             * Check if there is enough space for the last image block width\r\n             * @returns Boolean\r\n             */\r\n            isAligned(width) {\r\n                return width + this.getLineWidth() === this.window.width;\r\n            },\r\n\r\n            /**\r\n             * Get the difference between window and the current image blocks width\r\n             * @returns Number\r\n             */\r\n            getLineLengthDiff(width) {\r\n                return (this.getLineWidth() + width) - this.window.width;\r\n            },\r\n\r\n            /**\r\n             * Generates random number in the given range\r\n             * @returns Number\r\n             */\r\n            getRandomNumber(min, max) {\r\n                min = Math.ceil(min);\r\n                max = Math.floor(max);\r\n                return Math.floor(Math.random() * (max - min + 1)) + min;\r\n            },\r\n\r\n            /**\r\n             * Checks if the current line is the first\r\n             * @returns Boolean\r\n             */\r\n            isFirstLine() {\r\n                return !parseInt(this.lineIndex);\r\n            },\r\n\r\n            /**\r\n             * After all configuration was prepared apply them to the DOM\r\n             */\r\n            getStyles(index) {\r\n                let styles = {\r\n                    width: this.config.images[index].width + 'px',\r\n                    height: this.config.images[index].height + 'px',\r\n                    left: this.config.images[index].left + 'px',\r\n                    top: this.config.images[index].top + 'px'\r\n                };\r\n                styles = this.addGapStyles(styles, index);\r\n                return styles;\r\n            },\r\n\r\n            /**\r\n             * Add specific styles for the gap between columns\r\n             * @return Object\r\n             */\r\n            addGapStyles(styles, index) {\r\n                if (validator.hasGap(this.options)) {\r\n                    for (let key in this.config.images[index][c.CONFIG_GAP_KEY]) {\r\n                        styles[key] = this.config.images[index][c.CONFIG_GAP_KEY][key]\r\n                    }\r\n\r\n\r\n\r\n                    // styles['border-width'] = this.options[c.CONFIG_GAP_KEY]+'px';\r\n                    // if (this.config.images[index].hasOwnProperty(c.CONFIG_GAP_KEY)) {\r\n                    //\r\n                    // }\r\n                }\r\n\r\n                return styles;\r\n            },\r\n\r\n            /**\r\n             * Finds the tallest column and sets the height of the gallery\r\n             * That needs as an workaround to the css position absolute of\r\n             * the gallery wrapper\r\n             * @returns Number\r\n             */\r\n            setGalleryHeight() {\r\n                let columnsHeights = [];\r\n                let currentColumn = 0;\r\n                if (this.columnsAmount < 1) {\r\n                    this.columnsAmount = this.config.images.length;\r\n                }\r\n                for (let imageIndex in this.config.images) {\r\n                    let image = this.config.images[imageIndex];\r\n                    if (currentColumn >= this.columnsAmount) {\r\n                        currentColumn = 0;\r\n                    }\r\n                    if (!columnsHeights[currentColumn]) {\r\n                        columnsHeights[currentColumn] = 0;\r\n                    }\r\n                    columnsHeights[currentColumn] += image.height;\r\n                    currentColumn++;\r\n                }\r\n                for (let index in columnsHeights) {\r\n                    if (columnsHeights[index] > this.galleryHeight) {\r\n                        this.galleryHeight = columnsHeights[index];\r\n                    }\r\n                }\r\n            },\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-columns-block\"\r\n         :style=\"{ height: galleryHeight+'px' }\">\r\n        <div class=\"cascade-gallery-image-block\"\r\n             v-if=\"config.images[index]\"\r\n             :style=\"getStyles(index)\"\r\n             v-for=\"(image, index) in images\" >\r\n            <cgl-image :images.sync=\"image['src']\"\r\n                       :config.sync=\"config\"\r\n                       :index=\"index\"\r\n                       :defaultIndex=\"image['default_index']\">\r\n            </cgl-image>\r\n            <cgl-modal :images.sync=\"image['src']\"\r\n                       :config.sync=\"config\"\r\n                       :index=\"index\"\r\n                       :defaultIndex=\"image['default_index']\">\r\n            </cgl-modal>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cascade-gallery-columns-block{\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n        width: 100%;\r\n        position: relative;\r\n    }\r\n    .cascade-gallery-image-block {\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n        margin: 0;\r\n        padding: 0;\r\n        position: absolute;\r\n        left: 0;\r\n        top: 0;\r\n        border: 0px solid transparent;\r\n    }\r\n</style>"]}, media: undefined });
+    inject("data-v-1ae836ec_0", { source: "\n.cascade-gallery-columns-block{\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n    width: 100%;\n    position: relative;\n}\n.cascade-gallery-image-block {\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n    margin: 0;\n    padding: 0;\n    position: absolute;\n    left: 0;\n    top: 0;\n    border: 0px solid transparent;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Gallery.vue"],"names":[],"mappings":";AAufA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;IACA,WAAA;IACA,kBAAA;AACA;AACA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;IACA,SAAA;IACA,UAAA;IACA,kBAAA;IACA,OAAA;IACA,MAAA;IACA,6BAAA;AACA","file":"Gallery.vue","sourcesContent":["<script>\r\n    import CascadeGalleryImage from './Image.vue';\r\n    import c from '../../constants';\r\n    import validator from '../../validator';\r\n\r\n    export default {\r\n        name: c.GALLERY_COMPONENT_NAME,\r\n        components: (function(){\r\n            let components = {};\r\n            components[c.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;\r\n            return components;\r\n        })(),\r\n        props: {\r\n            images: { type: Array },\r\n            options: { type: Object }\r\n        },\r\n        data() {\r\n            return {\r\n                galleryHeight: 0,\r\n                lineIndex: 0,\r\n                columnsAmount: 0,\r\n                previousLineStartIndex: 0,\r\n                lastLineStartIndex: 0,\r\n                currentImageIndex: 0,\r\n                isEndOfTheLine: false,\r\n                hasNewImages: false,\r\n                newImagesStartIndex: 0,\r\n                firstLineIsNotComplete: true,\r\n                config: {\r\n                    maxWidth: c.CONFIG_WIDTH_TO,\r\n                    minWidth: c.CONFIG_WIDTH_FROM,\r\n                    images: [],\r\n                },\r\n                window: {\r\n                    width: 0,\r\n                    height: 0\r\n                }\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.width = this.$el.parentNode.offsetWidth;\r\n            this.window.height = this.$el.parentNode.offsetHeight;\r\n            this.prepareConfigOptions();\r\n            this.prepareConfigImages();\r\n        },\r\n        watch: {\r\n            /**\r\n             * Watch for the images list and add incoming images\r\n             * TODO: Rebuild configuration on image removing\r\n             */\r\n            images() {\r\n                this.addNewImages();\r\n                this.setGalleryHeight()\r\n            }\r\n        },\r\n        methods: {\r\n\r\n            /**\r\n             * Prepare configuration options\r\n             * Not all configuration options is handled in this\r\n             * method, just those that must be prepared in advance\r\n             */\r\n            prepareConfigOptions() {\r\n                if (validator.hasRangesFor(this.options, c.CONFIG_WIDTH_RANGE_KEY, false)) {\r\n                    this.config.maxWidth = this.options[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_TO];\r\n                    this.config.minWidth = this.options[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_FROM];\r\n                }\r\n                if (validator.hasRangesFor(this.options, c.CONFIG_HEIGHT_RANGE_KEY, false)) {\r\n                    this.config.maxHeight = this.options[c.CONFIG_HEIGHT_RANGE_KEY][c.CONFIG_RANGE_KEY_TO];\r\n                    this.config.minHeight = this.options[c.CONFIG_HEIGHT_RANGE_KEY][c.CONFIG_RANGE_KEY_FROM];\r\n                }\r\n                if (validator.hasDelay(this.options)) {\r\n                    this.config[c.CONFIG_DELAY_KEY] = this.options[c.CONFIG_DELAY_KEY];\r\n                }\r\n                if (validator.hasGap(this.options)) {\r\n                    this.config[c.CONFIG_GAP_KEY] = this.options[c.CONFIG_GAP_KEY];\r\n                }\r\n            },\r\n\r\n            /**\r\n             * After configuration options are ready apply them to\r\n             * the images block (parent)\r\n             * That is invoked just on mounting\r\n             * NOTE: By defining image configuration we meant image block\r\n             *       (parent) configuration so image it self can detect\r\n             *       future sizes or displaying modes\r\n             */\r\n            prepareConfigImages() {\r\n                for(let index in this.images) {\r\n                    this.setNextImageConfig(index);\r\n                }\r\n                let firstLineIsNotComplete = this.getLineWidth() < this.window.width && this.lineIndex < 1;\r\n                if(firstLineIsNotComplete) {\r\n                    let index = this.currentImageIndex;\r\n                    let limit = 5;\r\n                    let start = 0;\r\n                    while (this.firstLineIsNotComplete) {\r\n                        index++;\r\n                        this.setNextImageConfig(index);\r\n                        start++;\r\n                        if (start > limit) {\r\n                            break;\r\n                        }\r\n                    }\r\n                }\r\n                this.setGalleryHeight();\r\n            },\r\n\r\n            /**\r\n             * Sets configuration for the current image in the list\r\n             * @param index Given image index\r\n             */\r\n            setNextImageConfig(index) {\r\n                this.currentImageIndex = index;\r\n                /**\r\n                 * Before a setting the height we have to define widths\r\n                 * of the future columns (images in the first line)\r\n                 */\r\n                this.config.images[index] = {\r\n                    width: this.getWidth(),\r\n                    loaded: false\r\n                };\r\n                this.currentImageIndex = index;\r\n                this.prepareGapStyles();\r\n                this.prepareCurrentLine();\r\n            },\r\n\r\n            /**\r\n             * Prepare gap configuration\r\n             */\r\n            prepareGapStyles() {\r\n                let gap = this.config[c.CONFIG_GAP_KEY];\r\n                if (gap > 0) {\r\n                    for(let index = this.lastLineStartIndex; index <= this.currentImageIndex; index++) {\r\n                        this.config.images[index][c.CONFIG_GAP_KEY] = {};\r\n                        this.config.images[index][c.CONFIG_GAP_KEY]['border-top-width'] = gap+'px';\r\n                        this.config.images[index][c.CONFIG_GAP_KEY]['border-right-width'] = gap+'px';\r\n                        if (this.isLastInTheLine(index)) {\r\n                            this.config.images[index][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';\r\n                        }\r\n                        if (this.isFirstLine()) {\r\n                            this.config.images[index][c.CONFIG_GAP_KEY]['border-top-width'] = '0px';\r\n                        }\r\n                    }\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Check if the given image index is the last in the line\r\n             */\r\n            isLastInTheLine(index) {\r\n                return this.config.images[index].width + this.getLineWidth() === this.window.width;\r\n            },\r\n\r\n            /**\r\n             * After wee have all of the widths for given images we check\r\n             * the line order number that we left, and continue to set\r\n             * other image block properties\r\n             */\r\n            prepareCurrentLine() {\r\n                let startIndex = this.lastLineStartIndex;\r\n                if(this.isEndOfTheLine) {\r\n                    for(let index = startIndex; index < this.config.images.length; index++) {\r\n                        if (this.hasNewImages) {\r\n                            index = this.newImagesStartIndex;\r\n                            this.hasNewImages = false;\r\n                        }\r\n                        this.currentImageIndex = index;\r\n                        this.config.images[index].height = this.getHeight();\r\n                        this.config.images[index].left = this.getPositionX();\r\n                        this.config.images[index].top = this.getPositionY();\r\n                    }\r\n                    this.previousLineStartIndex = this.lastLineStartIndex;\r\n                    this.lastLineStartIndex = this.currentImageIndex + 1;\r\n                    this.lineIndex++;\r\n                    this.isEndOfTheLine = false;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * After new images was added to the images list we prepare the\r\n             * new state of gallery config and continue to build it\r\n             */\r\n            addNewImages() {\r\n                this.hasNewImages = true;\r\n                this.newImagesStartIndex = this.currentImageIndex+1;\r\n                this.prepareForNewImages();\r\n                for ( let index = this.newImagesStartIndex; index < this.images.length; index++ ) {\r\n                    this.setNextImageConfig(index);\r\n                }\r\n                this.setGalleryHeight();\r\n            },\r\n\r\n            /**\r\n             * Resets the state of the previous gallery configuration\r\n             * @see this.addNewImages()\r\n             */\r\n            prepareForNewImages() {\r\n                if (this.newImagesStartIndex%this.columnsAmount > 0) {\r\n                    this.lastLineStartIndex = this.previousLineStartIndex;\r\n                    this.previousLineStartIndex = this.lastLineStartIndex - this.columnsAmount;\r\n                    this.lineIndex--;\r\n                    this.isEndOfTheLine = false;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Detects left X axe position for the current image\r\n             * @returns Number\r\n             */\r\n            getPositionX() {\r\n                let posX = 0;\r\n                if (this.currentImageIndex - this.lastLineStartIndex !== 0) {\r\n                    let previousImage = this.config.images[this.currentImageIndex - 1];\r\n                    posX = previousImage.width + previousImage.left;\r\n                }\r\n                return posX;\r\n            },\r\n\r\n            /**\r\n             * Detects top Y axe position for the current image\r\n             * @returns Number\r\n             */\r\n            getPositionY() {\r\n                let posY = 0;\r\n                if (!this.isFirstLine()) {\r\n                    let previousLineSibling = this.config.images[this.getPreviousLineSibling()];\r\n                    posY = previousLineSibling.height + previousLineSibling.top;\r\n                }\r\n                return posY;\r\n            },\r\n\r\n            /**\r\n             * Generate random/given height for the current image\r\n             * @returns Number\r\n             */\r\n            getHeight() {\r\n                return this.getRandomHeight();\r\n            },\r\n\r\n            /**\r\n             * Generates random width/given also if the generated width do\r\n             * not fit in the last remained portion of the parent block\r\n             * width all the images blocks will be adjusted\r\n             * @returns Number\r\n             */\r\n            getWidth() {\r\n                let width = this.getRandomWidth();\r\n                this.isEndOfTheLine = false;\r\n                if (!this.isFirstLine()) {\r\n                    this.columnsAmount = this.lastLineStartIndex - this.previousLineStartIndex;\r\n                    let previousLineSibling = this.config.images[this.getPreviousLineSibling()];\r\n                    width = previousLineSibling.width;\r\n                    let length = this.lastLineStartIndex - this.previousLineStartIndex;\r\n                    this.isEndOfTheLine = this.currentImageIndex == (length - 1) + this.lastLineStartIndex\r\n                        || this.currentImageIndex == this.images.length - 1;\r\n                    return width;\r\n                } else if(this.notEnoughSpaceInLine(width)) {\r\n                    this.isEndOfTheLine = true;\r\n                    this.firstLineIsNotComplete = false;\r\n                    return this.adjustSiblingsWidth(width);\r\n                }\r\n                return width;\r\n            },\r\n\r\n            /**\r\n             * Get the width for the current image block from the image block\r\n             * on the same order number of the previous line to keep the columns\r\n             * width equal in the each line\r\n             * TODO: display one image block in the tow lines\r\n             * @see this.getPreviousLineSibling()\r\n             * @returns Number\r\n             */\r\n            getCurrentImageWidth() {\r\n                let previousLineSibling = this.getPreviousLineSibling();\r\n                return this.config.images[previousLineSibling].width;\r\n            },\r\n\r\n            /**\r\n             * Find index of the previous line block image that has the\r\n             * same order number\r\n             * @see this.getCurrentImageWidth()\r\n             * @returns Number\r\n             */\r\n            getPreviousLineSibling() {\r\n                return this.previousLineStartIndex + ( this.currentImageIndex - this.lastLineStartIndex );\r\n            },\r\n\r\n            /**\r\n             * Generate random width in the given range\r\n             * @returns Number\r\n             */\r\n            getRandomWidth() {\r\n                return this.getRandomNumber(this.config.minWidth, this.config.maxWidth);\r\n            },\r\n\r\n            /**\r\n             * Generate random height in the given range. By default and average\r\n             * height will be picked base on images width range\r\n             * @returns Number\r\n             */\r\n            getRandomHeight() {\r\n                if (!this.config.minHeight || !this.config.maxHeight) {\r\n                    let amountOfImages = Math.round((this.window.width/this.config.minWidth) * 10) / 10;\r\n                    let approximateImageWidth = Math.round((this.window.width/amountOfImages) * 10) / 10;\r\n                    return approximateImageWidth + this.getBacklash(approximateImageWidth);\r\n                }\r\n                return this.getRandomNumber(this.config.minHeight, this.config.maxHeight);\r\n            },\r\n\r\n            /**\r\n             * Counts the current line width based on the current images\r\n             * blocks in the line widths sum\r\n             * @returns Number\r\n             */\r\n            getLineWidth() {\r\n                let lineWidth = 0;\r\n                for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {\r\n                    lineWidth += parseInt(this.config.images[index].width);\r\n                }\r\n                return lineWidth;\r\n            },\r\n\r\n            /**\r\n             * Checks if the sum of the width images blocks is to big to leave\r\n             * space for one another image\r\n             * @see this.getWidth()\r\n             * @returns Boolean\r\n             */\r\n            notEnoughSpaceInLine(width) {\r\n                return this.getLineWidth() + width + this.getBacklash(this.config.minWidth) > this.window.width;\r\n            },\r\n\r\n            /**\r\n             * Is used to add little bet more space to the last image in order\r\n             * to increase visual consistency on random width generating\r\n             * @see this.notEnoughSpaceInLine()\r\n             * @returns Number\r\n             */\r\n            getBacklash(width) {\r\n                return this.getRandomNumber(0, Math.round((width/5)));\r\n            },\r\n\r\n            /**\r\n             * After it was detected that last image block width has not enough\r\n             * space in the line other blocks width will be adjusted. If the\r\n             * given proportion are tow wide spreader and after minimize all images\r\n             * to the given minWidth it is still not enough space the remaining\r\n             * space in the line will be set as the current image with\r\n             * @returns Number\r\n             */\r\n            adjustSiblingsWidth(width) {\r\n                let limit = parseInt(this.config.maxWidth);\r\n                let iterator = 0;\r\n                while (!this.isAligned(width) && iterator < limit) {\r\n                    for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {\r\n                        let mustDecay = this.config.images[index].width > this.config.minWidth;\r\n                        if(mustDecay) {\r\n                            this.config.images[index].width = parseInt(this.config.images[index].width) - 1;\r\n                        }\r\n                        let limitReached = iterator === limit - 1;\r\n                        if (limitReached) {\r\n                            return this.getLastPartWidth();\r\n                        }\r\n                        if (this.isAligned(width)) {\r\n                            return width;\r\n                        }\r\n                    }\r\n                    iterator++;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Get the remaining width in the line\r\n             * @see this.adjustSiblingsWidth()\r\n             * @returns Number\r\n             */\r\n            getLastPartWidth() {\r\n                return this.window.width - this.getLineWidth()\r\n            },\r\n\r\n            /**\r\n             * Check if there is enough space for the last image block width\r\n             * @returns Boolean\r\n             */\r\n            isAligned(width) {\r\n                return width + this.getLineWidth() === this.window.width;\r\n            },\r\n\r\n            /**\r\n             * Get the difference between window and the current image blocks width\r\n             * @returns Number\r\n             */\r\n            getLineLengthDiff(width) {\r\n                return (this.getLineWidth() + width) - this.window.width;\r\n            },\r\n\r\n            /**\r\n             * Generates random number in the given range\r\n             * @returns Number\r\n             */\r\n            getRandomNumber(min, max) {\r\n                min = Math.ceil(min);\r\n                max = Math.floor(max);\r\n                return Math.floor(Math.random() * (max - min + 1)) + min;\r\n            },\r\n\r\n            /**\r\n             * Checks if the current line is the first\r\n             * @returns Boolean\r\n             */\r\n            isFirstLine() {\r\n                return !parseInt(this.lineIndex);\r\n            },\r\n\r\n            /**\r\n             * After all configuration was prepared apply them to the DOM\r\n             */\r\n            getStyles(index) {\r\n                let styles = {\r\n                    width: this.config.images[index].width + 'px',\r\n                    height: this.config.images[index].height + 'px',\r\n                    left: this.config.images[index].left + 'px',\r\n                    top: this.config.images[index].top + 'px'\r\n                };\r\n                styles = this.addGapStyles(styles, index);\r\n                return styles;\r\n            },\r\n\r\n            /**\r\n             * Add specific styles for the gap between columns\r\n             * @return Object\r\n             */\r\n            addGapStyles(styles, index) {\r\n                if (validator.hasGap(this.options)) {\r\n                    for (let key in this.config.images[index][c.CONFIG_GAP_KEY]) {\r\n                        styles[key] = this.config.images[index][c.CONFIG_GAP_KEY][key]\r\n                    }\r\n\r\n\r\n\r\n                    // styles['border-width'] = this.options[c.CONFIG_GAP_KEY]+'px';\r\n                    // if (this.config.images[index].hasOwnProperty(c.CONFIG_GAP_KEY)) {\r\n                    //\r\n                    // }\r\n                }\r\n\r\n                return styles;\r\n            },\r\n\r\n            /**\r\n             * Finds the tallest column and sets the height of the gallery\r\n             * That needs as an workaround to the css position absolute of\r\n             * the gallery wrapper\r\n             * @returns Number\r\n             */\r\n            setGalleryHeight() {\r\n                let columnsHeights = [];\r\n                let currentColumn = 0;\r\n                if (this.columnsAmount < 1) {\r\n                    this.columnsAmount = this.config.images.length;\r\n                }\r\n                for (let imageIndex in this.config.images) {\r\n                    let image = this.config.images[imageIndex];\r\n                    if (currentColumn >= this.columnsAmount) {\r\n                        currentColumn = 0;\r\n                    }\r\n                    if (!columnsHeights[currentColumn]) {\r\n                        columnsHeights[currentColumn] = 0;\r\n                    }\r\n                    columnsHeights[currentColumn] += image.height;\r\n                    currentColumn++;\r\n                }\r\n                for (let index in columnsHeights) {\r\n                    if (columnsHeights[index] > this.galleryHeight) {\r\n                        this.galleryHeight = columnsHeights[index];\r\n                    }\r\n                }\r\n            },\r\n\r\n            test(index) {\r\n                console.log(this.config.images[index]);\r\n            }\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-columns-block\"\r\n         :style=\"{ height: galleryHeight+'px' }\">\r\n        <div class=\"cascade-gallery-image-block\"\r\n             v-if=\"config.images[index]\"\r\n             :style=\"getStyles(index)\"\r\n             v-for=\"(image, index) in images\" >\r\n            <cgl-image :imagesData=\"image\"\r\n                       :config.sync=\"config\"\r\n                       :index=\"index\">\r\n            </cgl-image>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cascade-gallery-columns-block{\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n        width: 100%;\r\n        position: relative;\r\n    }\r\n    .cascade-gallery-image-block {\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n        margin: 0;\r\n        padding: 0;\r\n        position: absolute;\r\n        left: 0;\r\n        top: 0;\r\n        border: 0px solid transparent;\r\n    }\r\n</style>"]}, media: undefined });
 
   };
   /* scoped */
@@ -1225,9 +1325,7 @@ __vue_render__$3._withStripped = true;
         return components;
     })(),
     props: {
-        images: {
-            type: Array
-        },
+        images: { type: Array },
         config: {
             type: Object,
             validator: validator.validate
