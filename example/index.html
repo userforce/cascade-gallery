@@ -7,7 +7,7 @@
 </head>
 <body style="padding: 0; margin: 0; background: url('https://ibmachine.com/assets/frontend/img/background-header.png') repeat;">
 <div id="app">
-    <div style="width: 1200px; margin: 0 auto; border: 1px solid black;">
+    <div style=" margin: 0 auto; border: 1px solid black;">
         <cascade-gallery :images="images" :config="config"></cascade-gallery>
         <button @click="addImages(5)">Add 5 images</button>
     </div>
@@ -46,8 +46,8 @@
                      * defaults {max: 300, min: 200}
                      */
                     'width-range': {
-                        min: 250,
-                        max: 300
+                        min: 400,
+                        max: 500
                     },
 
                     /**

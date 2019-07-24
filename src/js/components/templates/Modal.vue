@@ -1,5 +1,6 @@
 <script>
     import c from '../../constants';
+    import arrow from '../../resources/arrow';
 
     export default {
         name: c.GALLERY_COMPONENT_NAME,
@@ -22,7 +23,11 @@
                     left: 0,
                     top: '200%'
                 },
-                transitionClass: 'cascade-gallery-modal-image-transition'
+                classes: {
+                    animationClass: 'cgl-modal-animation',
+                    transitionClass: 'cascade-gallery-modal-image-transition'
+                },
+                arrow: arrow
             };
         },
         mounted() {
@@ -42,7 +47,7 @@
 
             },
 
-            dragImage(event) {
+            prepareDragging(event) {
                 let self = this;
                 let events = ["touchstart", "mousedown"];
                 self.addEventListeners(event.target, ["mousedown", "touchstart"], function(event) {
@@ -54,11 +59,11 @@
                         mouseLeft = event.pageX;
                     }
                     self.diff = mouseLeft - imageLeft;
-                    event.target.className = '';
+                    self.setClasses(event, '');
                     self.addEventListeners(event.target, ["mousemove", "touchmove"], self.dragElement);
                 });
-                self.addEventListeners(event.target, ["mouseup", "touchend"], function(event) {
-                    event.target.className = self.transitionClass;
+                self.addEventListeners(event.target, ["mouseup", "touchend", "mouseout"], function(event) {
+                    self.setClasses(event, self.classes.transitionClass);
                     event.target.removeEventListener("mousemove", self.dragElement);
                     event.target.removeEventListener("touchmove", self.dragElement);
                     self.setPosition(event);
@@ -90,9 +95,14 @@
                 this.styles.top = (event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2)+'px';
             },
 
+            setClasses(event, classes = '') {
+                event.target.className = classes;
+            },
+
             prepareImage(event) {
                 this.setPosition(event);
-                this.dragImage(event);
+                this.setClasses(event, this.classes.animationClass);
+                this.prepareDragging(event);
             }
         }
     }
@@ -104,10 +114,26 @@
             <div class="cascade-gallery-modal-image"
                  v-for="(url, index) in images.src"
                  v-if="currentImageIndex === index">
-                <img class="cascade-gallery-modal-image-transition"
-                     :src="url"
+                <img :src="url"
                      :style="styles"
+                     draggable="false"
                      @load="prepareImage"/>
+            </div>
+            <div class="cgl-arrow-wrapper cgl-arrow-left">
+                <svg class="cgl-arrow"
+                     :width="arrow.svg.width+'px'"
+                     :height="arrow.svg.height+'px'"
+                     :viewBox="arrow.svg.viewBox">
+                    <path :d="arrow.svg.path"/>
+                </svg>
+            </div>
+            <div class="cgl-arrow-wrapper cgl-arrow-right">
+                <svg class="cgl-arrow"
+                     :width="arrow.svg.width+'px'"
+                     :height="arrow.svg.height+'px'"
+                     :viewBox="arrow.svg.viewBox">
+                    <path :d="arrow.svg.path"/>
+                </svg>
             </div>
         </div>
     </div>
@@ -120,26 +146,102 @@
         top: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,.8);
+        background: rgba(0,0,0,.87);
         z-index: 5000;
     }
     .cascade-gallery-modal-image {
         width: 100%;
-        height: 90%;
+        height: 100%;
         position: fixed;
-        top: 5%;
         left: 0;
+        text-align: center;
     }
     .cascade-gallery-modal-image img {
         touch-action: none;
         max-height: 100%;
-        max-width: 100%;
+        max-width: 70%;
         position: absolute;
+        -webkit-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);
+        -moz-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);
+        box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);
     }
+
+    @media only screen and (max-width: 900px) {
+        .cascade-gallery-modal-image img {
+            max-width: 100%;
+        }
+    }
+
     .cascade-gallery-modal-image-transition {
         -webkit-transition: left .34s ease-out;
         -moz-transition: left .34s ease-out;
         -o-transition: left .34s ease-out;
         transition: left .34s ease-out;
+    }
+
+    .cgl-modal-animation{
+        animation: cgl-modal-append .47s 1;
+    }
+
+    @keyframes cgl-modal-append {
+        0%{
+            opacity: 0;
+            margin-top: -20%;
+        }
+        100%{
+            opacity: 1;
+            margin-top: 0%;
+        }
+    }
+
+    .cgl-arrow {
+        position: absolute;
+        top: 50%;
+        fill: #ffffff;
+        opacity: .1;
+        -webkit-transition: all .34s ease-out;
+        -moz-transition: all .34s ease-out;
+        -o-transition: all .34s ease-out;
+        transition: all .34s ease-out;
+    }
+
+    .cgl-arrow-wrapper {
+        position: absolute;
+        width: 150px;
+        height: 100%;
+        top: 0;
+        z-index: 5;
+        background: rgba(0,0,0,0);
+        -webkit-transition: background .34s ease-out;
+        -moz-transition: background .34s ease-out;
+        -o-transition: background .34s ease-out;
+        transition: background .34s ease-out;
+    }
+
+    .cgl-arrow-wrapper:hover {
+        background: rgba(0,0,0,.4);
+        cursor: pointer;
+    }
+
+    .cgl-arrow-wrapper:hover .cgl-arrow {
+        opacity: .5;
+    }
+
+    .cgl-arrow-wrapper.cgl-arrow-left {
+        left: 0;
+    }
+
+    .cgl-arrow-wrapper.cgl-arrow-left .cgl-arrow {
+        transform: rotate(90deg);
+        left: 40px;
+    }
+
+    .cgl-arrow-wrapper.cgl-arrow-right {
+        right: 0;
+    }
+
+    .cgl-arrow-wrapper.cgl-arrow-right .cgl-arrow {
+        transform: rotate(-90deg);
+        right: 40px;
     }
 </style>

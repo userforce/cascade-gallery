@@ -220,7 +220,21 @@ __vue_render__._withStripped = true;
     CONFIG_GAP: 0,
     DEFAULT_INDEX_KEY: 'default-index'
 
-};var script$1 = {
+};const PATH = 'M282.082,76.511l-14.274-14.273c-1.902-1.906-4.093-2.856-6.57-2.856c-2.471,0-4.661,0.95-6.563,2.856L142.466,174.441' +
+             ' L30.262,62.241c-1.903-1.906-4.093-2.856-6.567-2.856c-2.475,0-4.665,0.95-6.567,2.856L2.856,76.515C0.95,78.417,0,80.607,0,83.082' +
+             ' c0,2.473,0.953,4.663,2.856,6.565l133.043,133.046c1.902,1.903,4.093,2.854,6.567,2.854s4.661-0.951,6.562-2.854L282.082,89.647' +
+             ' c1.902-1.903,2.847-4.093,2.847-6.565C284.929,80.607,283.984,78.417,282.082,76.511z';
+
+let ArrowClass = function () {
+    this.svg = {
+        path: PATH,
+        width: 43,
+        height: 50,
+        viewBox: '0 0 284.929 284.929'
+    };
+};
+
+var arrow = new ArrowClass();var script$1 = {
     name: c.GALLERY_COMPONENT_NAME,
     props: {
         images: { type: Object },
@@ -241,7 +255,11 @@ __vue_render__._withStripped = true;
                 left: 0,
                 top: '200%'
             },
-            transitionClass: 'cascade-gallery-modal-image-transition'
+            classes: {
+                animationClass: 'cgl-modal-animation',
+                transitionClass: 'cascade-gallery-modal-image-transition'
+            },
+            arrow: arrow
         };
     },
     mounted() {
@@ -261,7 +279,7 @@ __vue_render__._withStripped = true;
 
         },
 
-        dragImage(event) {
+        prepareDragging(event) {
             let self = this;
             self.addEventListeners(event.target, ["mousedown", "touchstart"], function(event) {
                 let imageLeft = event.target.offsetLeft;
@@ -272,11 +290,11 @@ __vue_render__._withStripped = true;
                     mouseLeft = event.pageX;
                 }
                 self.diff = mouseLeft - imageLeft;
-                event.target.className = '';
+                self.setClasses(event, '');
                 self.addEventListeners(event.target, ["mousemove", "touchmove"], self.dragElement);
             });
-            self.addEventListeners(event.target, ["mouseup", "touchend"], function(event) {
-                event.target.className = self.transitionClass;
+            self.addEventListeners(event.target, ["mouseup", "touchend", "mouseout"], function(event) {
+                self.setClasses(event, self.classes.transitionClass);
                 event.target.removeEventListener("mousemove", self.dragElement);
                 event.target.removeEventListener("touchmove", self.dragElement);
                 self.setPosition(event);
@@ -308,9 +326,14 @@ __vue_render__._withStripped = true;
             this.styles.top = (event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2)+'px';
         },
 
+        setClasses(event, classes = '') {
+            event.target.className = classes;
+        },
+
         prepareImage(event) {
             this.setPosition(event);
-            this.dragImage(event);
+            this.setClasses(event, this.classes.animationClass);
+            this.prepareDragging(event);
         }
     }
 };/* script */
@@ -325,19 +348,50 @@ var __vue_render__$1 = function() {
     _c(
       "div",
       { staticClass: "cascade-gallery-modal-image-wrapper" },
-      _vm._l(_vm.images.src, function(url, index) {
-        return _vm.currentImageIndex === index
-          ? _c("div", { staticClass: "cascade-gallery-modal-image" }, [
-              _c("img", {
-                staticClass: "cascade-gallery-modal-image-transition",
-                style: _vm.styles,
-                attrs: { src: url },
-                on: { load: _vm.prepareImage }
-              })
-            ])
-          : _vm._e()
-      }),
-      0
+      [
+        _vm._l(_vm.images.src, function(url, index) {
+          return _vm.currentImageIndex === index
+            ? _c("div", { staticClass: "cascade-gallery-modal-image" }, [
+                _c("img", {
+                  style: _vm.styles,
+                  attrs: { src: url, draggable: "false" },
+                  on: { load: _vm.prepareImage }
+                })
+              ])
+            : _vm._e()
+        }),
+        _vm._v(" "),
+        _c("div", { staticClass: "cgl-arrow-wrapper cgl-arrow-left" }, [
+          _c(
+            "svg",
+            {
+              staticClass: "cgl-arrow",
+              attrs: {
+                width: _vm.arrow.svg.width + "px",
+                height: _vm.arrow.svg.height + "px",
+                viewBox: _vm.arrow.svg.viewBox
+              }
+            },
+            [_c("path", { attrs: { d: _vm.arrow.svg.path } })]
+          )
+        ]),
+        _vm._v(" "),
+        _c("div", { staticClass: "cgl-arrow-wrapper cgl-arrow-right" }, [
+          _c(
+            "svg",
+            {
+              staticClass: "cgl-arrow",
+              attrs: {
+                width: _vm.arrow.svg.width + "px",
+                height: _vm.arrow.svg.height + "px",
+                viewBox: _vm.arrow.svg.viewBox
+              }
+            },
+            [_c("path", { attrs: { d: _vm.arrow.svg.path } })]
+          )
+        ])
+      ],
+      2
     )
   ])
 };
@@ -347,7 +401,7 @@ __vue_render__$1._withStripped = true;
   /* style */
   const __vue_inject_styles__$1 = function (inject) {
     if (!inject) return
-    inject("data-v-c56ee738_0", { source: "\n.cascade-gallery-modal{\n    position: fixed;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    background: rgba(0,0,0,.8);\n    z-index: 5000;\n}\n.cascade-gallery-modal-image {\n    width: 100%;\n    height: 90%;\n    position: fixed;\n    top: 5%;\n    left: 0;\n}\n.cascade-gallery-modal-image img {\n    touch-action: none;\n    max-height: 100%;\n    max-width: 100%;\n    position: absolute;\n}\n.cascade-gallery-modal-image-transition {\n    -webkit-transition: left .34s ease-out;\n    -moz-transition: left .34s ease-out;\n    -o-transition: left .34s ease-out;\n    transition: left .34s ease-out;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Modal.vue"],"names":[],"mappings":";AAoHA;IACA,eAAA;IACA,OAAA;IACA,MAAA;IACA,WAAA;IACA,YAAA;IACA,0BAAA;IACA,aAAA;AACA;AACA;IACA,WAAA;IACA,WAAA;IACA,eAAA;IACA,OAAA;IACA,OAAA;AACA;AACA;IACA,kBAAA;IACA,gBAAA;IACA,eAAA;IACA,kBAAA;AACA;AACA;IACA,sCAAA;IACA,mCAAA;IACA,iCAAA;IACA,8BAAA;AACA","file":"Modal.vue","sourcesContent":["<script>\r\n    import c from '../../constants';\r\n\r\n    export default {\r\n        name: c.GALLERY_COMPONENT_NAME,\r\n        props: {\r\n            images: { type: Object },\r\n            config: { type: Object },\r\n            index: { type: Number },\r\n            defaultIndex: { type: Number }\r\n        },\r\n        data() {\r\n            return {\r\n                imageBlock: {},\r\n                currentImageIndex: this.defaultIndex,\r\n                diff: 0,\r\n                window: {\r\n                    width: window.innerWidth,\r\n                    height: window.innerHeight\r\n                },\r\n                styles: {\r\n                    left: 0,\r\n                    top: '200%'\r\n                },\r\n                transitionClass: 'cascade-gallery-modal-image-transition'\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.width = window.innerWidth;\r\n            this.window.height = window.innerHeight;\r\n        },\r\n        methods: {\r\n            /**\r\n             * 'closeModal' event is listened in the mounted method of the\r\n             * image component and it is closing the modal\r\n             */\r\n            closeModal() {\r\n                this.$parent.$emit('closeModal');\r\n            },\r\n\r\n            setImagePositionStyles() {\r\n\r\n            },\r\n\r\n            dragImage(event) {\r\n                let self = this;\r\n                let events = [\"touchstart\", \"mousedown\"];\r\n                self.addEventListeners(event.target, [\"mousedown\", \"touchstart\"], function(event) {\r\n                    let imageLeft = event.target.offsetLeft;\r\n                    let mouseLeft = null;\r\n                    if (event.type === \"touchstart\") {\r\n                        mouseLeft = event.touches[0].pageX;\r\n                    } else {\r\n                        mouseLeft = event.pageX;\r\n                    }\r\n                    self.diff = mouseLeft - imageLeft;\r\n                    event.target.className = '';\r\n                    self.addEventListeners(event.target, [\"mousemove\", \"touchmove\"], self.dragElement);\r\n                });\r\n                self.addEventListeners(event.target, [\"mouseup\", \"touchend\"], function(event) {\r\n                    event.target.className = self.transitionClass;\r\n                    event.target.removeEventListener(\"mousemove\", self.dragElement);\r\n                    event.target.removeEventListener(\"touchmove\", self.dragElement);\r\n                    self.setPosition(event);\r\n                });\r\n            },\r\n\r\n            dragElement(event) {\r\n                event.preventDefault();\r\n                let imageLeft = event.pageX - this.diff;\r\n                if (event.type === \"touchmove\") {\r\n                    imageLeft = event.touches[0].pageX - this.diff;\r\n                }\r\n                this.setImagePositionX(imageLeft);\r\n            },\r\n\r\n            addEventListeners(target, events, listener) {\r\n                for (let index in events) {\r\n                    let event = events[index];\r\n                    target.addEventListener(events[index], listener, false);\r\n                }\r\n            },\r\n\r\n            setImagePositionX(position) {\r\n                this.styles.left = position.toString()+'px';\r\n            },\r\n\r\n            setPosition(event) {\r\n                this.styles.left = (event.target.parentNode.offsetWidth/2 - event.target.offsetWidth/2)+'px';\r\n                this.styles.top = (event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2)+'px';\r\n            },\r\n\r\n            prepareImage(event) {\r\n                this.setPosition(event);\r\n                this.dragImage(event);\r\n            }\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-modal\">\r\n        <div class=\"cascade-gallery-modal-image-wrapper\">\r\n            <div class=\"cascade-gallery-modal-image\"\r\n                 v-for=\"(url, index) in images.src\"\r\n                 v-if=\"currentImageIndex === index\">\r\n                <img class=\"cascade-gallery-modal-image-transition\"\r\n                     :src=\"url\"\r\n                     :style=\"styles\"\r\n                     @load=\"prepareImage\"/>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cascade-gallery-modal{\r\n        position: fixed;\r\n        left: 0;\r\n        top: 0;\r\n        width: 100%;\r\n        height: 100%;\r\n        background: rgba(0,0,0,.8);\r\n        z-index: 5000;\r\n    }\r\n    .cascade-gallery-modal-image {\r\n        width: 100%;\r\n        height: 90%;\r\n        position: fixed;\r\n        top: 5%;\r\n        left: 0;\r\n    }\r\n    .cascade-gallery-modal-image img {\r\n        touch-action: none;\r\n        max-height: 100%;\r\n        max-width: 100%;\r\n        position: absolute;\r\n    }\r\n    .cascade-gallery-modal-image-transition {\r\n        -webkit-transition: left .34s ease-out;\r\n        -moz-transition: left .34s ease-out;\r\n        -o-transition: left .34s ease-out;\r\n        transition: left .34s ease-out;\r\n    }\r\n</style>"]}, media: undefined });
+    inject("data-v-213ed9f4_0", { source: "\n.cascade-gallery-modal{\n    position: fixed;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    background: rgba(0,0,0,.87);\n    z-index: 5000;\n}\n.cascade-gallery-modal-image {\n    width: 100%;\n    height: 100%;\n    position: fixed;\n    left: 0;\n    text-align: center;\n}\n.cascade-gallery-modal-image img {\n    touch-action: none;\n    max-height: 100%;\n    max-width: 70%;\n    position: absolute;\n    -webkit-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n    -moz-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n    box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n}\n@media only screen and (max-width: 900px) {\n.cascade-gallery-modal-image img {\n        max-width: 100%;\n}\n}\n.cascade-gallery-modal-image-transition {\n    -webkit-transition: left .34s ease-out;\n    -moz-transition: left .34s ease-out;\n    -o-transition: left .34s ease-out;\n    transition: left .34s ease-out;\n}\n.cgl-modal-animation{\n    animation: cgl-modal-append .47s 1;\n}\n@keyframes cgl-modal-append {\n0%{\n        opacity: 0;\n        margin-top: -20%;\n}\n100%{\n        opacity: 1;\n        margin-top: 0%;\n}\n}\n.cgl-arrow {\n    position: absolute;\n    top: 50%;\n    fill: #ffffff;\n    opacity: .1;\n    -webkit-transition: all .34s ease-out;\n    -moz-transition: all .34s ease-out;\n    -o-transition: all .34s ease-out;\n    transition: all .34s ease-out;\n}\n.cgl-arrow-wrapper {\n    position: absolute;\n    width: 150px;\n    height: 100%;\n    top: 0;\n    z-index: 5;\n    background: rgba(0,0,0,0);\n    -webkit-transition: background .34s ease-out;\n    -moz-transition: background .34s ease-out;\n    -o-transition: background .34s ease-out;\n    transition: background .34s ease-out;\n}\n.cgl-arrow-wrapper:hover {\n    background: rgba(0,0,0,.4);\n    cursor: pointer;\n}\n.cgl-arrow-wrapper:hover .cgl-arrow {\n    opacity: .5;\n}\n.cgl-arrow-wrapper.cgl-arrow-left {\n    left: 0;\n}\n.cgl-arrow-wrapper.cgl-arrow-left .cgl-arrow {\n    transform: rotate(90deg);\n    left: 40px;\n}\n.cgl-arrow-wrapper.cgl-arrow-right {\n    right: 0;\n}\n.cgl-arrow-wrapper.cgl-arrow-right .cgl-arrow {\n    transform: rotate(-90deg);\n    right: 40px;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Modal.vue"],"names":[],"mappings":";AA8IA;IACA,eAAA;IACA,OAAA;IACA,MAAA;IACA,WAAA;IACA,YAAA;IACA,2BAAA;IACA,aAAA;AACA;AACA;IACA,WAAA;IACA,YAAA;IACA,eAAA;IACA,OAAA;IACA,kBAAA;AACA;AACA;IACA,kBAAA;IACA,gBAAA;IACA,cAAA;IACA,kBAAA;IACA,qDAAA;IACA,kDAAA;IACA,6CAAA;AACA;AAEA;AACA;QACA,eAAA;AACA;AACA;AAEA;IACA,sCAAA;IACA,mCAAA;IACA,iCAAA;IACA,8BAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;AACA;QACA,UAAA;QACA,gBAAA;AACA;AACA;QACA,UAAA;QACA,cAAA;AACA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,aAAA;IACA,WAAA;IACA,qCAAA;IACA,kCAAA;IACA,gCAAA;IACA,6BAAA;AACA;AAEA;IACA,kBAAA;IACA,YAAA;IACA,YAAA;IACA,MAAA;IACA,UAAA;IACA,yBAAA;IACA,4CAAA;IACA,yCAAA;IACA,uCAAA;IACA,oCAAA;AACA;AAEA;IACA,0BAAA;IACA,eAAA;AACA;AAEA;IACA,WAAA;AACA;AAEA;IACA,OAAA;AACA;AAEA;IACA,wBAAA;IACA,UAAA;AACA;AAEA;IACA,QAAA;AACA;AAEA;IACA,yBAAA;IACA,WAAA;AACA","file":"Modal.vue","sourcesContent":["<script>\r\n    import c from '../../constants';\r\n    import arrow from '../../resources/arrow';\r\n\r\n    export default {\r\n        name: c.GALLERY_COMPONENT_NAME,\r\n        props: {\r\n            images: { type: Object },\r\n            config: { type: Object },\r\n            index: { type: Number },\r\n            defaultIndex: { type: Number }\r\n        },\r\n        data() {\r\n            return {\r\n                imageBlock: {},\r\n                currentImageIndex: this.defaultIndex,\r\n                diff: 0,\r\n                window: {\r\n                    width: window.innerWidth,\r\n                    height: window.innerHeight\r\n                },\r\n                styles: {\r\n                    left: 0,\r\n                    top: '200%'\r\n                },\r\n                classes: {\r\n                    animationClass: 'cgl-modal-animation',\r\n                    transitionClass: 'cascade-gallery-modal-image-transition'\r\n                },\r\n                arrow: arrow\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.width = window.innerWidth;\r\n            this.window.height = window.innerHeight;\r\n        },\r\n        methods: {\r\n            /**\r\n             * 'closeModal' event is listened in the mounted method of the\r\n             * image component and it is closing the modal\r\n             */\r\n            closeModal() {\r\n                this.$parent.$emit('closeModal');\r\n            },\r\n\r\n            setImagePositionStyles() {\r\n\r\n            },\r\n\r\n            prepareDragging(event) {\r\n                let self = this;\r\n                let events = [\"touchstart\", \"mousedown\"];\r\n                self.addEventListeners(event.target, [\"mousedown\", \"touchstart\"], function(event) {\r\n                    let imageLeft = event.target.offsetLeft;\r\n                    let mouseLeft = null;\r\n                    if (event.type === \"touchstart\") {\r\n                        mouseLeft = event.touches[0].pageX;\r\n                    } else {\r\n                        mouseLeft = event.pageX;\r\n                    }\r\n                    self.diff = mouseLeft - imageLeft;\r\n                    self.setClasses(event, '');\r\n                    self.addEventListeners(event.target, [\"mousemove\", \"touchmove\"], self.dragElement);\r\n                });\r\n                self.addEventListeners(event.target, [\"mouseup\", \"touchend\", \"mouseout\"], function(event) {\r\n                    self.setClasses(event, self.classes.transitionClass);\r\n                    event.target.removeEventListener(\"mousemove\", self.dragElement);\r\n                    event.target.removeEventListener(\"touchmove\", self.dragElement);\r\n                    self.setPosition(event);\r\n                });\r\n            },\r\n\r\n            dragElement(event) {\r\n                event.preventDefault();\r\n                let imageLeft = event.pageX - this.diff;\r\n                if (event.type === \"touchmove\") {\r\n                    imageLeft = event.touches[0].pageX - this.diff;\r\n                }\r\n                this.setImagePositionX(imageLeft);\r\n            },\r\n\r\n            addEventListeners(target, events, listener) {\r\n                for (let index in events) {\r\n                    let event = events[index];\r\n                    target.addEventListener(events[index], listener, false);\r\n                }\r\n            },\r\n\r\n            setImagePositionX(position) {\r\n                this.styles.left = position.toString()+'px';\r\n            },\r\n\r\n            setPosition(event) {\r\n                this.styles.left = (event.target.parentNode.offsetWidth/2 - event.target.offsetWidth/2)+'px';\r\n                this.styles.top = (event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2)+'px';\r\n            },\r\n\r\n            setClasses(event, classes = '') {\r\n                event.target.className = classes;\r\n            },\r\n\r\n            prepareImage(event) {\r\n                this.setPosition(event);\r\n                this.setClasses(event, this.classes.animationClass);\r\n                this.prepareDragging(event);\r\n            }\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-modal\">\r\n        <div class=\"cascade-gallery-modal-image-wrapper\">\r\n            <div class=\"cascade-gallery-modal-image\"\r\n                 v-for=\"(url, index) in images.src\"\r\n                 v-if=\"currentImageIndex === index\">\r\n                <img :src=\"url\"\r\n                     :style=\"styles\"\r\n                     draggable=\"false\"\r\n                     @load=\"prepareImage\"/>\r\n            </div>\r\n            <div class=\"cgl-arrow-wrapper cgl-arrow-left\">\r\n                <svg class=\"cgl-arrow\"\r\n                     :width=\"arrow.svg.width+'px'\"\r\n                     :height=\"arrow.svg.height+'px'\"\r\n                     :viewBox=\"arrow.svg.viewBox\">\r\n                    <path :d=\"arrow.svg.path\"/>\r\n                </svg>\r\n            </div>\r\n            <div class=\"cgl-arrow-wrapper cgl-arrow-right\">\r\n                <svg class=\"cgl-arrow\"\r\n                     :width=\"arrow.svg.width+'px'\"\r\n                     :height=\"arrow.svg.height+'px'\"\r\n                     :viewBox=\"arrow.svg.viewBox\">\r\n                    <path :d=\"arrow.svg.path\"/>\r\n                </svg>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cascade-gallery-modal{\r\n        position: fixed;\r\n        left: 0;\r\n        top: 0;\r\n        width: 100%;\r\n        height: 100%;\r\n        background: rgba(0,0,0,.87);\r\n        z-index: 5000;\r\n    }\r\n    .cascade-gallery-modal-image {\r\n        width: 100%;\r\n        height: 100%;\r\n        position: fixed;\r\n        left: 0;\r\n        text-align: center;\r\n    }\r\n    .cascade-gallery-modal-image img {\r\n        touch-action: none;\r\n        max-height: 100%;\r\n        max-width: 70%;\r\n        position: absolute;\r\n        -webkit-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n        -moz-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n        box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n    }\r\n\r\n    @media only screen and (max-width: 900px) {\r\n        .cascade-gallery-modal-image img {\r\n            max-width: 100%;\r\n        }\r\n    }\r\n\r\n    .cascade-gallery-modal-image-transition {\r\n        -webkit-transition: left .34s ease-out;\r\n        -moz-transition: left .34s ease-out;\r\n        -o-transition: left .34s ease-out;\r\n        transition: left .34s ease-out;\r\n    }\r\n\r\n    .cgl-modal-animation{\r\n        animation: cgl-modal-append .47s 1;\r\n    }\r\n\r\n    @keyframes cgl-modal-append {\r\n        0%{\r\n            opacity: 0;\r\n            margin-top: -20%;\r\n        }\r\n        100%{\r\n            opacity: 1;\r\n            margin-top: 0%;\r\n        }\r\n    }\r\n\r\n    .cgl-arrow {\r\n        position: absolute;\r\n        top: 50%;\r\n        fill: #ffffff;\r\n        opacity: .1;\r\n        -webkit-transition: all .34s ease-out;\r\n        -moz-transition: all .34s ease-out;\r\n        -o-transition: all .34s ease-out;\r\n        transition: all .34s ease-out;\r\n    }\r\n\r\n    .cgl-arrow-wrapper {\r\n        position: absolute;\r\n        width: 150px;\r\n        height: 100%;\r\n        top: 0;\r\n        z-index: 5;\r\n        background: rgba(0,0,0,0);\r\n        -webkit-transition: background .34s ease-out;\r\n        -moz-transition: background .34s ease-out;\r\n        -o-transition: background .34s ease-out;\r\n        transition: background .34s ease-out;\r\n    }\r\n\r\n    .cgl-arrow-wrapper:hover {\r\n        background: rgba(0,0,0,.4);\r\n        cursor: pointer;\r\n    }\r\n\r\n    .cgl-arrow-wrapper:hover .cgl-arrow {\r\n        opacity: .5;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-left {\r\n        left: 0;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-left .cgl-arrow {\r\n        transform: rotate(90deg);\r\n        left: 40px;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-right {\r\n        right: 0;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-right .cgl-arrow {\r\n        transform: rotate(-90deg);\r\n        right: 40px;\r\n    }\r\n</style>"]}, media: undefined });
 
   };
   /* scoped */
