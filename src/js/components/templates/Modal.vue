@@ -262,6 +262,7 @@
                 event.target.parentNode.addEventListener('touchmove', function(e){
                     e.preventDefault();
                 });
+                this.waitAnimation();
             },
 
             /**
@@ -316,6 +317,7 @@
                     <path :d="arrow.svg.path"/>
                 </svg>
             </div>
+            <div class="cgl-modal-close" @click="closeModal()">X</div>
         </div>
     </div>
 </template>
@@ -409,5 +411,28 @@
     .cgl-arrow-wrapper.cgl-arrow-right .cgl-arrow {
         transform: rotate(-90deg);
         right: 40px;
+    }
+
+    .cgl-modal-close {
+        position: absolute;
+        z-index: 15;
+        top: 15px;
+        right: 15px;
+        font-size: 20px;
+        padding: 5px 0 0 0;
+        color: white;
+        opacity: .2;
+        border: 4px solid white;
+        border-radius: 20px 20px 20px 20px;
+        -moz-border-radius: 20px 20px 20px 20px;
+        -webkit-border-radius: 20px 20px 20px 20px;
+        width: 40px;
+        height: 40px;
+        text-align: center;
+    }
+
+    .cgl-modal-close:hover {
+        opacity: .5;
+        cursor: pointer;
     }
 </style>
