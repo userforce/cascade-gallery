@@ -14,17 +14,20 @@
             return {
                 imageBlock: {},
                 currentImageIndex: this.defaultIndex,
+                currentImageElement: null,
+                animation: {
+                    inProgress: false
+                },
+                navigationClicked: false,
                 diff: 0,
                 window: {
                     width: window.innerWidth,
                     height: window.innerHeight
                 },
                 styles: {
-                    left: 0,
-                    top: '200%'
+                    left: 0
                 },
                 classes: {
-                    animationClass: 'cgl-modal-animation',
                     transitionClass: 'cascade-gallery-modal-image-transition'
                 },
                 arrow: arrow
@@ -43,33 +46,94 @@
                 this.$parent.$emit('closeModal');
             },
 
-            setImagePositionStyles() {
-
-            },
-
+            /**
+             * On image load prepare dragging and touch moving
+             * @param event
+             */
             prepareDragging(event) {
-                let self = this;
-                let events = ["touchstart", "mousedown"];
-                self.addEventListeners(event.target, ["mousedown", "touchstart"], function(event) {
-                    let imageLeft = event.target.offsetLeft;
-                    let mouseLeft = null;
-                    if (event.type === "touchstart") {
-                        mouseLeft = event.touches[0].pageX;
-                    } else {
-                        mouseLeft = event.pageX;
-                    }
-                    self.diff = mouseLeft - imageLeft;
-                    self.setClasses(event, '');
-                    self.addEventListeners(event.target, ["mousemove", "touchmove"], self.dragElement);
-                });
-                self.addEventListeners(event.target, ["mouseup", "touchend", "mouseout"], function(event) {
-                    self.setClasses(event, self.classes.transitionClass);
-                    event.target.removeEventListener("mousemove", self.dragElement);
-                    event.target.removeEventListener("touchmove", self.dragElement);
-                    self.setPosition(event);
-                });
+                this.addEventListeners(event.target, ["mousedown", "touchstart"], this.startDragging);
+                this.addEventListeners(event.target, ["mouseup", "touchend", "mouseout"], this.stopDragging);
             },
 
+            /**
+             * Handle all events after dragging action finished [mouseup, touchend, mouseout]
+             * @param event
+             */
+            stopDragging(event) {
+                this.setClasses(event.target, this.classes.transitionClass);
+                event.target.removeEventListener("mousemove", this.dragElement);
+                event.target.removeEventListener("touchmove", this.dragElement);
+
+                if (this.navigationClicked) return;
+
+                if (this.isShiftedLeft(event) && !this.isTheLastImage(this.currentImageIndex)) {
+                    if (!this.animation.inProgress && event.type === "mouseout") {
+                        this.showNextImage();
+                    } else {
+                        this.animation.inProgress = false;
+                    }
+                    if ( event.type === "mouseup" || event.type === "touchend" ) {
+                        this.animation.inProgress = true;
+                        this.showNextImage();
+                    }
+                } else if (this.isShiftedRight(event) && !this.isTheFirstImage(this.currentImageIndex)) {
+                    if (!this.animation.inProgress && event.type === "mouseout") {
+                        this.showPreviousImage();
+                    } else {
+                        this.animation.inProgress = false;
+                    }
+                    if ( event.type === "mouseup" || event.type === "touchend" ) {
+                        this.animation.inProgress = true;
+                        this.showPreviousImage();
+                    }
+                } else {
+                    this.alignImage(event);
+                    this.animation.inProgress = true;
+                }
+            },
+
+            /**
+             * Check if image was dragged out of the given pixels to the left
+             * @param event
+             * @returns Boolean
+             */
+            isShiftedLeft(event) {
+                return this.getAlignX(event) - 58 > event.target.offsetLeft;
+            },
+
+            /**
+             * Check if image was dragged out of the given pixels to the right
+             * @param event
+             * @returns Boolean
+             */
+            isShiftedRight(event) {
+                return this.getAlignX(event) + 58 < event.target.offsetLeft;
+            },
+
+            /**
+             * On start dragging image prepare default position and
+             * on end dragging events listeners
+             * @param event
+             */
+            startDragging(event) {
+                let imageLeft = event.target.offsetLeft;
+                let mouseLeft = null;
+                if (event.type === "touchstart") {
+                    mouseLeft = event.touches[0].pageX;
+                } else {
+                    mouseLeft = event.pageX;
+                }
+                this.diff = mouseLeft - imageLeft;
+                this.setClasses(event.target, '');
+                this.addEventListeners(event.target, ["mousemove", "touchmove"], this.dragElement);
+            },
+
+
+            /**
+             * Set the position on dragging image and prevent history
+             * auto navigation on dragging to the right
+             * @param event
+             */
             dragElement(event) {
                 event.preventDefault();
                 let imageLeft = event.pageX - this.diff;
@@ -79,31 +143,147 @@
                 this.setImagePositionX(imageLeft);
             },
 
-            addEventListeners(target, events, listener) {
+            /**
+             * Display (animate) next image if the previous animation finished
+             */
+            showNextImage() {
+                if (this.waitAnimation()) return;
+                if (!this.isTheLastImage(this.currentImageIndex)) {
+                    let self = this;
+                    this.setImagePositionX(-this.currentImageElement.offsetWidth);
+                    let index = self.currentImageIndex + 1;
+                    let lastIndex = self.images.src.length - 1;
+                    let nextIndex = index > lastIndex ? lastIndex : index;
+                    setTimeout(function () {
+                        self.displayImage(nextIndex, self.currentImageElement.parentNode.offsetWidth);
+                    }, 340);
+                }
+            },
+
+            /**
+             * Display (animate) previous image if the previous animation finished
+             */
+            showPreviousImage() {
+                if (this.waitAnimation()) return;
+                if (!this.isTheFirstImage(this.currentImageIndex)) {
+                    let self = this;
+                    this.setImagePositionX(this.currentImageElement.parentNode.offsetWidth);
+                    let index = self.currentImageIndex - 1;
+                    let previousIndex = index < 0 ? 0 : index;
+                    setTimeout(function () {
+                        self.displayImage(previousIndex, -self.currentImageElement.offsetWidth);
+                    }, 340);
+                }
+            },
+
+            /**
+             * Display given image with given position
+             */
+            displayImage(imageIndex, position) {
+                this.currentImageIndex = imageIndex;
+                this.setClasses(this.currentImageElement, this.classes.transitionClass);
+                this.setImagePositionX(position);
+            },
+
+            /**
+             * Define waiting animation delay
+             * @returns {boolean}
+             */
+            waitAnimation() {
+                let self = this;
+                if (this.navigationClicked) return true;
+                this.navigationClicked = true;
+                setTimeout(function(){self.navigationClicked = false}, 340);
+                return false;
+            },
+
+            /**
+             * Adds multiple event listeners at once
+             * @param target
+             * @param events
+             * @param listener
+             */
+            addEventListeners(target, events = [], listener) {
                 for (let index in events) {
                     let event = events[index];
                     target.addEventListener(events[index], listener, false);
                 }
             },
 
+            /**
+             * Set css for the left position
+             * @param position
+             */
             setImagePositionX(position) {
                 this.styles.left = position.toString()+'px';
             },
 
-            setPosition(event) {
-                this.styles.left = (event.target.parentNode.offsetWidth/2 - event.target.offsetWidth/2)+'px';
-                this.styles.top = (event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2)+'px';
+            /**
+             * Set the default css for the image position
+             * @param event
+             */
+            alignImage(event) {
+                this.styles.left = this.getAlignX(event)+'px';
+                this.styles.top = this.getAlignY(event)+'px';
             },
 
-            setClasses(event, classes = '') {
-                event.target.className = classes;
+            /**
+             * Define default image left position
+             * @param event
+             * @returns Number
+             */
+            getAlignX(event) {
+                return event.target.parentNode.offsetWidth/2 - event.target.offsetWidth/2;
+            },
+
+            /**
+             * Define default image top position
+             * @param event
+             * @returns {number}
+             */
+            getAlignY(event) {
+                return event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2;
+            },
+
+            /**
+             * Set element classes to the images
+             * @param element
+             * @param classes
+             */
+            setClasses(element, classes = '') {
+                element.className = classes;
             },
 
             prepareImage(event) {
-                this.setPosition(event);
-                this.setClasses(event, this.classes.animationClass);
+                this.currentImageElement = event.target;
+                this.alignImage(event);
                 this.prepareDragging(event);
+                // Stop history navigation on touch and move
+                event.target.parentNode.addEventListener('touchmove', function(e){
+                    e.preventDefault();
+                });
+            },
+
+            /**
+             * Check if current image is the last in the list
+             * @param index
+             * @returns Boolean
+             */
+            isTheLastImage(index) {
+                return index === this.images.src.length - 1;
+            },
+
+            /**
+             * Check if current image is the first in the list
+             * @param index
+             * @returns Boolean
+             */
+            isTheFirstImage(index) {
+                return index === 0;
             }
+        },
+        beforeDestroy() {
+            this.addEventListeners(event.target, ["mousemove", "touchmove"], this.dragElement);
         }
     }
 </script>
@@ -116,10 +296,11 @@
                  v-if="currentImageIndex === index">
                 <img :src="url"
                      :style="styles"
+                     :class="classes.transitionClass"
                      draggable="false"
                      @load="prepareImage"/>
             </div>
-            <div class="cgl-arrow-wrapper cgl-arrow-left">
+            <div class="cgl-arrow-wrapper cgl-arrow-left" @click="showPreviousImage">
                 <svg class="cgl-arrow"
                      :width="arrow.svg.width+'px'"
                      :height="arrow.svg.height+'px'"
@@ -127,7 +308,7 @@
                     <path :d="arrow.svg.path"/>
                 </svg>
             </div>
-            <div class="cgl-arrow-wrapper cgl-arrow-right">
+            <div class="cgl-arrow-wrapper cgl-arrow-right" @click="showNextImage">
                 <svg class="cgl-arrow"
                      :width="arrow.svg.width+'px'"
                      :height="arrow.svg.height+'px'"
@@ -177,21 +358,6 @@
         -moz-transition: left .34s ease-out;
         -o-transition: left .34s ease-out;
         transition: left .34s ease-out;
-    }
-
-    .cgl-modal-animation{
-        animation: cgl-modal-append .47s 1;
-    }
-
-    @keyframes cgl-modal-append {
-        0%{
-            opacity: 0;
-            margin-top: -20%;
-        }
-        100%{
-            opacity: 1;
-            margin-top: 0%;
-        }
     }
 
     .cgl-arrow {

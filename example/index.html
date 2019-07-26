@@ -5,7 +5,7 @@
     <script type="text/javascript" src="../dist/js/cascade-gallery.js"></script>
     <title>Cascade gallery</title>
 </head>
-<body style="padding: 0; margin: 0; background: url('https://ibmachine.com/assets/frontend/img/background-header.png') repeat;">
+<body style=" width: 1200px; padding: 0; margin: 0 auto; background: url('https://ibmachine.com/assets/frontend/img/background-header.png') repeat;">
 <div id="app">
     <div style=" margin: 0 auto; border: 1px solid black;">
         <cascade-gallery :images="images" :config="config"></cascade-gallery>
@@ -46,8 +46,8 @@
                      * defaults {max: 300, min: 200}
                      */
                     'width-range': {
-                        min: 400,
-                        max: 500
+                        min: 200,
+                        max: 250
                     },
 
                     /**
@@ -65,10 +65,10 @@
                     /**
                      * Gap in between a columns in pixels
                      */
-                    'gap': 25,
+                    'gap': 15,
 
                     /**
-                     * milliseconds between loaded and for load images
+                     * Delay between image appearance
                      */
                     'appending-delay': 150,
                 }

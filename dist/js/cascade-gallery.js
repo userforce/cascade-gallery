@@ -246,17 +246,20 @@ var arrow = new ArrowClass();var script$1 = {
         return {
             imageBlock: {},
             currentImageIndex: this.defaultIndex,
+            currentImageElement: null,
+            animation: {
+                inProgress: false
+            },
+            navigationClicked: false,
             diff: 0,
             window: {
                 width: window.innerWidth,
                 height: window.innerHeight
             },
             styles: {
-                left: 0,
-                top: '200%'
+                left: 0
             },
             classes: {
-                animationClass: 'cgl-modal-animation',
                 transitionClass: 'cascade-gallery-modal-image-transition'
             },
             arrow: arrow
@@ -275,32 +278,94 @@ var arrow = new ArrowClass();var script$1 = {
             this.$parent.$emit('closeModal');
         },
 
-        setImagePositionStyles() {
-
-        },
-
+        /**
+         * On image load prepare dragging and touch moving
+         * @param event
+         */
         prepareDragging(event) {
-            let self = this;
-            self.addEventListeners(event.target, ["mousedown", "touchstart"], function(event) {
-                let imageLeft = event.target.offsetLeft;
-                let mouseLeft = null;
-                if (event.type === "touchstart") {
-                    mouseLeft = event.touches[0].pageX;
-                } else {
-                    mouseLeft = event.pageX;
-                }
-                self.diff = mouseLeft - imageLeft;
-                self.setClasses(event, '');
-                self.addEventListeners(event.target, ["mousemove", "touchmove"], self.dragElement);
-            });
-            self.addEventListeners(event.target, ["mouseup", "touchend", "mouseout"], function(event) {
-                self.setClasses(event, self.classes.transitionClass);
-                event.target.removeEventListener("mousemove", self.dragElement);
-                event.target.removeEventListener("touchmove", self.dragElement);
-                self.setPosition(event);
-            });
+            this.addEventListeners(event.target, ["mousedown", "touchstart"], this.startDragging);
+            this.addEventListeners(event.target, ["mouseup", "touchend", "mouseout"], this.stopDragging);
         },
 
+        /**
+         * Handle all events after dragging action finished [mouseup, touchend, mouseout]
+         * @param event
+         */
+        stopDragging(event) {
+            this.setClasses(event.target, this.classes.transitionClass);
+            event.target.removeEventListener("mousemove", this.dragElement);
+            event.target.removeEventListener("touchmove", this.dragElement);
+
+            if (this.navigationClicked) return;
+
+            if (this.isShiftedLeft(event) && !this.isTheLastImage(this.currentImageIndex)) {
+                if (!this.animation.inProgress && event.type === "mouseout") {
+                    this.showNextImage();
+                } else {
+                    this.animation.inProgress = false;
+                }
+                if ( event.type === "mouseup" || event.type === "touchend" ) {
+                    this.animation.inProgress = true;
+                    this.showNextImage();
+                }
+            } else if (this.isShiftedRight(event) && !this.isTheFirstImage(this.currentImageIndex)) {
+                if (!this.animation.inProgress && event.type === "mouseout") {
+                    this.showPreviousImage();
+                } else {
+                    this.animation.inProgress = false;
+                }
+                if ( event.type === "mouseup" || event.type === "touchend" ) {
+                    this.animation.inProgress = true;
+                    this.showPreviousImage();
+                }
+            } else {
+                this.alignImage(event);
+                this.animation.inProgress = true;
+            }
+        },
+
+        /**
+         * Check if image was dragged out of the given pixels to the left
+         * @param event
+         * @returns Boolean
+         */
+        isShiftedLeft(event) {
+            return this.getAlignX(event) - 58 > event.target.offsetLeft;
+        },
+
+        /**
+         * Check if image was dragged out of the given pixels to the right
+         * @param event
+         * @returns Boolean
+         */
+        isShiftedRight(event) {
+            return this.getAlignX(event) + 58 < event.target.offsetLeft;
+        },
+
+        /**
+         * On start dragging image prepare default position and
+         * on end dragging events listeners
+         * @param event
+         */
+        startDragging(event) {
+            let imageLeft = event.target.offsetLeft;
+            let mouseLeft = null;
+            if (event.type === "touchstart") {
+                mouseLeft = event.touches[0].pageX;
+            } else {
+                mouseLeft = event.pageX;
+            }
+            this.diff = mouseLeft - imageLeft;
+            this.setClasses(event.target, '');
+            this.addEventListeners(event.target, ["mousemove", "touchmove"], this.dragElement);
+        },
+
+
+        /**
+         * Set the position on dragging image and prevent history
+         * auto navigation on dragging to the right
+         * @param event
+         */
         dragElement(event) {
             event.preventDefault();
             let imageLeft = event.pageX - this.diff;
@@ -310,31 +375,149 @@ var arrow = new ArrowClass();var script$1 = {
             this.setImagePositionX(imageLeft);
         },
 
-        addEventListeners(target, events, listener) {
+        /**
+         * Display (animate) next image if the previous animation finished
+         */
+        showNextImage() {
+            if (this.waitAnimation()) return;
+            if (!this.isTheLastImage(this.currentImageIndex)) {
+                let self = this;
+                this.setImagePositionX(-this.currentImageElement.offsetWidth);
+                let index = self.currentImageIndex + 1;
+                let lastIndex = self.images.src.length - 1;
+                let nextIndex = index > lastIndex ? lastIndex : index;
+                setTimeout(function () {
+                    self.displayImage(nextIndex, self.currentImageElement.parentNode.offsetWidth);
+                }, 340);
+            }
+        },
+
+        /**
+         * Display (animate) previous image if the previous animation finished
+         */
+        showPreviousImage() {
+            if (this.waitAnimation()) return;
+            if (!this.isTheFirstImage(this.currentImageIndex)) {
+                let self = this;
+                this.setImagePositionX(this.currentImageElement.parentNode.offsetWidth);
+                let index = self.currentImageIndex - 1;
+                let previousIndex = index < 0 ? 0 : index;
+                setTimeout(function () {
+                    self.displayImage(previousIndex, -self.currentImageElement.offsetWidth);
+                }, 340);
+            }
+        },
+
+        /**
+         * Display given image with given position
+         */
+        displayImage(imageIndex, position) {
+            this.currentImageIndex = imageIndex;
+            this.setClasses(this.currentImageElement, this.classes.transitionClass);
+            this.setImagePositionX(position);
+        },
+
+        /**
+         * Define waiting animation delay
+         * @returns {boolean}
+         */
+        waitAnimation() {
+            let self = this;
+            if (this.navigationClicked) return true;
+            this.navigationClicked = true;
+            setTimeout(function(){self.navigationClicked = false;}, 340);
+            return false;
+        },
+
+        /**
+         * Adds multiple event listeners at once
+         * @param target
+         * @param events
+         * @param listener
+         */
+        addEventListeners(target, events = [], listener) {
             for (let index in events) {
                 let event = events[index];
                 target.addEventListener(events[index], listener, false);
             }
         },
 
+        /**
+         * Set css for the left position
+         * @param position
+         */
         setImagePositionX(position) {
             this.styles.left = position.toString()+'px';
         },
 
-        setPosition(event) {
-            this.styles.left = (event.target.parentNode.offsetWidth/2 - event.target.offsetWidth/2)+'px';
-            this.styles.top = (event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2)+'px';
+        /**
+         * Set the default css for the image position
+         * @param event
+         */
+        alignImage(event) {
+            this.styles.left = this.getAlignX(event)+'px';
+            this.styles.top = this.getAlignY(event)+'px';
         },
 
-        setClasses(event, classes = '') {
-            event.target.className = classes;
+        /**
+         * Define default image left position
+         * @param event
+         * @returns Number
+         */
+        getAlignX(event) {
+            return event.target.parentNode.offsetWidth/2 - event.target.offsetWidth/2;
+        },
+
+        /**
+         * Define default image top position
+         * @param event
+         * @returns {number}
+         */
+        getAlignY(event) {
+            return event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2;
+        },
+
+        /**
+         * Set element classes to the images
+         * @param element
+         * @param classes
+         */
+        setClasses(element, classes = '') {
+            element.className = classes;
         },
 
         prepareImage(event) {
-            this.setPosition(event);
-            this.setClasses(event, this.classes.animationClass);
+            this.currentImageElement = event.target;
+            this.alignImage(event);
             this.prepareDragging(event);
+
+
+            event.target.parentNode.addEventListener('touchmove', function(e){
+                console.log(123123);
+                e.preventDefault();
+            });
+        },
+
+        /**
+         * Check if current image is the last in the list
+         * @param index
+         * @returns Boolean
+         */
+        isTheLastImage(index) {
+            return index === this.images.src.length - 1;
+        },
+
+        /**
+         * Check if current image is the first in the list
+         * @param index
+         * @returns Boolean
+         */
+        isTheFirstImage(index) {
+            return index === 0;
         }
+    },
+    beforeDestroy() {
+        this.addEventListeners(event.target, ["mousemove", "touchmove"], this.dragElement);
     }
 };/* script */
 const __vue_script__$1 = script$1;
@@ -353,6 +536,7 @@ var __vue_render__$1 = function() {
           return _vm.currentImageIndex === index
             ? _c("div", { staticClass: "cascade-gallery-modal-image" }, [
                 _c("img", {
+                  class: _vm.classes.transitionClass,
                   style: _vm.styles,
                   attrs: { src: url, draggable: "false" },
                   on: { load: _vm.prepareImage }
@@ -361,35 +545,49 @@ var __vue_render__$1 = function() {
             : _vm._e()
         }),
         _vm._v(" "),
-        _c("div", { staticClass: "cgl-arrow-wrapper cgl-arrow-left" }, [
-          _c(
-            "svg",
-            {
-              staticClass: "cgl-arrow",
-              attrs: {
-                width: _vm.arrow.svg.width + "px",
-                height: _vm.arrow.svg.height + "px",
-                viewBox: _vm.arrow.svg.viewBox
-              }
-            },
-            [_c("path", { attrs: { d: _vm.arrow.svg.path } })]
-          )
-        ]),
+        _c(
+          "div",
+          {
+            staticClass: "cgl-arrow-wrapper cgl-arrow-left",
+            on: { click: _vm.showPreviousImage }
+          },
+          [
+            _c(
+              "svg",
+              {
+                staticClass: "cgl-arrow",
+                attrs: {
+                  width: _vm.arrow.svg.width + "px",
+                  height: _vm.arrow.svg.height + "px",
+                  viewBox: _vm.arrow.svg.viewBox
+                }
+              },
+              [_c("path", { attrs: { d: _vm.arrow.svg.path } })]
+            )
+          ]
+        ),
         _vm._v(" "),
-        _c("div", { staticClass: "cgl-arrow-wrapper cgl-arrow-right" }, [
-          _c(
-            "svg",
-            {
-              staticClass: "cgl-arrow",
-              attrs: {
-                width: _vm.arrow.svg.width + "px",
-                height: _vm.arrow.svg.height + "px",
-                viewBox: _vm.arrow.svg.viewBox
-              }
-            },
-            [_c("path", { attrs: { d: _vm.arrow.svg.path } })]
-          )
-        ])
+        _c(
+          "div",
+          {
+            staticClass: "cgl-arrow-wrapper cgl-arrow-right",
+            on: { click: _vm.showNextImage }
+          },
+          [
+            _c(
+              "svg",
+              {
+                staticClass: "cgl-arrow",
+                attrs: {
+                  width: _vm.arrow.svg.width + "px",
+                  height: _vm.arrow.svg.height + "px",
+                  viewBox: _vm.arrow.svg.viewBox
+                }
+              },
+              [_c("path", { attrs: { d: _vm.arrow.svg.path } })]
+            )
+          ]
+        )
       ],
       2
     )
@@ -401,7 +599,7 @@ __vue_render__$1._withStripped = true;
   /* style */
   const __vue_inject_styles__$1 = function (inject) {
     if (!inject) return
-    inject("data-v-213ed9f4_0", { source: "\n.cascade-gallery-modal{\n    position: fixed;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    background: rgba(0,0,0,.87);\n    z-index: 5000;\n}\n.cascade-gallery-modal-image {\n    width: 100%;\n    height: 100%;\n    position: fixed;\n    left: 0;\n    text-align: center;\n}\n.cascade-gallery-modal-image img {\n    touch-action: none;\n    max-height: 100%;\n    max-width: 70%;\n    position: absolute;\n    -webkit-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n    -moz-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n    box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n}\n@media only screen and (max-width: 900px) {\n.cascade-gallery-modal-image img {\n        max-width: 100%;\n}\n}\n.cascade-gallery-modal-image-transition {\n    -webkit-transition: left .34s ease-out;\n    -moz-transition: left .34s ease-out;\n    -o-transition: left .34s ease-out;\n    transition: left .34s ease-out;\n}\n.cgl-modal-animation{\n    animation: cgl-modal-append .47s 1;\n}\n@keyframes cgl-modal-append {\n0%{\n        opacity: 0;\n        margin-top: -20%;\n}\n100%{\n        opacity: 1;\n        margin-top: 0%;\n}\n}\n.cgl-arrow {\n    position: absolute;\n    top: 50%;\n    fill: #ffffff;\n    opacity: .1;\n    -webkit-transition: all .34s ease-out;\n    -moz-transition: all .34s ease-out;\n    -o-transition: all .34s ease-out;\n    transition: all .34s ease-out;\n}\n.cgl-arrow-wrapper {\n    position: absolute;\n    width: 150px;\n    height: 100%;\n    top: 0;\n    z-index: 5;\n    background: rgba(0,0,0,0);\n    -webkit-transition: background .34s ease-out;\n    -moz-transition: background .34s ease-out;\n    -o-transition: background .34s ease-out;\n    transition: background .34s ease-out;\n}\n.cgl-arrow-wrapper:hover {\n    background: rgba(0,0,0,.4);\n    cursor: pointer;\n}\n.cgl-arrow-wrapper:hover .cgl-arrow {\n    opacity: .5;\n}\n.cgl-arrow-wrapper.cgl-arrow-left {\n    left: 0;\n}\n.cgl-arrow-wrapper.cgl-arrow-left .cgl-arrow {\n    transform: rotate(90deg);\n    left: 40px;\n}\n.cgl-arrow-wrapper.cgl-arrow-right {\n    right: 0;\n}\n.cgl-arrow-wrapper.cgl-arrow-right .cgl-arrow {\n    transform: rotate(-90deg);\n    right: 40px;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Modal.vue"],"names":[],"mappings":";AA8IA;IACA,eAAA;IACA,OAAA;IACA,MAAA;IACA,WAAA;IACA,YAAA;IACA,2BAAA;IACA,aAAA;AACA;AACA;IACA,WAAA;IACA,YAAA;IACA,eAAA;IACA,OAAA;IACA,kBAAA;AACA;AACA;IACA,kBAAA;IACA,gBAAA;IACA,cAAA;IACA,kBAAA;IACA,qDAAA;IACA,kDAAA;IACA,6CAAA;AACA;AAEA;AACA;QACA,eAAA;AACA;AACA;AAEA;IACA,sCAAA;IACA,mCAAA;IACA,iCAAA;IACA,8BAAA;AACA;AAEA;IACA,kCAAA;AACA;AAEA;AACA;QACA,UAAA;QACA,gBAAA;AACA;AACA;QACA,UAAA;QACA,cAAA;AACA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,aAAA;IACA,WAAA;IACA,qCAAA;IACA,kCAAA;IACA,gCAAA;IACA,6BAAA;AACA;AAEA;IACA,kBAAA;IACA,YAAA;IACA,YAAA;IACA,MAAA;IACA,UAAA;IACA,yBAAA;IACA,4CAAA;IACA,yCAAA;IACA,uCAAA;IACA,oCAAA;AACA;AAEA;IACA,0BAAA;IACA,eAAA;AACA;AAEA;IACA,WAAA;AACA;AAEA;IACA,OAAA;AACA;AAEA;IACA,wBAAA;IACA,UAAA;AACA;AAEA;IACA,QAAA;AACA;AAEA;IACA,yBAAA;IACA,WAAA;AACA","file":"Modal.vue","sourcesContent":["<script>\r\n    import c from '../../constants';\r\n    import arrow from '../../resources/arrow';\r\n\r\n    export default {\r\n        name: c.GALLERY_COMPONENT_NAME,\r\n        props: {\r\n            images: { type: Object },\r\n            config: { type: Object },\r\n            index: { type: Number },\r\n            defaultIndex: { type: Number }\r\n        },\r\n        data() {\r\n            return {\r\n                imageBlock: {},\r\n                currentImageIndex: this.defaultIndex,\r\n                diff: 0,\r\n                window: {\r\n                    width: window.innerWidth,\r\n                    height: window.innerHeight\r\n                },\r\n                styles: {\r\n                    left: 0,\r\n                    top: '200%'\r\n                },\r\n                classes: {\r\n                    animationClass: 'cgl-modal-animation',\r\n                    transitionClass: 'cascade-gallery-modal-image-transition'\r\n                },\r\n                arrow: arrow\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.width = window.innerWidth;\r\n            this.window.height = window.innerHeight;\r\n        },\r\n        methods: {\r\n            /**\r\n             * 'closeModal' event is listened in the mounted method of the\r\n             * image component and it is closing the modal\r\n             */\r\n            closeModal() {\r\n                this.$parent.$emit('closeModal');\r\n            },\r\n\r\n            setImagePositionStyles() {\r\n\r\n            },\r\n\r\n            prepareDragging(event) {\r\n                let self = this;\r\n                let events = [\"touchstart\", \"mousedown\"];\r\n                self.addEventListeners(event.target, [\"mousedown\", \"touchstart\"], function(event) {\r\n                    let imageLeft = event.target.offsetLeft;\r\n                    let mouseLeft = null;\r\n                    if (event.type === \"touchstart\") {\r\n                        mouseLeft = event.touches[0].pageX;\r\n                    } else {\r\n                        mouseLeft = event.pageX;\r\n                    }\r\n                    self.diff = mouseLeft - imageLeft;\r\n                    self.setClasses(event, '');\r\n                    self.addEventListeners(event.target, [\"mousemove\", \"touchmove\"], self.dragElement);\r\n                });\r\n                self.addEventListeners(event.target, [\"mouseup\", \"touchend\", \"mouseout\"], function(event) {\r\n                    self.setClasses(event, self.classes.transitionClass);\r\n                    event.target.removeEventListener(\"mousemove\", self.dragElement);\r\n                    event.target.removeEventListener(\"touchmove\", self.dragElement);\r\n                    self.setPosition(event);\r\n                });\r\n            },\r\n\r\n            dragElement(event) {\r\n                event.preventDefault();\r\n                let imageLeft = event.pageX - this.diff;\r\n                if (event.type === \"touchmove\") {\r\n                    imageLeft = event.touches[0].pageX - this.diff;\r\n                }\r\n                this.setImagePositionX(imageLeft);\r\n            },\r\n\r\n            addEventListeners(target, events, listener) {\r\n                for (let index in events) {\r\n                    let event = events[index];\r\n                    target.addEventListener(events[index], listener, false);\r\n                }\r\n            },\r\n\r\n            setImagePositionX(position) {\r\n                this.styles.left = position.toString()+'px';\r\n            },\r\n\r\n            setPosition(event) {\r\n                this.styles.left = (event.target.parentNode.offsetWidth/2 - event.target.offsetWidth/2)+'px';\r\n                this.styles.top = (event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2)+'px';\r\n            },\r\n\r\n            setClasses(event, classes = '') {\r\n                event.target.className = classes;\r\n            },\r\n\r\n            prepareImage(event) {\r\n                this.setPosition(event);\r\n                this.setClasses(event, this.classes.animationClass);\r\n                this.prepareDragging(event);\r\n            }\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-modal\">\r\n        <div class=\"cascade-gallery-modal-image-wrapper\">\r\n            <div class=\"cascade-gallery-modal-image\"\r\n                 v-for=\"(url, index) in images.src\"\r\n                 v-if=\"currentImageIndex === index\">\r\n                <img :src=\"url\"\r\n                     :style=\"styles\"\r\n                     draggable=\"false\"\r\n                     @load=\"prepareImage\"/>\r\n            </div>\r\n            <div class=\"cgl-arrow-wrapper cgl-arrow-left\">\r\n                <svg class=\"cgl-arrow\"\r\n                     :width=\"arrow.svg.width+'px'\"\r\n                     :height=\"arrow.svg.height+'px'\"\r\n                     :viewBox=\"arrow.svg.viewBox\">\r\n                    <path :d=\"arrow.svg.path\"/>\r\n                </svg>\r\n            </div>\r\n            <div class=\"cgl-arrow-wrapper cgl-arrow-right\">\r\n                <svg class=\"cgl-arrow\"\r\n                     :width=\"arrow.svg.width+'px'\"\r\n                     :height=\"arrow.svg.height+'px'\"\r\n                     :viewBox=\"arrow.svg.viewBox\">\r\n                    <path :d=\"arrow.svg.path\"/>\r\n                </svg>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cascade-gallery-modal{\r\n        position: fixed;\r\n        left: 0;\r\n        top: 0;\r\n        width: 100%;\r\n        height: 100%;\r\n        background: rgba(0,0,0,.87);\r\n        z-index: 5000;\r\n    }\r\n    .cascade-gallery-modal-image {\r\n        width: 100%;\r\n        height: 100%;\r\n        position: fixed;\r\n        left: 0;\r\n        text-align: center;\r\n    }\r\n    .cascade-gallery-modal-image img {\r\n        touch-action: none;\r\n        max-height: 100%;\r\n        max-width: 70%;\r\n        position: absolute;\r\n        -webkit-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n        -moz-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n        box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n    }\r\n\r\n    @media only screen and (max-width: 900px) {\r\n        .cascade-gallery-modal-image img {\r\n            max-width: 100%;\r\n        }\r\n    }\r\n\r\n    .cascade-gallery-modal-image-transition {\r\n        -webkit-transition: left .34s ease-out;\r\n        -moz-transition: left .34s ease-out;\r\n        -o-transition: left .34s ease-out;\r\n        transition: left .34s ease-out;\r\n    }\r\n\r\n    .cgl-modal-animation{\r\n        animation: cgl-modal-append .47s 1;\r\n    }\r\n\r\n    @keyframes cgl-modal-append {\r\n        0%{\r\n            opacity: 0;\r\n            margin-top: -20%;\r\n        }\r\n        100%{\r\n            opacity: 1;\r\n            margin-top: 0%;\r\n        }\r\n    }\r\n\r\n    .cgl-arrow {\r\n        position: absolute;\r\n        top: 50%;\r\n        fill: #ffffff;\r\n        opacity: .1;\r\n        -webkit-transition: all .34s ease-out;\r\n        -moz-transition: all .34s ease-out;\r\n        -o-transition: all .34s ease-out;\r\n        transition: all .34s ease-out;\r\n    }\r\n\r\n    .cgl-arrow-wrapper {\r\n        position: absolute;\r\n        width: 150px;\r\n        height: 100%;\r\n        top: 0;\r\n        z-index: 5;\r\n        background: rgba(0,0,0,0);\r\n        -webkit-transition: background .34s ease-out;\r\n        -moz-transition: background .34s ease-out;\r\n        -o-transition: background .34s ease-out;\r\n        transition: background .34s ease-out;\r\n    }\r\n\r\n    .cgl-arrow-wrapper:hover {\r\n        background: rgba(0,0,0,.4);\r\n        cursor: pointer;\r\n    }\r\n\r\n    .cgl-arrow-wrapper:hover .cgl-arrow {\r\n        opacity: .5;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-left {\r\n        left: 0;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-left .cgl-arrow {\r\n        transform: rotate(90deg);\r\n        left: 40px;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-right {\r\n        right: 0;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-right .cgl-arrow {\r\n        transform: rotate(-90deg);\r\n        right: 40px;\r\n    }\r\n</style>"]}, media: undefined });
+    inject("data-v-40588675_0", { source: "\n.cascade-gallery-modal{\n    position: fixed;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    background: rgba(0,0,0,.87);\n    z-index: 5000;\n}\n.cascade-gallery-modal-image {\n    width: 100%;\n    height: 100%;\n    position: fixed;\n    left: 0;\n    text-align: center;\n}\n.cascade-gallery-modal-image img {\n    touch-action: none;\n    max-height: 100%;\n    max-width: 70%;\n    position: absolute;\n    -webkit-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n    -moz-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n    box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n}\n@media only screen and (max-width: 900px) {\n.cascade-gallery-modal-image img {\n        max-width: 100%;\n}\n}\n.cascade-gallery-modal-image-transition {\n    -webkit-transition: left .34s ease-out;\n    -moz-transition: left .34s ease-out;\n    -o-transition: left .34s ease-out;\n    transition: left .34s ease-out;\n}\n.cgl-arrow {\n    position: absolute;\n    top: 50%;\n    fill: #ffffff;\n    opacity: .1;\n    -webkit-transition: all .34s ease-out;\n    -moz-transition: all .34s ease-out;\n    -o-transition: all .34s ease-out;\n    transition: all .34s ease-out;\n}\n.cgl-arrow-wrapper {\n    position: absolute;\n    width: 150px;\n    height: 100%;\n    top: 0;\n    z-index: 5;\n    background: rgba(0,0,0,0);\n    -webkit-transition: background .34s ease-out;\n    -moz-transition: background .34s ease-out;\n    -o-transition: background .34s ease-out;\n    transition: background .34s ease-out;\n}\n.cgl-arrow-wrapper:hover {\n    background: rgba(0,0,0,.4);\n    cursor: pointer;\n}\n.cgl-arrow-wrapper:hover .cgl-arrow {\n    opacity: .5;\n}\n.cgl-arrow-wrapper.cgl-arrow-left {\n    left: 0;\n}\n.cgl-arrow-wrapper.cgl-arrow-left .cgl-arrow {\n    transform: rotate(90deg);\n    left: 40px;\n}\n.cgl-arrow-wrapper.cgl-arrow-right {\n    right: 0;\n}\n.cgl-arrow-wrapper.cgl-arrow-right .cgl-arrow {\n    transform: rotate(-90deg);\n    right: 40px;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Modal.vue"],"names":[],"mappings":";AAqUA;IACA,eAAA;IACA,OAAA;IACA,MAAA;IACA,WAAA;IACA,YAAA;IACA,2BAAA;IACA,aAAA;AACA;AACA;IACA,WAAA;IACA,YAAA;IACA,eAAA;IACA,OAAA;IACA,kBAAA;AACA;AACA;IACA,kBAAA;IACA,gBAAA;IACA,cAAA;IACA,kBAAA;IACA,qDAAA;IACA,kDAAA;IACA,6CAAA;AACA;AAEA;AACA;QACA,eAAA;AACA;AACA;AAEA;IACA,sCAAA;IACA,mCAAA;IACA,iCAAA;IACA,8BAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,aAAA;IACA,WAAA;IACA,qCAAA;IACA,kCAAA;IACA,gCAAA;IACA,6BAAA;AACA;AAEA;IACA,kBAAA;IACA,YAAA;IACA,YAAA;IACA,MAAA;IACA,UAAA;IACA,yBAAA;IACA,4CAAA;IACA,yCAAA;IACA,uCAAA;IACA,oCAAA;AACA;AAEA;IACA,0BAAA;IACA,eAAA;AACA;AAEA;IACA,WAAA;AACA;AAEA;IACA,OAAA;AACA;AAEA;IACA,wBAAA;IACA,UAAA;AACA;AAEA;IACA,QAAA;AACA;AAEA;IACA,yBAAA;IACA,WAAA;AACA","file":"Modal.vue","sourcesContent":["<script>\r\n    import c from '../../constants';\r\n    import arrow from '../../resources/arrow';\r\n\r\n    export default {\r\n        name: c.GALLERY_COMPONENT_NAME,\r\n        props: {\r\n            images: { type: Object },\r\n            config: { type: Object },\r\n            index: { type: Number },\r\n            defaultIndex: { type: Number }\r\n        },\r\n        data() {\r\n            return {\r\n                imageBlock: {},\r\n                currentImageIndex: this.defaultIndex,\r\n                currentImageElement: null,\r\n                animation: {\r\n                    inProgress: false\r\n                },\r\n                navigationClicked: false,\r\n                diff: 0,\r\n                window: {\r\n                    width: window.innerWidth,\r\n                    height: window.innerHeight\r\n                },\r\n                styles: {\r\n                    left: 0\r\n                },\r\n                classes: {\r\n                    transitionClass: 'cascade-gallery-modal-image-transition'\r\n                },\r\n                arrow: arrow\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.width = window.innerWidth;\r\n            this.window.height = window.innerHeight;\r\n        },\r\n        methods: {\r\n            /**\r\n             * 'closeModal' event is listened in the mounted method of the\r\n             * image component and it is closing the modal\r\n             */\r\n            closeModal() {\r\n                this.$parent.$emit('closeModal');\r\n            },\r\n\r\n            /**\r\n             * On image load prepare dragging and touch moving\r\n             * @param event\r\n             */\r\n            prepareDragging(event) {\r\n                this.addEventListeners(event.target, [\"mousedown\", \"touchstart\"], this.startDragging);\r\n                this.addEventListeners(event.target, [\"mouseup\", \"touchend\", \"mouseout\"], this.stopDragging);\r\n            },\r\n\r\n            /**\r\n             * Handle all events after dragging action finished [mouseup, touchend, mouseout]\r\n             * @param event\r\n             */\r\n            stopDragging(event) {\r\n                this.setClasses(event.target, this.classes.transitionClass);\r\n                event.target.removeEventListener(\"mousemove\", this.dragElement);\r\n                event.target.removeEventListener(\"touchmove\", this.dragElement);\r\n\r\n                if (this.navigationClicked) return;\r\n\r\n                if (this.isShiftedLeft(event) && !this.isTheLastImage(this.currentImageIndex)) {\r\n                    if (!this.animation.inProgress && event.type === \"mouseout\") {\r\n                        this.showNextImage();\r\n                    } else {\r\n                        this.animation.inProgress = false;\r\n                    }\r\n                    if ( event.type === \"mouseup\" || event.type === \"touchend\" ) {\r\n                        this.animation.inProgress = true;\r\n                        this.showNextImage();\r\n                    }\r\n                } else if (this.isShiftedRight(event) && !this.isTheFirstImage(this.currentImageIndex)) {\r\n                    if (!this.animation.inProgress && event.type === \"mouseout\") {\r\n                        this.showPreviousImage();\r\n                    } else {\r\n                        this.animation.inProgress = false;\r\n                    }\r\n                    if ( event.type === \"mouseup\" || event.type === \"touchend\" ) {\r\n                        this.animation.inProgress = true;\r\n                        this.showPreviousImage();\r\n                    }\r\n                } else {\r\n                    this.alignImage(event);\r\n                    this.animation.inProgress = true;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Check if image was dragged out of the given pixels to the left\r\n             * @param event\r\n             * @returns Boolean\r\n             */\r\n            isShiftedLeft(event) {\r\n                return this.getAlignX(event) - 58 > event.target.offsetLeft;\r\n            },\r\n\r\n            /**\r\n             * Check if image was dragged out of the given pixels to the right\r\n             * @param event\r\n             * @returns Boolean\r\n             */\r\n            isShiftedRight(event) {\r\n                return this.getAlignX(event) + 58 < event.target.offsetLeft;\r\n            },\r\n\r\n            /**\r\n             * On start dragging image prepare default position and\r\n             * on end dragging events listeners\r\n             * @param event\r\n             */\r\n            startDragging(event) {\r\n                let imageLeft = event.target.offsetLeft;\r\n                let mouseLeft = null;\r\n                if (event.type === \"touchstart\") {\r\n                    mouseLeft = event.touches[0].pageX;\r\n                } else {\r\n                    mouseLeft = event.pageX;\r\n                }\r\n                this.diff = mouseLeft - imageLeft;\r\n                this.setClasses(event.target, '');\r\n                this.addEventListeners(event.target, [\"mousemove\", \"touchmove\"], this.dragElement);\r\n            },\r\n\r\n\r\n            /**\r\n             * Set the position on dragging image and prevent history\r\n             * auto navigation on dragging to the right\r\n             * @param event\r\n             */\r\n            dragElement(event) {\r\n                event.preventDefault();\r\n                let imageLeft = event.pageX - this.diff;\r\n                if (event.type === \"touchmove\") {\r\n                    imageLeft = event.touches[0].pageX - this.diff;\r\n                }\r\n                this.setImagePositionX(imageLeft);\r\n            },\r\n\r\n            /**\r\n             * Display (animate) next image if the previous animation finished\r\n             */\r\n            showNextImage() {\r\n                if (this.waitAnimation()) return;\r\n                if (!this.isTheLastImage(this.currentImageIndex)) {\r\n                    let self = this;\r\n                    this.setImagePositionX(-this.currentImageElement.offsetWidth);\r\n                    let index = self.currentImageIndex + 1;\r\n                    let lastIndex = self.images.src.length - 1;\r\n                    let nextIndex = index > lastIndex ? lastIndex : index;\r\n                    setTimeout(function () {\r\n                        self.displayImage(nextIndex, self.currentImageElement.parentNode.offsetWidth);\r\n                    }, 340);\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Display (animate) previous image if the previous animation finished\r\n             */\r\n            showPreviousImage() {\r\n                if (this.waitAnimation()) return;\r\n                if (!this.isTheFirstImage(this.currentImageIndex)) {\r\n                    let self = this;\r\n                    this.setImagePositionX(this.currentImageElement.parentNode.offsetWidth);\r\n                    let index = self.currentImageIndex - 1;\r\n                    let previousIndex = index < 0 ? 0 : index;\r\n                    setTimeout(function () {\r\n                        self.displayImage(previousIndex, -self.currentImageElement.offsetWidth);\r\n                    }, 340);\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Display given image with given position\r\n             */\r\n            displayImage(imageIndex, position) {\r\n                this.currentImageIndex = imageIndex;\r\n                this.setClasses(this.currentImageElement, this.classes.transitionClass);\r\n                this.setImagePositionX(position);\r\n            },\r\n\r\n            /**\r\n             * Define waiting animation delay\r\n             * @returns {boolean}\r\n             */\r\n            waitAnimation() {\r\n                let self = this;\r\n                if (this.navigationClicked) return true;\r\n                this.navigationClicked = true;\r\n                setTimeout(function(){self.navigationClicked = false}, 340);\r\n                return false;\r\n            },\r\n\r\n            /**\r\n             * Adds multiple event listeners at once\r\n             * @param target\r\n             * @param events\r\n             * @param listener\r\n             */\r\n            addEventListeners(target, events = [], listener) {\r\n                for (let index in events) {\r\n                    let event = events[index];\r\n                    target.addEventListener(events[index], listener, false);\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Set css for the left position\r\n             * @param position\r\n             */\r\n            setImagePositionX(position) {\r\n                this.styles.left = position.toString()+'px';\r\n            },\r\n\r\n            /**\r\n             * Set the default css for the image position\r\n             * @param event\r\n             */\r\n            alignImage(event) {\r\n                this.styles.left = this.getAlignX(event)+'px';\r\n                this.styles.top = this.getAlignY(event)+'px';\r\n            },\r\n\r\n            /**\r\n             * Define default image left position\r\n             * @param event\r\n             * @returns Number\r\n             */\r\n            getAlignX(event) {\r\n                return event.target.parentNode.offsetWidth/2 - event.target.offsetWidth/2;\r\n            },\r\n\r\n            /**\r\n             * Define default image top position\r\n             * @param event\r\n             * @returns {number}\r\n             */\r\n            getAlignY(event) {\r\n                return event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2;\r\n            },\r\n\r\n            /**\r\n             * Set element classes to the images\r\n             * @param element\r\n             * @param classes\r\n             */\r\n            setClasses(element, classes = '') {\r\n                element.className = classes;\r\n            },\r\n\r\n            prepareImage(event) {\r\n                this.currentImageElement = event.target;\r\n                this.alignImage(event);\r\n                this.prepareDragging(event);\r\n\r\n\r\n                event.target.parentNode.addEventListener('touchmove', function(e){\r\n                    console.log(123123);\r\n                    e.preventDefault();\r\n                });\r\n            },\r\n\r\n            /**\r\n             * Check if current image is the last in the list\r\n             * @param index\r\n             * @returns Boolean\r\n             */\r\n            isTheLastImage(index) {\r\n                return index === this.images.src.length - 1;\r\n            },\r\n\r\n            /**\r\n             * Check if current image is the first in the list\r\n             * @param index\r\n             * @returns Boolean\r\n             */\r\n            isTheFirstImage(index) {\r\n                return index === 0;\r\n            }\r\n        },\r\n        beforeDestroy() {\r\n            this.addEventListeners(event.target, [\"mousemove\", \"touchmove\"], this.dragElement);\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-modal\">\r\n        <div class=\"cascade-gallery-modal-image-wrapper\">\r\n            <div class=\"cascade-gallery-modal-image\"\r\n                 v-for=\"(url, index) in images.src\"\r\n                 v-if=\"currentImageIndex === index\">\r\n                <img :src=\"url\"\r\n                     :style=\"styles\"\r\n                     :class=\"classes.transitionClass\"\r\n                     draggable=\"false\"\r\n                     @load=\"prepareImage\"/>\r\n            </div>\r\n            <div class=\"cgl-arrow-wrapper cgl-arrow-left\" @click=\"showPreviousImage\">\r\n                <svg class=\"cgl-arrow\"\r\n                     :width=\"arrow.svg.width+'px'\"\r\n                     :height=\"arrow.svg.height+'px'\"\r\n                     :viewBox=\"arrow.svg.viewBox\">\r\n                    <path :d=\"arrow.svg.path\"/>\r\n                </svg>\r\n            </div>\r\n            <div class=\"cgl-arrow-wrapper cgl-arrow-right\" @click=\"showNextImage\">\r\n                <svg class=\"cgl-arrow\"\r\n                     :width=\"arrow.svg.width+'px'\"\r\n                     :height=\"arrow.svg.height+'px'\"\r\n                     :viewBox=\"arrow.svg.viewBox\">\r\n                    <path :d=\"arrow.svg.path\"/>\r\n                </svg>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cascade-gallery-modal{\r\n        position: fixed;\r\n        left: 0;\r\n        top: 0;\r\n        width: 100%;\r\n        height: 100%;\r\n        background: rgba(0,0,0,.87);\r\n        z-index: 5000;\r\n    }\r\n    .cascade-gallery-modal-image {\r\n        width: 100%;\r\n        height: 100%;\r\n        position: fixed;\r\n        left: 0;\r\n        text-align: center;\r\n    }\r\n    .cascade-gallery-modal-image img {\r\n        touch-action: none;\r\n        max-height: 100%;\r\n        max-width: 70%;\r\n        position: absolute;\r\n        -webkit-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n        -moz-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n        box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n    }\r\n\r\n    @media only screen and (max-width: 900px) {\r\n        .cascade-gallery-modal-image img {\r\n            max-width: 100%;\r\n        }\r\n    }\r\n\r\n    .cascade-gallery-modal-image-transition {\r\n        -webkit-transition: left .34s ease-out;\r\n        -moz-transition: left .34s ease-out;\r\n        -o-transition: left .34s ease-out;\r\n        transition: left .34s ease-out;\r\n    }\r\n\r\n    .cgl-arrow {\r\n        position: absolute;\r\n        top: 50%;\r\n        fill: #ffffff;\r\n        opacity: .1;\r\n        -webkit-transition: all .34s ease-out;\r\n        -moz-transition: all .34s ease-out;\r\n        -o-transition: all .34s ease-out;\r\n        transition: all .34s ease-out;\r\n    }\r\n\r\n    .cgl-arrow-wrapper {\r\n        position: absolute;\r\n        width: 150px;\r\n        height: 100%;\r\n        top: 0;\r\n        z-index: 5;\r\n        background: rgba(0,0,0,0);\r\n        -webkit-transition: background .34s ease-out;\r\n        -moz-transition: background .34s ease-out;\r\n        -o-transition: background .34s ease-out;\r\n        transition: background .34s ease-out;\r\n    }\r\n\r\n    .cgl-arrow-wrapper:hover {\r\n        background: rgba(0,0,0,.4);\r\n        cursor: pointer;\r\n    }\r\n\r\n    .cgl-arrow-wrapper:hover .cgl-arrow {\r\n        opacity: .5;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-left {\r\n        left: 0;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-left .cgl-arrow {\r\n        transform: rotate(90deg);\r\n        left: 40px;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-right {\r\n        right: 0;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-right .cgl-arrow {\r\n        transform: rotate(-90deg);\r\n        right: 40px;\r\n    }\r\n</style>"]}, media: undefined });
 
   };
   /* scoped */
