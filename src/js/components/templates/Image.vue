@@ -96,13 +96,14 @@
              * @returns {boolean}
              */
             setImageStyles() {
-                if (this.getImagePropHeight() < this.getWrapperWidth()) {
+                let gap = this.config.gap ? this.config.gap : 0;
+                if ((this.getImagePropHeight() - gap) < this.getWrapperWidth()) {
                     this.image.styles.width = '100%';
-                    this.image.styles.top = '-' + (this.getImagePropWidth() - this.getWrapperHeight()) / 2 + 'px';
+                    this.image.styles.top = '-' + (this.getImagePropWidth() - (this.getWrapperHeight() + gap)) / 2 + 'px';
                     return true;
                 } else {
                     this.image.styles.height = '100%';
-                    this.image.styles.left = '-' + (this.getImagePropHeight() - this.getWrapperWidth()) / 2 + 'px';
+                    this.image.styles.left = '-' + (this.getImagePropHeight() - (this.getWrapperWidth() + gap)) / 2 + 'px';
                     return true;
                 }
             },
@@ -215,6 +216,10 @@
                 v-show="showSpinner">
                 <cgl-spinner></cgl-spinner>
             </div>
+            <div class="cgl-info-card-block"
+                 v-show="!showSpinner">
+                <slot v-bind:index="index"></slot>
+            </div>
         </div>
         <cgl-modal :images.sync="imagesData"
                    :config.sync="config"
@@ -280,5 +285,10 @@
         left: 50%;
         margin-left: -15px;
         top: 35%;
+    }
+    .cgl-info-card-block{
+        width: 0;
+        top: 0;
+        position: static;
     }
 </style>

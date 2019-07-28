@@ -89,9 +89,13 @@
 </script>
 
 <template>
-    <div class="cascade-gallery">
-        <div class="cascade-gallery-wrapper">
-            <cgl-gallery :images.sync="images" :options="getConfig()"></cgl-gallery>
+    <div class="cgl">
+        <div class="cgl-wrapper">
+            <cgl-gallery :images.sync="images"
+                         :options="getConfig()"
+                         v-slot:default="images">
+                <slot v-bind:index="images.index"></slot>
+            </cgl-gallery>
         </div>
     </div>
 </template>

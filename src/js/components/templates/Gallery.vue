@@ -131,16 +131,15 @@
             prepareGapStyles() {
                 let gap = this.config[c.CONFIG_GAP_KEY];
                 if (gap > 0) {
-                    for(let index = this.lastLineStartIndex; index <= this.currentImageIndex; index++) {
-                        this.config.images[index][c.CONFIG_GAP_KEY] = {};
-                        this.config.images[index][c.CONFIG_GAP_KEY]['border-top-width'] = gap+'px';
-                        this.config.images[index][c.CONFIG_GAP_KEY]['border-right-width'] = gap+'px';
-                        if (this.isLastInTheLine(index)) {
-                            this.config.images[index][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';
-                        }
-                        if (this.isFirstLine()) {
-                            this.config.images[index][c.CONFIG_GAP_KEY]['border-top-width'] = '0px';
-                        }
+
+                    this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY] = {};
+                    this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-top-width'] = gap+'px';
+                    this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-right-width'] = gap+'px';
+                    if (this.lastLineStartIndex === 0) {
+                        this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-top-width'] = '0px';
+                    }
+                    if (this.isLastInTheLine(this.currentImageIndex)) {
+                        this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';
                     }
                 }
             },
@@ -423,26 +422,19 @@
                     left: this.config.images[index].left + 'px',
                     top: this.config.images[index].top + 'px'
                 };
-                styles = this.addGapStyles(styles, index);
+                styles = this.getGapStyles(styles, index);
                 return styles;
             },
 
             /**
-             * Add specific styles for the gap between columns
+             * Sipecific styles for the gap between columns
              * @return Object
              */
-            addGapStyles(styles, index) {
+            getGapStyles(styles, index) {
                 if (validator.hasGap(this.options)) {
                     for (let key in this.config.images[index][c.CONFIG_GAP_KEY]) {
                         styles[key] = this.config.images[index][c.CONFIG_GAP_KEY][key]
                     }
-
-
-
-                    // styles['border-width'] = this.options[c.CONFIG_GAP_KEY]+'px';
-                    // if (this.config.images[index].hasOwnProperty(c.CONFIG_GAP_KEY)) {
-                    //
-                    // }
                 }
 
                 return styles;
@@ -476,39 +468,37 @@
                         this.galleryHeight = columnsHeights[index];
                     }
                 }
-            },
-
-            test(index) {
-                console.log(this.config.images[index]);
             }
         }
     }
 </script>
 
 <template>
-    <div class="cascade-gallery-columns-block"
+    <div class="cgl-columns-block"
          :style="{ height: galleryHeight+'px' }">
-        <div class="cascade-gallery-image-block"
+        <div class="cgl-image-block"
              v-if="config.images[index]"
              :style="getStyles(index)"
              v-for="(image, index) in images" >
             <cgl-image :imagesData="image"
                        :config.sync="config"
-                       :index="index">
+                       :index="index"
+                       v-slot:default="images">
+                <slot v-bind:index="images.index"></slot>
             </cgl-image>
         </div>
     </div>
 </template>
 
 <style>
-    .cascade-gallery-columns-block{
+    .cgl-columns-block{
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
         width: 100%;
         position: relative;
     }
-    .cascade-gallery-image-block {
+    .cgl-image-block {
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;

@@ -5,70 +5,221 @@
     <script type="text/javascript" src="../dist/js/cascade-gallery.js"></script>
     <title>Cascade gallery</title>
 </head>
-<body style=" width: 1200px; padding: 0; margin: 0 auto; background: url('https://ibmachine.com/assets/frontend/img/background-header.png') repeat;">
-<div id="app">
-    <div style=" margin: 0 auto; border: 1px solid black;">
-        <cascade-gallery :images="images" :config="config"></cascade-gallery>
-        <button @click="addImages(5)">Add 5 images</button>
+<body style="background: url('https://ibmachine.com/assets/frontend/img/background-header.png') repeat;">
+<style>
+    @import url('https://fonts.googleapis.com/css?family=Courgette&display=swap');
+    @import url('https://fonts.googleapis.com/css?family=Hind+Siliguri&display=swap');
+    .page-title{
+        font-family: 'Courgette', cursive;
+        font-size: 54px;
+        text-align: center;
+        padding: 45px 0 25px 0px;
+        color: #d14992;
+    }
+    .page-description {
+        font-family: 'Hind Siliguri', sans-serif;
+        font-size: 18px;
+        background: rgba(255,255,255,.14);
+        border-bottom: 1px solid rgba(0,0,0,.11);
+        -webkit-box-shadow: 0px 7px 5px 0px rgba(0,0,0,0.05);
+        -moz-box-shadow: 0px 7px 5px 0px rgba(0,0,0,0.05);
+        box-shadow: 0px 7px 5px 0px rgba(0,0,0,0.05);
+        margin-bottom: 55px;
+        padding: 25px;
+        text-align: center;
+    }
+    .test-title-class {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 38px;
+        background: rgba(0,0,0,.45);
+        border-bottom: 1px solid rgba(0,0,0,.7);
+        color: white;
+        padding: 10px;
+        font-family: 'Hind Siliguri', sans-serif;
+        font-size: 18px;
+        text-align: center;
+        line-height: 20px;
+    }
+    .test-description-class {
+        position: absolute;
+        left: 0;
+        bottom: 0px;
+        width: 100%;
+        font-family: 'Hind Siliguri', sans-serif;
+        font-size: 14px;
+        line-height: 18px;
+        background: rgba(255,255,255,.7);
+        overflow: hidden;
+        border-top: 3px solid rgba(0,0,0,.7);
+        padding: 0px;
+        max-height: 0;
+        -webkit-transition: all .55s linear;
+        -moz-transition: all .55s linear;
+        -o-transition: all .55s linear;
+        transition: all .55s linear;
+    }
+    .cgl-image-wrapper:hover .test-description-class {
+        max-height: 100%;
+    }
+    .test-big-button-class{
+        display: block;
+        font-family: 'Hind Siliguri', sans-serif;
+        font-size: 24px;
+        background: rgba(223,234,240,1);
+        background: -moz-linear-gradient(top, rgba(223,234,240,1) 0%, rgba(192,208,219,1) 50%, rgba(139,178,201,1) 51%, rgba(224,239,249,1) 100%);
+        background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(223,234,240,1)), color-stop(50%, rgba(192,208,219,1)), color-stop(51%, rgba(139,178,201,1)), color-stop(100%, rgba(224,239,249,1)));
+        background: -webkit-linear-gradient(top, rgba(223,234,240,1) 0%, rgba(192,208,219,1) 50%, rgba(139,178,201,1) 51%, rgba(224,239,249,1) 100%);
+        background: -o-linear-gradient(top, rgba(223,234,240,1) 0%, rgba(192,208,219,1) 50%, rgba(139,178,201,1) 51%, rgba(224,239,249,1) 100%);
+        background: -ms-linear-gradient(top, rgba(223,234,240,1) 0%, rgba(192,208,219,1) 50%, rgba(139,178,201,1) 51%, rgba(224,239,249,1) 100%);
+        background: linear-gradient(to bottom, rgba(223,234,240,1) 0%, rgba(192,208,219,1) 50%, rgba(139,178,201,1) 51%, rgba(224,239,249,1) 100%);
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#dfeaf0', endColorstr='#e0eff9', GradientType=0 );
+        border: 1px solid rgba(0,0,0,.05);
+        border-radius: 7px;
+        height: 50px;
+        width: 200px;
+        color: #ffffff;
+        font-weight: bold;
+        margin: 0 auto;
+        text-shadow: 0 -1px 1px rgba(0,0,0,.8);
+        cursor: pointer;
+        outline: none;
+    }
+    .test-link-class{
+        font-family: 'Hind Siliguri', sans-serif;
+        background: rgba(0,0,0,.45);
+        border-radius: 3px;
+        color: #ffffff;
+        font-weight: bold;
+        margin: 0 auto;
+        text-shadow: 0 -1px 1px rgba(0,0,0,.8);
+        cursor: pointer;
+        text-decoration: none;
+        padding: 0px 10px;
+    }
+    .test-link-class:hover {
+        background: rgba(0,0,0,.75);
+    }
+</style>
+<div id="app" style="width: 1200px; margin: 0 auto;">
+    <div style=" margin: 0 auto;">
+        <div class="page-title">
+            Cascade Gallery
+        </div>
+        <div class="page-description">
+            Vue.js component generates random sizes for the given images in the given ranges, creates<br/>
+            a list of cards and modal carousels for each set of images. Try by your self in the example below.
+            <br/>
+            <hr color="#ccc" size="1px">
+            <div style="color: #777;">
+                Modal carousel
+                &nbsp;&nbsp;-|-&nbsp;&nbsp;
+                Random sizes in the given range
+                &nbsp;&nbsp;-|-&nbsp;&nbsp;
+                Touch support
+                &nbsp;&nbsp;-|-&nbsp;&nbsp;
+                Template customization
+                &nbsp;&nbsp;-|-&nbsp;&nbsp;
+                Animation
+            </div>
+        </div>
+        <cascade-gallery :images="images"
+                         :config="config"
+                         v-slot:default="image">
+            <div class="test-title-class">
+                <!-- Use [your-default.index] property to get access to the each image configuration -->
+                {{ images[image.index].data['my-custom-2'] | cutLongText(20) }}
+            </div>
+            <div class="test-description-class">
+                <div style="padding: 10px;">
+                    {{ images[image.index].data['my-custom-1'] | cutLongText(95)  }}
+                    <br/><br/>
+                    <a class="test-link-class" :href="images[image.index].data['my-custom-3']">Open</a>
+                    <a class="test-link-class" :href="images[image.index].data['my-custom-3']">Read</a>
+                    <a class="test-link-class" :href="images[image.index].data['my-custom-3']">Link</a>
+                </div>
+            </div>
+        </cascade-gallery>
+        <br/><br/>
+        <hr color="#ccc" size="1px">>
+        <br/><br/>
+        <button class="test-big-button-class" @click="addImages(5)">Show more posts</button>
+        <br/><br/>
     </div>
 </div>
-
 <script type="text/javascript">
+    /**
+     * NOTE: I have to apologize for the names and spelling
+     * mistakes that I may have introduced, soon I will do
+     * a review and fix all them.
+     */
     new Vue({
         el: '#app',
         components: {
             'cascade-gallery': CascadeGallery
         },
         data() {
+            /**
+             * The list of the images used for the gallery
+             * @see this.
+             * @type Array
+             */
             let images = [
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
-                this.generateRandomConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
+                this.generateRandomImageConfig(),
             ];
             return {
                 images: images,
                 config: {
 
                     /**
-                     * max and min for image width in pixels
-                     * min can't me bigger then max
-                     * the random number in between will be picked
-                     * both can be the same size
-                     * if it will be enough space to place last image after
-                     * all images will decay to min width last image will
-                     * take the width of the remained space.
+                     * Max and min for image width in pixels
+                     * Min can't be bigger then max
+                     * The random number in between will be picked
+                     * Both can be the same size
+                     * If it will be enough space to place last image after
+                     * all images will "decay" be adjusted to min the width,
+                     * last image will take the width of the remained space.
                      * defaults {max: 300, min: 200}
                      */
                     'width-range': {
-                        min: 200,
-                        max: 250
+                        min: 400,
+                        max: 500
                     },
 
                     /**
-                     * max and min for image width in pixels (same as for width)
-                     *
-                     * for defaults is taken approximate image width for
-                     * the given (default) image min width and
-                     * sums it with it self fifth part.
+                     * Max and min for image height in pixels
+                     * Default height will be taken randomly
+                     * in the range close to the width.
+                     * @see (Image.vue).getRandomHeight()
                      */
                     'height-range': {
-                        min: 200,
-                        max: 250
+                        min: 250,
+                        max: 300
                     },
 
                     /**
                      * Gap in between a columns in pixels
                      */
-                    'gap': 15,
+                    'gap': 10,
 
                     /**
-                     * Delay between image appearance
+                     * Delay between images appearance
                      */
                     'appending-delay': 150,
                 }
@@ -77,53 +228,134 @@
         methods: {
             addImages(amount) {
                 for(let iterator = 1; iterator <= amount; iterator++) {
-                    this.images.push(this.generateRandomConfig());
+                    this.images.push(this.generateRandomImageConfig());
                 }
             },
-            generateRandomConfig() {
+            generateRandomImageConfig() {
                 return {
+
+                    /**
+                     * Array of images that is going to be displayed in modal carousel
+                     * required
+                     * @type Array
+                     */
+                    'src': this.getImages(),
+
+                    /**
+                     * Image index that will be displayed first
+                     * not required
+                     * @type Number
+                     */
                     'default-index': this.getRandomIndex(),
-                    src: this.getImages()
+
+                    /**
+                     * NOTE: You can define any property and later not only {data}
+                     *       that is defined in this example, and then access it
+                     *       using image [index] that can be returned from
+                     *       [v-slot:default="image"] check Vue docs for the slots
+                     *       documentation: https://vuejs.org/v2/guide/components-slots.html#Scoped-Slots
+                     * Data for the slot template, if nothing is given then just
+                     * image will be shown
+                     * NOTE: The block that is keeping the image template <slot>
+                     *       has a higher index than the image, in order to make
+                     *       image "clickable", leave space for the interaction.
+                     * TODO: Define modal actions slots
+                     * not required
+                     */
+                    'data': {
+                        'my-custom-1': this.getDescriptionText(),
+                        'my-custom-2': this.getTitleText(),
+                        'my-custom-3' : '#'
+                    }
                 };
             },
             getImages() {
+                /**
+                 * For avoiding duplications I did defined and array of images
+                 * that will be used to populate images list
+                 */
                 return [
-                    'https://ibmachine.com/images/machine/87/7257/9004.jpg',
-                    'https://ibmachine.com/images/machine/87/7257/3438.jpg',
-                    'https://ibmachine.com/images/machine/87/7257/9339.jpg',
-                    'https://ibmachine.com/images/machine/998/7276/5656.jpg',
-                    'https://ibmachine.com/images/machine/997/7262/7715.jpg',
-                    'https://ibmachine.com/images/machine/65/7232/5436.jpg',
-                    'https://ibmachine.com/images/machine/87/7226/9137.jpg',
-                    'https://ibmachine.com/images/machine/87/7216/7331.jpg',
-                    'https://ibmachine.com/images/machine/87/7213/5113.jpg',
-                    'https://ibmachine.com/images/machine/984/7201/6268.jpg',
-                    'https://ibmachine.com/images/machine/984/7198/5655.jpg',
-                    'https://ibmachine.com/images/machine/984/7176/5002.jpg',
-                    'https://ibmachine.com/images/machine/87/7169/4340.jpg',
-                    'https://ibmachine.com/images/machine/87/7169/4340.jpg',
-                    'https://ibmachine.com/images/machine/65/7152/8948.jpg',
-                    'https://ibmachine.com/images/machine/982/7133/1231.jpg',
-                    'https://ibmachine.com/images/machine/982/7133/9507.jpg',
-                    'https://ibmachine.com/images/machine/87/7110/1302.jpg',
-                    'https://ibmachine.com/images/machine/521/7098/7166.jpg',
-                    'https://ibmachine.com/images/machine/521/7096/2366.jpg',
-                    'https://ibmachine.com/images/machine/2/7072/9748.jpg',
-                    'https://ibmachine.com/images/machine/33/7056/2488.jpg',
-                    'https://ibmachine.com/images/machine/33/7036/7551.jpg',
-                    'https://ibmachine.com/images/machine/151/7009/1424.jpg',
-                    'https://ibmachine.com/images/machine/65/7002/7562.jpg',
-                    'https://ibmachine.com/images/machine/262/6959/9316.jpg'
+                    'https://cdn.pixabay.com/photo/2018/02/27/21/55/belly-3186730_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2015/06/19/09/39/lonely-814631_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2017/08/31/09/11/cliff-2699812_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2018/02/27/03/36/spa-3184610_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2017/12/28/18/13/body-of-water-3045871_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2016/09/10/15/54/feet-1659412_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2018/01/15/13/45/fat-3083968_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2017/12/14/09/37/aerial-3018625_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2019/07/14/16/08/desk-4337482_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2014/11/15/23/29/neuschwanstein-532850_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2015/10/30/20/13/sunrise-1014712_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2017/02/25/05/14/shipwreck-2096945_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2015/01/17/12/12/ship-traffic-jams-602169_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2015/11/07/11/02/port-1030760_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2015/01/10/21/47/swimming-pool-595728_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2015/05/15/14/50/concert-768722_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2018/08/19/10/16/nature-3616194_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2017/09/09/18/25/living-room-2732939_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2018/03/01/09/33/hand-3190204_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2010/12/14/03/26/petra-3010_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2017/08/06/19/37/archaeological-2595597_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2014/07/01/12/35/taxi-cab-381233_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2016/01/19/17/47/usa-1149896_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2015/12/08/00/45/monument-valley-1081996_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2015/11/07/12/00/bikini-1031719_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2016/03/04/19/36/beach-1236581_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2016/10/27/13/22/girl-1775035_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2018/01/06/09/25/hijab-3064633_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2016/08/29/16/47/leg-1628682_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2017/05/23/13/55/back-2337320_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2017/08/01/08/29/people-2563491_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2018/01/15/07/52/portrait-3083403_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2015/11/16/22/14/cat-1046544_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2016/03/09/09/12/cat-1245673_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2018/02/07/20/07/vehicle-3137881_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2016/07/21/18/46/surf-1533278_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2016/12/23/12/40/night-1927265_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2015/07/11/23/02/plane-841441_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2018/04/27/08/55/water-3354062_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2015/09/02/12/29/pedestrians-918471_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2016/11/18/13/57/people-1834717_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2019/07/23/11/51/castle-4357442_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2017/09/07/16/49/acropolis-2725910_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2017/03/21/12/20/travel-2162030_960_720.jpg',
+                    'https://cdn.pixabay.com/photo/2017/09/02/11/24/venice-2707012_960_720.jpg',
                 ]
             },
-            getDescription() {
-                return'<b>Lorem donec massa</b> sapien <i>faucibus et molestie</i> ac feugiat. Ac ' +
+
+            /**
+             * Some random text for the slot template
+             * @returns String
+             */
+            getTitleText() {
+                return 'Excepteur sint occaecat';
+            },
+
+            /**
+             * Some random text for the slot template
+             * @returns String
+             */
+            getDescriptionText() {
+                return'Lorem donec massa sapien faucibus et molestie ac feugiat. Ac ' +
                       'turpis egestas integer eget aliquet nibh praesent tristique. ' +
                       'Pharetra pharetra massa massa ultricies mi quis hendrerit dolor magna.';
 
             },
+
+            /**
+             * get a random image index from the list
+             * @returns Number
+             */
             getRandomIndex() {
                 return Math.floor(Math.random() * Math.floor(this.getImages().length - 1));
+            }
+        },
+        filters: {
+            cutLongText: function (text, maxLength) {
+                if (text.length > maxLength) {
+                    return (text.slice(0, maxLength))+'...';
+                }
+                return text;
             }
         }
     });
