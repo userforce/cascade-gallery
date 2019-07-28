@@ -30,5 +30,6 @@ export default {
     CONFIG_APPENDING_DELAY: 75,
     CONFIG_GAP_KEY: 'gap',
     CONFIG_GAP: 0,
+    DEFAULT_INDEX_KEY: 'default-index'
 
 }

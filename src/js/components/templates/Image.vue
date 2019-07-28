@@ -1,5 +1,6 @@
 <script>
     import CascadeGalleryLoader from '../spinner/Spinner.vue';
+    import CascadeGalleryModal from './Modal.vue';
     import c from '../../constants';
 
     export default {
@@ -7,17 +8,19 @@
         components: (function(){
             let components = {};
             components[c.SPINNER_COMPONENT_NAME] = CascadeGalleryLoader;
+            components[c.MODAL_COMPONENT_NAME] = CascadeGalleryModal;
             return components;
         })(),
         props: {
-            images: {type: Array},
-            defaultIndex: {type: Number},
+            imagesData: {type: Object},
             config: {type: Object},
             index: {type: Number}
         },
         data() {
             return {
+                showModal: false,
                 showSpinner: true,
+                defaultIndex: this.imagesData[c.DEFAULT_INDEX_KEY] ? this.imagesData[c.DEFAULT_INDEX_KEY] : 0,
                 image: {
                     element: null,
                     styles: {
@@ -29,6 +32,12 @@
                     classes: [c.ANIMATION_CSS_CLASS_HIDE]
                 }
             };
+        },
+        mounted() {
+            let self = this;
+            this.$on('closeModal', function () {
+                self.setShowModal(false)
+            });
         },
         methods: {
 
@@ -87,16 +96,16 @@
              * @returns {boolean}
              */
             setImageStyles() {
-                if (this.getImagePropHeight() < this.getWrapperWidth()) {
+                let gap = this.config.gap ? this.config.gap : 0;
+                if ((this.getImagePropHeight() - gap) < this.getWrapperWidth()) {
                     this.image.styles.width = '100%';
-                    this.image.styles.top = '-' + (this.getImagePropWidth() - this.getWrapperHeight()) / 2 + 'px';
+                    this.image.styles.top = '-' + (this.getImagePropWidth() - (this.getWrapperHeight() + gap)) / 2 + 'px';
                     return true;
                 } else {
                     this.image.styles.height = '100%';
-                    this.image.styles.left = '-' + (this.getImagePropHeight() - this.getWrapperWidth()) / 2 + 'px';
+                    this.image.styles.left = '-' + (this.getImagePropHeight() - (this.getWrapperWidth() + gap)) / 2 + 'px';
                     return true;
                 }
-                console.log(this.config.images[this.index][c.CONFIG_GAP_KEY]);
             },
 
             /**
@@ -158,7 +167,7 @@
              * @returns Boolean
              */
             isFirstImage() {
-                return this.index == 0;
+                return parseInt(this.index) === 0;
             },
 
             /**
@@ -181,6 +190,14 @@
             animate() {
                 this.image.classes.push(c.ANIMATION_CSS_CLASS_APPEND);
             },
+
+            /**
+             * Display image modal
+             * @param value
+             */
+            setShowModal(value) {
+                this.showModal = value;
+            }
         }
     }
 </script>
@@ -189,16 +206,27 @@
     <div class="cgl-image">
         <div class="cgl-image-wrapper">
             <div class="cgl-image-back">
-                <img :src="images[defaultIndex]?images[defaultIndex]:images[0]"
+                <img :src="imagesData.src[defaultIndex]"
                      :class="image.classes"
                      :style="image.styles"
-                     @load="loadConfig($event)"/>
+                     @load="loadConfig($event)"
+                     @click="setShowModal(true)"/>
             </div>
             <div class="cgl-loader-box"
                 v-show="showSpinner">
                 <cgl-spinner></cgl-spinner>
             </div>
+            <div class="cgl-info-card-block"
+                 v-show="!showSpinner">
+                <slot v-bind:index="index"></slot>
+            </div>
         </div>
+        <cgl-modal :images.sync="imagesData"
+                   :config.sync="config"
+                   :index="index"
+                   :defaultIndex="defaultIndex"
+                   v-if="showModal">
+        </cgl-modal>
     </div>
 </template>
 
@@ -257,5 +285,10 @@
         left: 50%;
         margin-left: -15px;
         top: 35%;
+    }
+    .cgl-info-card-block{
+        width: 0;
+        top: 0;
+        position: static;
     }
 </style>

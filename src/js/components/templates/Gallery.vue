@@ -1,6 +1,5 @@
 <script>
     import CascadeGalleryImage from './Image.vue';
-    import CascadeGalleryModal from './Modal.vue';
     import c from '../../constants';
     import validator from '../../validator';
 
@@ -9,7 +8,6 @@
         components: (function(){
             let components = {};
             components[c.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;
-            components[c.MODAL_COMPONENT_NAME] = CascadeGalleryModal;
             return components;
         })(),
         props: {
@@ -133,20 +131,15 @@
             prepareGapStyles() {
                 let gap = this.config[c.CONFIG_GAP_KEY];
                 if (gap > 0) {
-                    for(let index = this.lastLineStartIndex; index <= this.currentImageIndex; index++) {
-                        this.config.images[index][c.CONFIG_GAP_KEY] = {};
-                        this.config.images[index][c.CONFIG_GAP_KEY]['border-top-width'] = gap+'px';
-                        this.config.images[index][c.CONFIG_GAP_KEY]['border-right-width'] = gap+'px';
-                        if (this.isLastInTheLine(index)) {
-                            this.config.images[index][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';
-                        }
-                        if (index !== 0 && index === this.columnsAmount) {
-                            this.config.images[index-1][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';
-                        }
 
-                        if (this.isFirstLine()) {
-                            this.config.images[index][c.CONFIG_GAP_KEY]['border-top-width'] = '0px';
-                        }
+                    this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY] = {};
+                    this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-top-width'] = gap+'px';
+                    this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-right-width'] = gap+'px';
+                    if (this.lastLineStartIndex === 0) {
+                        this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-top-width'] = '0px';
+                    }
+                    if (this.isLastInTheLine(this.currentImageIndex)) {
+                        this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';
                     }
                 }
             },
@@ -155,7 +148,7 @@
              * Check if the given image index is the last in the line
              */
             isLastInTheLine(index) {
-                return (this.columnsAmount > 0 && (this.columnsAmount + this.lastLineStartIndex) - 1 === index);
+                return this.config.images[index].width + this.getLineWidth() === this.window.width;
             },
 
             /**
@@ -216,7 +209,7 @@
              */
             getPositionX() {
                 let posX = 0;
-                if (this.currentImageIndex - this.lastLineStartIndex != 0) {
+                if (this.currentImageIndex - this.lastLineStartIndex !== 0) {
                     let previousImage = this.config.images[this.currentImageIndex - 1];
                     posX = previousImage.width + previousImage.left;
                 }
@@ -429,26 +422,19 @@
                     left: this.config.images[index].left + 'px',
                     top: this.config.images[index].top + 'px'
                 };
-                styles = this.addGapStyles(styles, index);
+                styles = this.getGapStyles(styles, index);
                 return styles;
             },
 
             /**
-             * Add specific styles for the gap between columns
+             * Sipecific styles for the gap between columns
              * @return Object
              */
-            addGapStyles(styles, index) {
+            getGapStyles(styles, index) {
                 if (validator.hasGap(this.options)) {
                     for (let key in this.config.images[index][c.CONFIG_GAP_KEY]) {
                         styles[key] = this.config.images[index][c.CONFIG_GAP_KEY][key]
                     }
-
-
-
-                    // styles['border-width'] = this.options[c.CONFIG_GAP_KEY]+'px';
-                    // if (this.config.images[index].hasOwnProperty(c.CONFIG_GAP_KEY)) {
-                    //
-                    // }
                 }
 
                 return styles;
@@ -482,41 +468,37 @@
                         this.galleryHeight = columnsHeights[index];
                     }
                 }
-            },
+            }
         }
     }
 </script>
 
 <template>
-    <div class="cascade-gallery-columns-block"
+    <div class="cgl-columns-block"
          :style="{ height: galleryHeight+'px' }">
-        <div class="cascade-gallery-image-block"
+        <div class="cgl-image-block"
              v-if="config.images[index]"
              :style="getStyles(index)"
              v-for="(image, index) in images" >
-            <cgl-image :images.sync="image['src']"
+            <cgl-image :imagesData="image"
                        :config.sync="config"
                        :index="index"
-                       :defaultIndex="image['default_index']">
+                       v-slot:default="images">
+                <slot v-bind:index="images.index"></slot>
             </cgl-image>
-            <cgl-modal :images.sync="image['src']"
-                       :config.sync="config"
-                       :index="index"
-                       :defaultIndex="image['default_index']">
-            </cgl-modal>
         </div>
     </div>
 </template>
 
 <style>
-    .cascade-gallery-columns-block{
+    .cgl-columns-block{
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
         width: 100%;
         position: relative;
     }
-    .cascade-gallery-image-block {
+    .cgl-image-block {
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
