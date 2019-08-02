@@ -97,7 +97,7 @@
              */
             setImageStyles() {
                 let gap = this.config.gap ? this.config.gap : 0;
-                if ((this.getImagePropHeight() - gap) < this.getWrapperWidth()) {
+                if (this.getImagePropHeight() < this.getWrapperWidth()) {
                     this.image.styles.width = '100%';
                     this.image.styles.top = '-' + (this.getImagePropWidth() - (this.getWrapperHeight() + gap)) / 2 + 'px';
                     return true;
