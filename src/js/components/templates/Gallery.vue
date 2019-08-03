@@ -12,7 +12,8 @@
         })(),
         props: {
             images: { type: Array },
-            options: { type: Object }
+            options: { type: Object },
+            width: { type: Number }
         },
         data() {
             return {
@@ -32,25 +33,23 @@
                     images: [],
                 },
                 window: {
-                    width: 0,
+                    width: this.width,
                     height: 0
                 }
             };
         },
         mounted() {
-            this.window.width = this.$el.parentNode.offsetWidth;
             this.window.height = this.$el.parentNode.offsetHeight;
             this.prepareConfigOptions();
             this.prepareConfigImages();
         },
         watch: {
             /**
-             * Watch for the images list and add incoming images
-             * TODO: Rebuild configuration on image removing
+             * Adds new incoming images
              */
             images() {
                 this.addNewImages();
-                this.setGalleryHeight()
+                this.setGalleryHeight();
             }
         },
         methods: {
@@ -81,9 +80,8 @@
              * After configuration options are ready apply them to
              * the images block (parent)
              * That is invoked just on mounting
-             * NOTE: By defining image configuration we meant image block
-             *       (parent) configuration so image it self can detect
-             *       future sizes or displaying modes
+             * NOTE: By defining image configuration we meant image block so
+             *       image it self can detect future sizes or displaying modes
              */
             prepareConfigImages() {
                 for(let index in this.images) {
@@ -131,7 +129,6 @@
             prepareGapStyles() {
                 let gap = this.config[c.CONFIG_GAP_KEY];
                 if (gap > 0) {
-
                     this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY] = {};
                     this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-top-width'] = gap+'px';
                     this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-right-width'] = gap+'px';
@@ -427,7 +424,7 @@
             },
 
             /**
-             * Sipecific styles for the gap between columns
+             * Specific styles for the gap between columns
              * @return Object
              */
             getGapStyles(styles, index) {
@@ -468,7 +465,7 @@
                         this.galleryHeight = columnsHeights[index];
                     }
                 }
-            }
+            },
         }
     }
 </script>
