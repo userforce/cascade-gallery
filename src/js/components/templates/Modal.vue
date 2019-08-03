@@ -317,7 +317,8 @@
                     <path :d="arrow.svg.path"/>
                 </svg>
             </div>
-            <div class="cgl-modal-close" @click="closeModal()">X</div>
+
+            <div class="cgl-modal-close" @click="closeModal()"></div>
         </div>
     </div>
 </template>
@@ -414,25 +415,25 @@
     }
 
     .cgl-modal-close {
+        width: 35px;
+        height: 35px;
         position: absolute;
         z-index: 15;
         top: 15px;
         right: 15px;
-        font-size: 20px;
-        padding: 5px 0 0 0;
+        opacity: .3;
+    }
+
+    .cgl-modal-close:after {
+        content: "\d7";
+        font-size: 55px;
         color: white;
-        opacity: .2;
-        border: 4px solid white;
-        border-radius: 20px 20px 20px 20px;
-        -moz-border-radius: 20px 20px 20px 20px;
-        -webkit-border-radius: 20px 20px 20px 20px;
-        width: 40px;
-        height: 40px;
-        text-align: center;
+        line-height: 35px;
+        font-weight: bold;
     }
 
     .cgl-modal-close:hover {
-        opacity: .5;
+        opacity: .7;
         cursor: pointer;
     }
 </style>

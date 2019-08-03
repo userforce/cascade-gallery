@@ -210,6 +210,7 @@
                      :class="image.classes"
                      :style="image.styles"
                      @load="loadConfig($event)"
+                     @error="loadConfig($event)"
                      @click="setShowModal(true)"/>
             </div>
             <div class="cgl-loader-box"

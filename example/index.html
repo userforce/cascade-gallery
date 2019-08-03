@@ -5,7 +5,6 @@
     <script type="text/javascript" src="../dist/js/cascade-gallery.js"></script>
     <title>Cascade gallery</title>
 </head>
-<body style="background: url('https://ibmachine.com/assets/frontend/img/background-header.png') repeat;">
 <style>
     @import url('https://fonts.googleapis.com/css?family=Courgette&display=swap');
     @import url('https://fonts.googleapis.com/css?family=Hind+Siliguri&display=swap');
@@ -102,8 +101,9 @@
         background: rgba(0,0,0,.75);
     }
 </style>
-<div id="app" style="width: 1200px; margin: 0 auto;">
-    <div style=" margin: 0 auto;">
+<body style="background: url('https://ibmachine.com/assets/frontend/img/background-header.png') repeat; margin: 0; padding: 0;">
+<div id="app">
+    <div style="width: 1200px; margin: 0 auto;">
         <div class="page-title">
             Cascade Gallery
         </div>
@@ -147,17 +147,11 @@
         <br/><br/>
         <hr color="#ccc" size="1px">
         <br/><br/>
-        <button class="test-big-button-class" @click="addImages(5)">Show more posts</button>
+        <button class="test-big-button-class" @click="addImages()">Show more</button>
         <br/><br/>
     </div>
 </div>
-<script type="text/javascript">
-    /**
-     * NOTE: I have to apologize for the names and spelling
-     * mistakes that I may have introduced, soon I will do
-     * a review and fix all them.
-     */
-    new Vue({
+<script type="text/javascript">    new Vue({
         el: '#app',
         components: {
             'cascade-gallery': CascadeGallery
@@ -168,23 +162,11 @@
              * @see this.
              * @type Array
              */
-            let images = [
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-                this.generateRandomImageConfig(),
-            ];
+            let images = [];
+            for(let iterator = 0; iterator <= 25; iterator++) {
+                images.push(this.generateRandomImageConfig());
+            }
+
             return {
                 images: images,
                 config: {
@@ -200,8 +182,8 @@
                      * defaults {max: 300, min: 200}
                      */
                     'width-range': {
-                        min: 400,
-                        max: 500
+                        min: 300,
+                        max: 350
                     },
 
                     /**
@@ -211,8 +193,8 @@
                      * @see (Image.vue).getRandomHeight()
                      */
                     'height-range': {
-                        min: 250,
-                        max: 300
+                        min: 180,
+                        max: 220
                     },
 
                     /**
@@ -228,7 +210,8 @@
             };
         },
         methods: {
-            addImages(amount) {
+            addImages() {
+                let amount = this.getRandomNumber(3, 25)
                 for(let iterator = 1; iterator <= amount; iterator++) {
                     this.images.push(this.generateRandomImageConfig());
                 }
@@ -248,7 +231,7 @@
                      * not required
                      * @type Number
                      */
-                    'default-index': this.getRandomIndex(),
+                    'default-index': 0,
 
                     /**
                      * NOTE: You can define any property and later not only {data}
@@ -271,58 +254,19 @@
                     }
                 };
             },
+
+            /**
+             * Generates a random list of images
+             */
             getImages() {
-                /**
-                 * For avoiding duplications I did defined and array of images
-                 * that will be used to populate images list
-                 */
-                return [
-                    'https://cdn.pixabay.com/photo/2018/02/27/21/55/belly-3186730_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2015/06/19/09/39/lonely-814631_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2017/08/31/09/11/cliff-2699812_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2018/02/27/03/36/spa-3184610_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2017/12/28/18/13/body-of-water-3045871_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2016/09/10/15/54/feet-1659412_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2018/01/15/13/45/fat-3083968_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2017/12/14/09/37/aerial-3018625_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2019/07/14/16/08/desk-4337482_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2014/11/15/23/29/neuschwanstein-532850_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2015/10/30/20/13/sunrise-1014712_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2017/02/25/05/14/shipwreck-2096945_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2015/01/17/12/12/ship-traffic-jams-602169_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2015/11/07/11/02/port-1030760_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2015/01/10/21/47/swimming-pool-595728_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2015/05/15/14/50/concert-768722_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2018/08/19/10/16/nature-3616194_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2017/09/09/18/25/living-room-2732939_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2018/03/01/09/33/hand-3190204_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2010/12/14/03/26/petra-3010_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2017/08/06/19/37/archaeological-2595597_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2014/07/01/12/35/taxi-cab-381233_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2016/01/19/17/47/usa-1149896_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2015/12/08/00/45/monument-valley-1081996_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2015/11/07/12/00/bikini-1031719_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2016/03/04/19/36/beach-1236581_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2016/10/27/13/22/girl-1775035_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2018/01/06/09/25/hijab-3064633_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2016/08/29/16/47/leg-1628682_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2017/05/23/13/55/back-2337320_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2017/08/01/08/29/people-2563491_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2018/01/15/07/52/portrait-3083403_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2015/11/16/22/14/cat-1046544_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2016/03/09/09/12/cat-1245673_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2018/02/07/20/07/vehicle-3137881_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2016/07/21/18/46/surf-1533278_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2016/12/23/12/40/night-1927265_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2015/07/11/23/02/plane-841441_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2018/04/27/08/55/water-3354062_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2015/09/02/12/29/pedestrians-918471_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2016/11/18/13/57/people-1834717_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2019/07/23/11/51/castle-4357442_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2017/09/07/16/49/acropolis-2725910_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2017/03/21/12/20/travel-2162030_960_720.jpg',
-                    'https://cdn.pixabay.com/photo/2017/09/02/11/24/venice-2707012_960_720.jpg',
-                ]
+                let images = [];
+                for(let iterator = 1; iterator <= 10; iterator++) {
+                    let width = this.getRandomNumber(400, 500);
+                    let height = this.getRandomNumber(250, 300);
+                    let url = 'http://placekitten.com/'+width+'/'+height;
+                    images.push(url);
+                }
+                return images;
             },
 
             /**
@@ -348,8 +292,10 @@
              * get a random image index from the list
              * @returns Number
              */
-            getRandomIndex() {
-                return Math.floor(Math.random() * Math.floor(this.getImages().length - 1));
+            getRandomNumber(min = 0, max = 500) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min)) + min;
             }
         },
         filters: {

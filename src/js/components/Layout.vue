@@ -1,10 +1,11 @@
 <script>
     import CascadeGallery from './templates/Gallery.vue';
     import validator from '../validator';
+    import helpers from '../resources/helpers';
     /**
-     * For the purpose of keeping lines shorter use [c] letter
-     * to reference to the constants. I this particular case
-     * it is readable and clean anyway.
+     * To keep lines shorter use [c] letter to reference
+     * to the constants. I this particular case it is
+     * readable and clean anyway.
      */
     import c from '../constants';
 
@@ -35,8 +36,26 @@
             // Set default animation range
             default_config[c.CONFIG_GAP_KEY] = c.CONFIG_GAP;
             return {
+                hasScrollBar: false,
+                galleryReloading: false,
+                width: 0,
                 default: default_config
             }
+        },
+        updated() {
+            this.adjustGalleryOnScroll();
+        },
+        mounted() {
+            let self = this;
+            this.width = this.$el.offsetWidth;
+
+            /**
+             * After gallery fully loaded check for scrollbar presence
+             * and rewrite images size.
+             */
+            this.$nextTick(function () {
+                self.adjustGalleryOnScroll();
+            })
         },
         methods: {
 
@@ -84,15 +103,35 @@
                 return hasRange ? config[key] : defaultRange;
             },
 
+            /**
+             * Rebuild gallery if gallery height is tall enough to trigger scroll bar
+             */
+            adjustGalleryOnScroll() {
+                if (!this.hasScrollBar) {
+                    if (helpers.window.hasScrollbar('y')) {
+                        this.hasScrollBar = true;
+                        let self = this;
+                        let width = self.$el.offsetWidth;
+                        this.galleryReloading = true;
+                        this.width = width;
+                        setTimeout(function () {
+                            self.galleryReloading = false
+                        },100)
+                    }
+                }
+            }
+
         }
     }
 </script>
 
 <template>
     <div class="cgl">
-        <div class="cgl-wrapper">
+        <div class="cgl-wrapper"
+             v-if="!galleryReloading && width > 0">
             <cgl-gallery :images.sync="images"
                          :options="getConfig()"
+                         :width="width"
                          v-slot:default="images">
                 <slot v-bind:index="images.index"></slot>
             </cgl-gallery>
