@@ -244,196 +244,114 @@ var arrow = new ArrowClass();var script$1 = {
     },
     data() {
         return {
-            imageBlock: {},
-            currentImageIndex: this.defaultIndex,
-            currentImageElement: null,
-            animation: {
-                inProgress: false
-            },
-            navigationClicked: false,
-            diff: 0,
-            window: {
-                width: window.innerWidth,
-                height: window.innerHeight
-            },
+            draggingStartPosX: null,
+            showImageLoader: true,
+            currentIndex: this.defaultIndex,
             styles: {
-                left: 0
+                wrapper: { left: '0', width: '0', height: '0' },
+                image: { width: '0', height: '0' }
             },
-            classes: {
-                transitionClass: 'cascade-gallery-modal-image-transition'
-            },
-            arrow: arrow
+            arrow: arrow,
+            transitionClass: 'cgl-anim'
         };
     },
     mounted() {
-        this.window.width = window.innerWidth;
-        this.window.height = window.innerHeight;
+        window.addEventListener('resize', this.updateStyles);
+        this.updateStyles();
+        this.prepareDragging();
     },
     methods: {
-        /**
-         * 'closeModal' event is listened in the mounted method of the
-         * image component and it is closing the modal
-         */
-        closeModal() {
-            this.$parent.$emit('closeModal');
-        },
 
         /**
-         * On image load prepare dragging and touch moving
-         * @param event
+         * Prepare dragging and touch moving
          */
-        prepareDragging(event) {
-            this.addEventListeners(event.target, ["mousedown", "touchstart"], this.startDragging);
-            this.addEventListeners(event.target, ["mouseup", "touchend", "mouseout"], this.stopDragging);
-        },
-
-        /**
-         * Handle all events after dragging action finished [mouseup, touchend, mouseout]
-         * @param event
-         */
-        stopDragging(event) {
-            this.setClasses(event.target, this.classes.transitionClass);
-            event.target.removeEventListener("mousemove", this.dragElement);
-            event.target.removeEventListener("touchmove", this.dragElement);
-
-            if (this.navigationClicked) return;
-
-            if (this.isShiftedLeft(event) && !this.isTheLastImage(this.currentImageIndex)) {
-                if (!this.animation.inProgress && event.type === "mouseout") {
-                    this.showNextImage();
-                } else {
-                    this.animation.inProgress = false;
-                }
-                if ( event.type === "mouseup" || event.type === "touchend" ) {
-                    this.animation.inProgress = true;
-                    this.showNextImage();
-                }
-            } else if (this.isShiftedRight(event) && !this.isTheFirstImage(this.currentImageIndex)) {
-                if (!this.animation.inProgress && event.type === "mouseout") {
-                    this.showPreviousImage();
-                } else {
-                    this.animation.inProgress = false;
-                }
-                if ( event.type === "mouseup" || event.type === "touchend" ) {
-                    this.animation.inProgress = true;
-                    this.showPreviousImage();
-                }
-            } else {
-                this.alignImage(event);
-                this.animation.inProgress = true;
-            }
-        },
-
-        /**
-         * Check if image was dragged out of the given pixels to the left
-         * @param event
-         * @returns Boolean
-         */
-        isShiftedLeft(event) {
-            return this.getAlignX(event) - 58 > event.target.offsetLeft;
-        },
-
-        /**
-         * Check if image was dragged out of the given pixels to the right
-         * @param event
-         * @returns Boolean
-         */
-        isShiftedRight(event) {
-            return this.getAlignX(event) + 58 < event.target.offsetLeft;
+        prepareDragging() {
+            let wrapper = this.$refs.wrapper;
+            this.addEventListeners(wrapper, ["mousedown", "touchstart"], this.startDragging);
         },
 
         /**
          * On start dragging image prepare default position and
          * on end dragging events listeners
-         * @param event
          */
         startDragging(event) {
-            let imageLeft = event.target.offsetLeft;
+            this.addEventListeners(event.target, ["mouseup", "touchend", "mouseout"], this.stopDragging);
+            let wrapper = this.$refs.wrapper;
+            this.transitionClass = '';
             let mouseLeft = null;
             if (event.type === "touchstart") {
                 mouseLeft = event.touches[0].pageX;
             } else {
                 mouseLeft = event.pageX;
             }
-            this.diff = mouseLeft - imageLeft;
-            this.setClasses(event.target, '');
+            this.draggingStartPosX = mouseLeft - wrapper.offsetLeft;
             this.addEventListeners(event.target, ["mousemove", "touchmove"], this.dragElement);
         },
-
 
         /**
          * Set the position on dragging image and prevent history
          * auto navigation on dragging to the right
-         * @param event
          */
         dragElement(event) {
             event.preventDefault();
-            let imageLeft = event.pageX - this.diff;
+            let wrapperLeft = event.pageX - this.draggingStartPosX;
             if (event.type === "touchmove") {
-                imageLeft = event.touches[0].pageX - this.diff;
+                wrapperLeft = event.touches[0].pageX - this.draggingStartPosX;
             }
-            this.setImagePositionX(imageLeft);
+            this.setWrapperPositionLeft(wrapperLeft);
         },
 
         /**
-         * Display (animate) next image if the previous animation finished
+         * Set wrapper css left position
          */
-        showNextImage() {
-            if (this.waitAnimation()) return;
-            if (!this.isTheLastImage(this.currentImageIndex)) {
-                let self = this;
-                this.setImagePositionX(-this.currentImageElement.offsetWidth);
-                let index = self.currentImageIndex + 1;
-                let lastIndex = self.images.src.length - 1;
-                let nextIndex = index > lastIndex ? lastIndex : index;
-                setTimeout(function () {
-                    self.displayImage(nextIndex, self.currentImageElement.parentNode.offsetWidth);
-                }, 340);
-            }
+        setWrapperPositionLeft(position) {
+            this.styles.wrapper.left = position.toString()+'px';
         },
 
         /**
-         * Display (animate) previous image if the previous animation finished
+         * Handle all events after dragging action finished [mouseup, touchend, mouseout]
          */
-        showPreviousImage() {
-            if (this.waitAnimation()) return;
-            if (!this.isTheFirstImage(this.currentImageIndex)) {
-                let self = this;
-                this.setImagePositionX(this.currentImageElement.parentNode.offsetWidth);
-                let index = self.currentImageIndex - 1;
-                let previousIndex = index < 0 ? 0 : index;
-                setTimeout(function () {
-                    self.displayImage(previousIndex, -self.currentImageElement.offsetWidth);
-                }, 340);
+        stopDragging(event) {
+            this.removeListeners(event);
+            let wrapper = this.$refs.wrapper;
+            this.transitionClass = 'cgl-anim';
+            if (this.isShiftedLeft(wrapper)) {
+                this.showNext();
+            } else if (this.isShiftedRight()) {
+                this.showPrev();
+            }
+            else {
+                this.styles.wrapper.left = this.getPosX(this.currentIndex) + 'px';
             }
         },
 
         /**
-         * Display given image with given position
+         * Remove all runtime dragging listeners listeners
          */
-        displayImage(imageIndex, position) {
-            this.currentImageIndex = imageIndex;
-            this.setClasses(this.currentImageElement, this.classes.transitionClass);
-            this.setImagePositionX(position);
+        removeListeners(event) {
+            event.target.removeEventListener("mousemove", this.dragElement);
+            event.target.removeEventListener("touchmove", this.dragElement);
+            event.target.removeEventListener("mouseup", this.stopDragging);
+            event.target.removeEventListener("touchend", this.stopDragging);
+            event.target.removeEventListener("mouseout", this.stopDragging);
         },
 
         /**
-         * Define waiting animation delay
-         * @returns {boolean}
+         * Check if image was dragged out of the given pixels to the left
          */
-        waitAnimation() {
-            let self = this;
-            if (this.navigationClicked) return true;
-            this.navigationClicked = true;
-            setTimeout(function(){self.navigationClicked = false;}, 340);
-            return false;
+        isShiftedLeft() {
+            return this.getPosX(this.currentIndex) - 58 > this.$refs.wrapper.offsetLeft;
+        },
+
+        /**
+         * Check if image was dragged out of the given pixels to the right
+         */
+        isShiftedRight() {
+            return this.getPosX(this.currentIndex) + 58 < this.$refs.wrapper.offsetLeft;
         },
 
         /**
          * Adds multiple event listeners at once
-         * @param target
-         * @param events
-         * @param listener
          */
         addEventListeners(target, events = [], listener) {
             for (let index in events) {
@@ -442,81 +360,52 @@ var arrow = new ArrowClass();var script$1 = {
             }
         },
 
-        /**
-         * Set css for the left position
-         * @param position
-         */
-        setImagePositionX(position) {
-            this.styles.left = position.toString()+'px';
+        updateStyles() {
+            this.styles.wrapper.left = this.getPosX(this.currentIndex) + 'px';
+            this.styles.wrapper.width = window.innerWidth * this.images.src.length + 'px';
+            this.styles.wrapper.height = window.innerHeight + 'px';
+            this.styles.image.width = window.innerWidth + 'px';
+            this.styles.image.height = window.innerHeight + 'px';
         },
 
         /**
-         * Set the default css for the image position
-         * @param event
+         * Get position "left" of the wrapper relative to the image position
+         * @return Number
          */
-        alignImage(event) {
-            this.styles.left = this.getAlignX(event)+'px';
-            this.styles.top = this.getAlignY(event)+'px';
+        getPosX(index = 0) {
+            return -(((index+ 1) * window.innerWidth) - window.innerWidth);
         },
 
         /**
-         * Define default image left position
-         * @param event
-         * @returns Number
+         * 'closeModal' event is listened in the mounted method of the
+         * image component and it is closing the modal
          */
-        getAlignX(event) {
-            return event.target.parentNode.offsetWidth/2 - event.target.offsetWidth/2;
+        closeModal() {
+            this.$parent.$emit('closeModal');
         },
 
-        /**
-         * Define default image top position
-         * @param event
-         * @returns {number}
-         */
-        getAlignY(event) {
-            return event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2;
+        showNext() {
+            if (this.images.src.length - 1 > this.currentIndex) {
+                ++ this.currentIndex;
+                this.showImageLoader = true;
+            }
+            this.styles.wrapper.left = this.getPosX(this.currentIndex) + 'px';
         },
 
-        /**
-         * Set element classes to the images
-         * @param element
-         * @param classes
-         */
-        setClasses(element, classes = '') {
-            element.className = classes;
+        showPrev() {
+            if (0 < this.currentIndex) {
+                -- this.currentIndex;
+                this.showImageLoader = true;
+            }
+            this.styles.wrapper.left = this.getPosX(this.currentIndex) + 'px';
         },
 
-        prepareImage(event) {
-            this.currentImageElement = event.target;
-            this.alignImage(event);
-            this.prepareDragging(event);
-            // Stop history navigation on touch and move
-            event.target.parentNode.addEventListener('touchmove', function(e){
-                e.preventDefault();
-            });
-            this.waitAnimation();
+        hideLoader() {
+            this.showImageLoader = false;
         },
-
-        /**
-         * Check if current image is the last in the list
-         * @param index
-         * @returns Boolean
-         */
-        isTheLastImage(index) {
-            return index === this.images.src.length - 1;
-        },
-
-        /**
-         * Check if current image is the first in the list
-         * @param index
-         * @returns Boolean
-         */
-        isTheFirstImage(index) {
-            return index === 0;
-        }
     },
-    beforeDestroy() {
-        this.addEventListeners(event.target, ["mousemove", "touchmove"], this.dragElement);
+    destroyed() {
+        window.removeEventListener('resize', this.updateStyles);
     }
 };/* script */
 const __vue_script__$1 = script$1;
@@ -526,29 +415,52 @@ var __vue_render__$1 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
-  return _c("div", { staticClass: "cascade-gallery-modal" }, [
+  return _c("div", { staticClass: "cgl-modal" }, [
     _c(
       "div",
-      { staticClass: "cascade-gallery-modal-image-wrapper" },
+      {
+        ref: "wrapper",
+        staticClass: "cgl-modal-image-wrapper",
+        class: _vm.transitionClass,
+        style: _vm.styles.wrapper
+      },
       [
         _vm._l(_vm.images.src, function(url, index) {
-          return _vm.currentImageIndex === index
-            ? _c("div", { staticClass: "cascade-gallery-modal-image" }, [
-                _c("img", {
-                  class: _vm.classes.transitionClass,
-                  style: _vm.styles,
-                  attrs: { src: url, draggable: "false" },
-                  on: { load: _vm.prepareImage }
-                })
-              ])
-            : _vm._e()
+          return _c(
+            "div",
+            { staticClass: "cgl-modal-image", style: _vm.styles.image },
+            [
+              _vm.currentIndex == index
+                ? _c("img", {
+                    directives: [
+                      {
+                        name: "show",
+                        rawName: "v-show",
+                        value: !_vm.showImageLoader,
+                        expression: "!showImageLoader"
+                      }
+                    ],
+                    attrs: { src: url, draggable: "false" },
+                    on: { load: _vm.hideLoader }
+                  })
+                : _vm._e(),
+              _vm._v(" "),
+              _vm.currentIndex == index && _vm.showImageLoader
+                ? _c("div", { staticClass: "cgl-image-loader" }, [
+                    _vm._m(0, true),
+                    _vm._v(" "),
+                    _c("span", [_vm._v("Loading...")])
+                  ])
+                : _vm._e()
+            ]
+          )
         }),
         _vm._v(" "),
         _c(
           "div",
           {
             staticClass: "cgl-arrow-wrapper cgl-arrow-left",
-            on: { click: _vm.showPreviousImage }
+            on: { click: _vm.showPrev }
           },
           [
             _c(
@@ -570,7 +482,7 @@ var __vue_render__$1 = function() {
           "div",
           {
             staticClass: "cgl-arrow-wrapper cgl-arrow-right",
-            on: { click: _vm.showNextImage }
+            on: { click: _vm.showNext }
           },
           [
             _c(
@@ -601,13 +513,23 @@ var __vue_render__$1 = function() {
     )
   ])
 };
-var __vue_staticRenderFns__$1 = [];
+var __vue_staticRenderFns__$1 = [
+  function() {
+    var _vm = this;
+    var _h = _vm.$createElement;
+    var _c = _vm._self._c || _h;
+    return _c("div", { staticClass: "cgl-image-loader-animation" }, [
+      _c("div"),
+      _c("div")
+    ])
+  }
+];
 __vue_render__$1._withStripped = true;
 
   /* style */
   const __vue_inject_styles__$1 = function (inject) {
     if (!inject) return
-    inject("data-v-6ee4ddd8_0", { source: "\n.cascade-gallery-modal{\n    position: fixed;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    background: rgba(0,0,0,.87);\n    z-index: 5000;\n}\n.cascade-gallery-modal-image {\n    width: 100%;\n    height: 100%;\n    position: fixed;\n    left: 0;\n    text-align: center;\n}\n.cascade-gallery-modal-image img {\n    touch-action: none;\n    max-height: 100%;\n    max-width: 70%;\n    position: absolute;\n    -webkit-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n    -moz-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n    box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n}\n@media only screen and (max-width: 900px) {\n.cascade-gallery-modal-image img {\n        max-width: 100%;\n}\n}\n.cascade-gallery-modal-image-transition {\n    -webkit-transition: left .34s ease-out;\n    -moz-transition: left .34s ease-out;\n    -o-transition: left .34s ease-out;\n    transition: left .34s ease-out;\n}\n.cgl-arrow {\n    position: absolute;\n    top: 50%;\n    fill: #ffffff;\n    opacity: .1;\n    -webkit-transition: all .34s ease-out;\n    -moz-transition: all .34s ease-out;\n    -o-transition: all .34s ease-out;\n    transition: all .34s ease-out;\n}\n.cgl-arrow-wrapper {\n    position: absolute;\n    width: 150px;\n    height: 100%;\n    top: 0;\n    z-index: 5;\n    background: rgba(0,0,0,0);\n    -webkit-transition: background .34s ease-out;\n    -moz-transition: background .34s ease-out;\n    -o-transition: background .34s ease-out;\n    transition: background .34s ease-out;\n}\n.cgl-arrow-wrapper:hover {\n    background: rgba(0,0,0,.4);\n    cursor: pointer;\n}\n.cgl-arrow-wrapper:hover .cgl-arrow {\n    opacity: .5;\n}\n.cgl-arrow-wrapper.cgl-arrow-left {\n    left: 0;\n}\n.cgl-arrow-wrapper.cgl-arrow-left .cgl-arrow {\n    transform: rotate(90deg);\n    left: 40px;\n}\n.cgl-arrow-wrapper.cgl-arrow-right {\n    right: 0;\n}\n.cgl-arrow-wrapper.cgl-arrow-right .cgl-arrow {\n    transform: rotate(-90deg);\n    right: 40px;\n}\n.cgl-modal-close {\n    width: 35px;\n    height: 35px;\n    position: absolute;\n    z-index: 15;\n    top: 15px;\n    right: 15px;\n    opacity: .3;\n}\n.cgl-modal-close:after {\n    content: \"\\d7\";\n    font-size: 55px;\n    color: white;\n    line-height: 35px;\n    font-weight: bold;\n}\n.cgl-modal-close:hover {\n    opacity: .7;\n    cursor: pointer;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Modal.vue"],"names":[],"mappings":";AAsUA;IACA,eAAA;IACA,OAAA;IACA,MAAA;IACA,WAAA;IACA,YAAA;IACA,2BAAA;IACA,aAAA;AACA;AACA;IACA,WAAA;IACA,YAAA;IACA,eAAA;IACA,OAAA;IACA,kBAAA;AACA;AACA;IACA,kBAAA;IACA,gBAAA;IACA,cAAA;IACA,kBAAA;IACA,qDAAA;IACA,kDAAA;IACA,6CAAA;AACA;AAEA;AACA;QACA,eAAA;AACA;AACA;AAEA;IACA,sCAAA;IACA,mCAAA;IACA,iCAAA;IACA,8BAAA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,aAAA;IACA,WAAA;IACA,qCAAA;IACA,kCAAA;IACA,gCAAA;IACA,6BAAA;AACA;AAEA;IACA,kBAAA;IACA,YAAA;IACA,YAAA;IACA,MAAA;IACA,UAAA;IACA,yBAAA;IACA,4CAAA;IACA,yCAAA;IACA,uCAAA;IACA,oCAAA;AACA;AAEA;IACA,0BAAA;IACA,eAAA;AACA;AAEA;IACA,WAAA;AACA;AAEA;IACA,OAAA;AACA;AAEA;IACA,wBAAA;IACA,UAAA;AACA;AAEA;IACA,QAAA;AACA;AAEA;IACA,yBAAA;IACA,WAAA;AACA;AAEA;IACA,WAAA;IACA,YAAA;IACA,kBAAA;IACA,WAAA;IACA,SAAA;IACA,WAAA;IACA,WAAA;AACA;AAEA;IACA,cAAA;IACA,eAAA;IACA,YAAA;IACA,iBAAA;IACA,iBAAA;AACA;AAEA;IACA,WAAA;IACA,eAAA;AACA","file":"Modal.vue","sourcesContent":["<script>\r\n    import c from '../../constants';\r\n    import arrow from '../../resources/arrow';\r\n\r\n    export default {\r\n        name: c.GALLERY_COMPONENT_NAME,\r\n        props: {\r\n            images: { type: Object },\r\n            config: { type: Object },\r\n            index: { type: Number },\r\n            defaultIndex: { type: Number }\r\n        },\r\n        data() {\r\n            return {\r\n                imageBlock: {},\r\n                currentImageIndex: this.defaultIndex,\r\n                currentImageElement: null,\r\n                animation: {\r\n                    inProgress: false\r\n                },\r\n                navigationClicked: false,\r\n                diff: 0,\r\n                window: {\r\n                    width: window.innerWidth,\r\n                    height: window.innerHeight\r\n                },\r\n                styles: {\r\n                    left: 0\r\n                },\r\n                classes: {\r\n                    transitionClass: 'cascade-gallery-modal-image-transition'\r\n                },\r\n                arrow: arrow\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.width = window.innerWidth;\r\n            this.window.height = window.innerHeight;\r\n        },\r\n        methods: {\r\n            /**\r\n             * 'closeModal' event is listened in the mounted method of the\r\n             * image component and it is closing the modal\r\n             */\r\n            closeModal() {\r\n                this.$parent.$emit('closeModal');\r\n            },\r\n\r\n            /**\r\n             * On image load prepare dragging and touch moving\r\n             * @param event\r\n             */\r\n            prepareDragging(event) {\r\n                this.addEventListeners(event.target, [\"mousedown\", \"touchstart\"], this.startDragging);\r\n                this.addEventListeners(event.target, [\"mouseup\", \"touchend\", \"mouseout\"], this.stopDragging);\r\n            },\r\n\r\n            /**\r\n             * Handle all events after dragging action finished [mouseup, touchend, mouseout]\r\n             * @param event\r\n             */\r\n            stopDragging(event) {\r\n                this.setClasses(event.target, this.classes.transitionClass);\r\n                event.target.removeEventListener(\"mousemove\", this.dragElement);\r\n                event.target.removeEventListener(\"touchmove\", this.dragElement);\r\n\r\n                if (this.navigationClicked) return;\r\n\r\n                if (this.isShiftedLeft(event) && !this.isTheLastImage(this.currentImageIndex)) {\r\n                    if (!this.animation.inProgress && event.type === \"mouseout\") {\r\n                        this.showNextImage();\r\n                    } else {\r\n                        this.animation.inProgress = false;\r\n                    }\r\n                    if ( event.type === \"mouseup\" || event.type === \"touchend\" ) {\r\n                        this.animation.inProgress = true;\r\n                        this.showNextImage();\r\n                    }\r\n                } else if (this.isShiftedRight(event) && !this.isTheFirstImage(this.currentImageIndex)) {\r\n                    if (!this.animation.inProgress && event.type === \"mouseout\") {\r\n                        this.showPreviousImage();\r\n                    } else {\r\n                        this.animation.inProgress = false;\r\n                    }\r\n                    if ( event.type === \"mouseup\" || event.type === \"touchend\" ) {\r\n                        this.animation.inProgress = true;\r\n                        this.showPreviousImage();\r\n                    }\r\n                } else {\r\n                    this.alignImage(event);\r\n                    this.animation.inProgress = true;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Check if image was dragged out of the given pixels to the left\r\n             * @param event\r\n             * @returns Boolean\r\n             */\r\n            isShiftedLeft(event) {\r\n                return this.getAlignX(event) - 58 > event.target.offsetLeft;\r\n            },\r\n\r\n            /**\r\n             * Check if image was dragged out of the given pixels to the right\r\n             * @param event\r\n             * @returns Boolean\r\n             */\r\n            isShiftedRight(event) {\r\n                return this.getAlignX(event) + 58 < event.target.offsetLeft;\r\n            },\r\n\r\n            /**\r\n             * On start dragging image prepare default position and\r\n             * on end dragging events listeners\r\n             * @param event\r\n             */\r\n            startDragging(event) {\r\n                let imageLeft = event.target.offsetLeft;\r\n                let mouseLeft = null;\r\n                if (event.type === \"touchstart\") {\r\n                    mouseLeft = event.touches[0].pageX;\r\n                } else {\r\n                    mouseLeft = event.pageX;\r\n                }\r\n                this.diff = mouseLeft - imageLeft;\r\n                this.setClasses(event.target, '');\r\n                this.addEventListeners(event.target, [\"mousemove\", \"touchmove\"], this.dragElement);\r\n            },\r\n\r\n\r\n            /**\r\n             * Set the position on dragging image and prevent history\r\n             * auto navigation on dragging to the right\r\n             * @param event\r\n             */\r\n            dragElement(event) {\r\n                event.preventDefault();\r\n                let imageLeft = event.pageX - this.diff;\r\n                if (event.type === \"touchmove\") {\r\n                    imageLeft = event.touches[0].pageX - this.diff;\r\n                }\r\n                this.setImagePositionX(imageLeft);\r\n            },\r\n\r\n            /**\r\n             * Display (animate) next image if the previous animation finished\r\n             */\r\n            showNextImage() {\r\n                if (this.waitAnimation()) return;\r\n                if (!this.isTheLastImage(this.currentImageIndex)) {\r\n                    let self = this;\r\n                    this.setImagePositionX(-this.currentImageElement.offsetWidth);\r\n                    let index = self.currentImageIndex + 1;\r\n                    let lastIndex = self.images.src.length - 1;\r\n                    let nextIndex = index > lastIndex ? lastIndex : index;\r\n                    setTimeout(function () {\r\n                        self.displayImage(nextIndex, self.currentImageElement.parentNode.offsetWidth);\r\n                    }, 340);\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Display (animate) previous image if the previous animation finished\r\n             */\r\n            showPreviousImage() {\r\n                if (this.waitAnimation()) return;\r\n                if (!this.isTheFirstImage(this.currentImageIndex)) {\r\n                    let self = this;\r\n                    this.setImagePositionX(this.currentImageElement.parentNode.offsetWidth);\r\n                    let index = self.currentImageIndex - 1;\r\n                    let previousIndex = index < 0 ? 0 : index;\r\n                    setTimeout(function () {\r\n                        self.displayImage(previousIndex, -self.currentImageElement.offsetWidth);\r\n                    }, 340);\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Display given image with given position\r\n             */\r\n            displayImage(imageIndex, position) {\r\n                this.currentImageIndex = imageIndex;\r\n                this.setClasses(this.currentImageElement, this.classes.transitionClass);\r\n                this.setImagePositionX(position);\r\n            },\r\n\r\n            /**\r\n             * Define waiting animation delay\r\n             * @returns {boolean}\r\n             */\r\n            waitAnimation() {\r\n                let self = this;\r\n                if (this.navigationClicked) return true;\r\n                this.navigationClicked = true;\r\n                setTimeout(function(){self.navigationClicked = false}, 340);\r\n                return false;\r\n            },\r\n\r\n            /**\r\n             * Adds multiple event listeners at once\r\n             * @param target\r\n             * @param events\r\n             * @param listener\r\n             */\r\n            addEventListeners(target, events = [], listener) {\r\n                for (let index in events) {\r\n                    let event = events[index];\r\n                    target.addEventListener(events[index], listener, false);\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Set css for the left position\r\n             * @param position\r\n             */\r\n            setImagePositionX(position) {\r\n                this.styles.left = position.toString()+'px';\r\n            },\r\n\r\n            /**\r\n             * Set the default css for the image position\r\n             * @param event\r\n             */\r\n            alignImage(event) {\r\n                this.styles.left = this.getAlignX(event)+'px';\r\n                this.styles.top = this.getAlignY(event)+'px';\r\n            },\r\n\r\n            /**\r\n             * Define default image left position\r\n             * @param event\r\n             * @returns Number\r\n             */\r\n            getAlignX(event) {\r\n                return event.target.parentNode.offsetWidth/2 - event.target.offsetWidth/2;\r\n            },\r\n\r\n            /**\r\n             * Define default image top position\r\n             * @param event\r\n             * @returns {number}\r\n             */\r\n            getAlignY(event) {\r\n                return event.target.parentNode.offsetHeight/2 - event.target.offsetHeight/2;\r\n            },\r\n\r\n            /**\r\n             * Set element classes to the images\r\n             * @param element\r\n             * @param classes\r\n             */\r\n            setClasses(element, classes = '') {\r\n                element.className = classes;\r\n            },\r\n\r\n            prepareImage(event) {\r\n                this.currentImageElement = event.target;\r\n                this.alignImage(event);\r\n                this.prepareDragging(event);\r\n                // Stop history navigation on touch and move\r\n                event.target.parentNode.addEventListener('touchmove', function(e){\r\n                    e.preventDefault();\r\n                });\r\n                this.waitAnimation();\r\n            },\r\n\r\n            /**\r\n             * Check if current image is the last in the list\r\n             * @param index\r\n             * @returns Boolean\r\n             */\r\n            isTheLastImage(index) {\r\n                return index === this.images.src.length - 1;\r\n            },\r\n\r\n            /**\r\n             * Check if current image is the first in the list\r\n             * @param index\r\n             * @returns Boolean\r\n             */\r\n            isTheFirstImage(index) {\r\n                return index === 0;\r\n            }\r\n        },\r\n        beforeDestroy() {\r\n            this.addEventListeners(event.target, [\"mousemove\", \"touchmove\"], this.dragElement);\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cascade-gallery-modal\">\r\n        <div class=\"cascade-gallery-modal-image-wrapper\">\r\n            <div class=\"cascade-gallery-modal-image\"\r\n                 v-for=\"(url, index) in images.src\"\r\n                 v-if=\"currentImageIndex === index\">\r\n                <img :src=\"url\"\r\n                     :style=\"styles\"\r\n                     :class=\"classes.transitionClass\"\r\n                     draggable=\"false\"\r\n                     @load=\"prepareImage\"/>\r\n            </div>\r\n            <div class=\"cgl-arrow-wrapper cgl-arrow-left\" @click=\"showPreviousImage\">\r\n                <svg class=\"cgl-arrow\"\r\n                     :width=\"arrow.svg.width+'px'\"\r\n                     :height=\"arrow.svg.height+'px'\"\r\n                     :viewBox=\"arrow.svg.viewBox\">\r\n                    <path :d=\"arrow.svg.path\"/>\r\n                </svg>\r\n            </div>\r\n            <div class=\"cgl-arrow-wrapper cgl-arrow-right\" @click=\"showNextImage\">\r\n                <svg class=\"cgl-arrow\"\r\n                     :width=\"arrow.svg.width+'px'\"\r\n                     :height=\"arrow.svg.height+'px'\"\r\n                     :viewBox=\"arrow.svg.viewBox\">\r\n                    <path :d=\"arrow.svg.path\"/>\r\n                </svg>\r\n            </div>\r\n\r\n            <div class=\"cgl-modal-close\" @click=\"closeModal()\"></div>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cascade-gallery-modal{\r\n        position: fixed;\r\n        left: 0;\r\n        top: 0;\r\n        width: 100%;\r\n        height: 100%;\r\n        background: rgba(0,0,0,.87);\r\n        z-index: 5000;\r\n    }\r\n    .cascade-gallery-modal-image {\r\n        width: 100%;\r\n        height: 100%;\r\n        position: fixed;\r\n        left: 0;\r\n        text-align: center;\r\n    }\r\n    .cascade-gallery-modal-image img {\r\n        touch-action: none;\r\n        max-height: 100%;\r\n        max-width: 70%;\r\n        position: absolute;\r\n        -webkit-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n        -moz-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n        box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n    }\r\n\r\n    @media only screen and (max-width: 900px) {\r\n        .cascade-gallery-modal-image img {\r\n            max-width: 100%;\r\n        }\r\n    }\r\n\r\n    .cascade-gallery-modal-image-transition {\r\n        -webkit-transition: left .34s ease-out;\r\n        -moz-transition: left .34s ease-out;\r\n        -o-transition: left .34s ease-out;\r\n        transition: left .34s ease-out;\r\n    }\r\n\r\n    .cgl-arrow {\r\n        position: absolute;\r\n        top: 50%;\r\n        fill: #ffffff;\r\n        opacity: .1;\r\n        -webkit-transition: all .34s ease-out;\r\n        -moz-transition: all .34s ease-out;\r\n        -o-transition: all .34s ease-out;\r\n        transition: all .34s ease-out;\r\n    }\r\n\r\n    .cgl-arrow-wrapper {\r\n        position: absolute;\r\n        width: 150px;\r\n        height: 100%;\r\n        top: 0;\r\n        z-index: 5;\r\n        background: rgba(0,0,0,0);\r\n        -webkit-transition: background .34s ease-out;\r\n        -moz-transition: background .34s ease-out;\r\n        -o-transition: background .34s ease-out;\r\n        transition: background .34s ease-out;\r\n    }\r\n\r\n    .cgl-arrow-wrapper:hover {\r\n        background: rgba(0,0,0,.4);\r\n        cursor: pointer;\r\n    }\r\n\r\n    .cgl-arrow-wrapper:hover .cgl-arrow {\r\n        opacity: .5;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-left {\r\n        left: 0;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-left .cgl-arrow {\r\n        transform: rotate(90deg);\r\n        left: 40px;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-right {\r\n        right: 0;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-right .cgl-arrow {\r\n        transform: rotate(-90deg);\r\n        right: 40px;\r\n    }\r\n\r\n    .cgl-modal-close {\r\n        width: 35px;\r\n        height: 35px;\r\n        position: absolute;\r\n        z-index: 15;\r\n        top: 15px;\r\n        right: 15px;\r\n        opacity: .3;\r\n    }\r\n\r\n    .cgl-modal-close:after {\r\n        content: \"\\d7\";\r\n        font-size: 55px;\r\n        color: white;\r\n        line-height: 35px;\r\n        font-weight: bold;\r\n    }\r\n\r\n    .cgl-modal-close:hover {\r\n        opacity: .7;\r\n        cursor: pointer;\r\n    }\r\n</style>"]}, media: undefined });
+    inject("data-v-22612fd0_0", { source: "\n.cgl-modal{\n    position: fixed;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    background: rgba(0,0,0,.87);\n    z-index: 5000;\n    overflow: hidden;\n}\n.cgl-modal-image-wrapper {\n    position: absolute;\n    top: 0;\n    white-space: nowrap;\n}\n.cgl-anim {\n    -webkit-transition: left .34s ease-out;\n    -moz-transition: left .34s ease-out;\n    -o-transition: left .34s ease-out;\n    transition: left .34s ease-out;\n}\n.cgl-modal-image {\n    position: relative;\n    display: table-cell;\n    vertical-align: middle;\n    text-align: center;\n    line-height: 0px;\n}\n.cgl-modal-image img {\n    touch-action: none;\n    max-height: 100%;\n    max-width: 70%;\n    -webkit-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n    -moz-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n    box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\n}\n@media only screen and (max-width: 900px) {\n.cgl-modal-image img {\n        max-width: 100%;\n}\n}\n.cgl-arrow {\n    position: absolute;\n    top: 50%;\n    fill: #ffffff;\n    opacity: .1;\n    -webkit-transition: all .34s ease-out;\n    -moz-transition: all .34s ease-out;\n    -o-transition: all .34s ease-out;\n    transition: all .34s ease-out;\n}\n.cgl-arrow-wrapper {\n    position: fixed;\n    width: 150px;\n    height: 100%;\n    top: 0;\n    z-index: 5;\n    background: rgba(0,0,0,0);\n    -webkit-transition: background .34s ease-out;\n    -moz-transition: background .34s ease-out;\n    -o-transition: background .34s ease-out;\n    transition: background .34s ease-out;\n}\n.cgl-arrow-wrapper:hover {\n    background: rgba(0,0,0,.4);\n    cursor: pointer;\n}\n.cgl-arrow-wrapper:hover .cgl-arrow {\n    opacity: .5;\n}\n.cgl-arrow-wrapper.cgl-arrow-left {\n    left: 0;\n}\n.cgl-arrow-wrapper.cgl-arrow-left .cgl-arrow {\n    transform: rotate(90deg);\n    left: 40px;\n}\n.cgl-arrow-wrapper.cgl-arrow-right {\n    right: 0;\n}\n.cgl-arrow-wrapper.cgl-arrow-right .cgl-arrow {\n    transform: rotate(-90deg);\n    right: 40px;\n}\n.cgl-modal-close {\n    width: 35px;\n    height: 35px;\n    position: fixed;\n    z-index: 15;\n    top: 15px;\n    right: 15px;\n    opacity: .3;\n}\n.cgl-modal-close:after {\n    content: \"\\d7\";\n    font-size: 55px;\n    color: white;\n    line-height: 35px;\n    font-weight: bold;\n}\n.cgl-modal-close:hover {\n    opacity: .7;\n    cursor: pointer;\n}\n.lds-ripple {\n    display: inline-block;\n    position: relative;\n    width: 64px;\n    height: 64px;\n}\n.cgl-image-loader{\n    width: 58px;\n    height: 58px;\n    display: inline-block;\n    position: relative;\n}\n.cgl-image-loader > span {\n    display: block;\n    width: 100%;\n    height: 20px;\n    position: absolute;\n    left: 0;\n    bottom: -30px;\n    color: #ffffff;\n}\n.cgl-image-loader-animation div {\n    position: absolute;\n    border: 4px solid #ffffff;\n    opacity: .7;\n    border-radius: 50%;\n    animation: lds-ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;\n}\n.cgl-image-loader-animation div:nth-child(2) {\n    animation-delay: -0.5s;\n}\n@keyframes lds-ripple {\n0% {\n        top: 28px;\n        left: 28px;\n        width: 0;\n        height: 0;\n        opacity: 1;\n}\n100% {\n        top: -1px;\n        left: -1px;\n        width: 58px;\n        height: 58px;\n        opacity: 0;\n}\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Modal.vue"],"names":[],"mappings":";AAgOA;IACA,eAAA;IACA,OAAA;IACA,MAAA;IACA,WAAA;IACA,YAAA;IACA,2BAAA;IACA,aAAA;IACA,gBAAA;AACA;AACA;IACA,kBAAA;IACA,MAAA;IACA,mBAAA;AACA;AACA;IACA,sCAAA;IACA,mCAAA;IACA,iCAAA;IACA,8BAAA;AACA;AACA;IACA,kBAAA;IACA,mBAAA;IACA,sBAAA;IACA,kBAAA;IACA,gBAAA;AACA;AACA;IACA,kBAAA;IACA,gBAAA;IACA,cAAA;IACA,qDAAA;IACA,kDAAA;IACA,6CAAA;AACA;AAEA;AACA;QACA,eAAA;AACA;AACA;AAEA;IACA,kBAAA;IACA,QAAA;IACA,aAAA;IACA,WAAA;IACA,qCAAA;IACA,kCAAA;IACA,gCAAA;IACA,6BAAA;AACA;AAEA;IACA,eAAA;IACA,YAAA;IACA,YAAA;IACA,MAAA;IACA,UAAA;IACA,yBAAA;IACA,4CAAA;IACA,yCAAA;IACA,uCAAA;IACA,oCAAA;AACA;AAEA;IACA,0BAAA;IACA,eAAA;AACA;AAEA;IACA,WAAA;AACA;AAEA;IACA,OAAA;AACA;AAEA;IACA,wBAAA;IACA,UAAA;AACA;AAEA;IACA,QAAA;AACA;AAEA;IACA,yBAAA;IACA,WAAA;AACA;AAEA;IACA,WAAA;IACA,YAAA;IACA,eAAA;IACA,WAAA;IACA,SAAA;IACA,WAAA;IACA,WAAA;AACA;AAEA;IACA,cAAA;IACA,eAAA;IACA,YAAA;IACA,iBAAA;IACA,iBAAA;AACA;AAEA;IACA,WAAA;IACA,eAAA;AACA;AACA;IACA,qBAAA;IACA,kBAAA;IACA,WAAA;IACA,YAAA;AACA;AAEA;IACA,WAAA;IACA,YAAA;IACA,qBAAA;IACA,kBAAA;AACA;AAEA;IACA,cAAA;IACA,WAAA;IACA,YAAA;IACA,kBAAA;IACA,OAAA;IACA,aAAA;IACA,cAAA;AACA;AAEA;IACA,kBAAA;IACA,yBAAA;IACA,WAAA;IACA,kBAAA;IACA,8DAAA;AACA;AAEA;IACA,sBAAA;AACA;AAEA;AACA;QACA,SAAA;QACA,UAAA;QACA,QAAA;QACA,SAAA;QACA,UAAA;AACA;AACA;QACA,SAAA;QACA,UAAA;QACA,WAAA;QACA,YAAA;QACA,UAAA;AACA;AACA","file":"Modal.vue","sourcesContent":["<script>\r\n    import c from '../../constants';\r\n    import arrow from '../../resources/arrow';\r\n\r\n    export default {\r\n        name: c.GALLERY_COMPONENT_NAME,\r\n        props: {\r\n            images: { type: Object },\r\n            config: { type: Object },\r\n            index: { type: Number },\r\n            defaultIndex: { type: Number }\r\n        },\r\n        data() {\r\n            return {\r\n                draggingStartPosX: null,\r\n                showImageLoader: true,\r\n                currentIndex: this.defaultIndex,\r\n                styles: {\r\n                    wrapper: { left: '0', width: '0', height: '0' },\r\n                    image: { width: '0', height: '0' }\r\n                },\r\n                arrow: arrow,\r\n                transitionClass: 'cgl-anim'\r\n            };\r\n        },\r\n        mounted() {\r\n            window.addEventListener('resize', this.updateStyles);\r\n            this.updateStyles();\r\n            this.prepareDragging();\r\n        },\r\n        methods: {\r\n\r\n            /**\r\n             * Prepare dragging and touch moving\r\n             */\r\n            prepareDragging() {\r\n                let wrapper = this.$refs.wrapper;\r\n                this.addEventListeners(wrapper, [\"mousedown\", \"touchstart\"], this.startDragging);\r\n            },\r\n\r\n            /**\r\n             * On start dragging image prepare default position and\r\n             * on end dragging events listeners\r\n             */\r\n            startDragging(event) {\r\n                this.addEventListeners(event.target, [\"mouseup\", \"touchend\", \"mouseout\"], this.stopDragging);\r\n                let wrapper = this.$refs.wrapper;\r\n                this.transitionClass = '';\r\n                let mouseLeft = null;\r\n                if (event.type === \"touchstart\") {\r\n                    mouseLeft = event.touches[0].pageX;\r\n                } else {\r\n                    mouseLeft = event.pageX;\r\n                }\r\n                this.draggingStartPosX = mouseLeft - wrapper.offsetLeft;\r\n                this.addEventListeners(event.target, [\"mousemove\", \"touchmove\"], this.dragElement);\r\n            },\r\n\r\n            /**\r\n             * Set the position on dragging image and prevent history\r\n             * auto navigation on dragging to the right\r\n             */\r\n            dragElement(event) {\r\n                event.preventDefault();\r\n                let wrapperLeft = event.pageX - this.draggingStartPosX;\r\n                if (event.type === \"touchmove\") {\r\n                    wrapperLeft = event.touches[0].pageX - this.draggingStartPosX;\r\n                }\r\n                this.setWrapperPositionLeft(wrapperLeft);\r\n            },\r\n\r\n            /**\r\n             * Set wrapper css left position\r\n             */\r\n            setWrapperPositionLeft(position) {\r\n                this.styles.wrapper.left = position.toString()+'px';\r\n            },\r\n\r\n            /**\r\n             * Handle all events after dragging action finished [mouseup, touchend, mouseout]\r\n             */\r\n            stopDragging(event) {\r\n                this.removeListeners(event);\r\n                let wrapper = this.$refs.wrapper;\r\n                this.transitionClass = 'cgl-anim';\r\n                if (this.isShiftedLeft(wrapper)) {\r\n                    this.showNext();\r\n                } else if (this.isShiftedRight()) {\r\n                    this.showPrev();\r\n                }\r\n                else {\r\n                    this.styles.wrapper.left = this.getPosX(this.currentIndex) + 'px';\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Remove all runtime dragging listeners listeners\r\n             */\r\n            removeListeners(event) {\r\n                event.target.removeEventListener(\"mousemove\", this.dragElement);\r\n                event.target.removeEventListener(\"touchmove\", this.dragElement);\r\n                event.target.removeEventListener(\"mouseup\", this.stopDragging);\r\n                event.target.removeEventListener(\"touchend\", this.stopDragging);\r\n                event.target.removeEventListener(\"mouseout\", this.stopDragging);\r\n            },\r\n\r\n            /**\r\n             * Check if image was dragged out of the given pixels to the left\r\n             */\r\n            isShiftedLeft() {\r\n                return this.getPosX(this.currentIndex) - 58 > this.$refs.wrapper.offsetLeft;\r\n            },\r\n\r\n            /**\r\n             * Check if image was dragged out of the given pixels to the right\r\n             */\r\n            isShiftedRight() {\r\n                return this.getPosX(this.currentIndex) + 58 < this.$refs.wrapper.offsetLeft;\r\n            },\r\n\r\n            /**\r\n             * Adds multiple event listeners at once\r\n             */\r\n            addEventListeners(target, events = [], listener) {\r\n                for (let index in events) {\r\n                    let event = events[index];\r\n                    target.addEventListener(events[index], listener, false);\r\n                }\r\n            },\r\n\r\n            updateStyles() {\r\n                this.styles.wrapper.left = this.getPosX(this.currentIndex) + 'px';\r\n                this.styles.wrapper.width = window.innerWidth * this.images.src.length + 'px';\r\n                this.styles.wrapper.height = window.innerHeight + 'px';\r\n                this.styles.image.width = window.innerWidth + 'px';\r\n                this.styles.image.height = window.innerHeight + 'px';\r\n            },\r\n\r\n            /**\r\n             * Get position \"left\" of the wrapper relative to the image position\r\n             * @return Number\r\n             */\r\n            getPosX(index = 0) {\r\n                return -(((index+ 1) * window.innerWidth) - window.innerWidth);\r\n            },\r\n\r\n            /**\r\n             * 'closeModal' event is listened in the mounted method of the\r\n             * image component and it is closing the modal\r\n             */\r\n            closeModal() {\r\n                this.$parent.$emit('closeModal');\r\n            },\r\n\r\n            showNext() {\r\n                if (this.images.src.length - 1 > this.currentIndex) {\r\n                    ++ this.currentIndex;\r\n                    this.showImageLoader = true;\r\n                }\r\n                this.styles.wrapper.left = this.getPosX(this.currentIndex) + 'px';\r\n            },\r\n\r\n            showPrev() {\r\n                if (0 < this.currentIndex) {\r\n                    -- this.currentIndex;\r\n                    this.showImageLoader = true;\r\n                }\r\n                this.styles.wrapper.left = this.getPosX(this.currentIndex) + 'px';\r\n            },\r\n\r\n            hideLoader() {\r\n                this.showImageLoader = false;\r\n            },\r\n        },\r\n        destroyed() {\r\n            window.removeEventListener('resize', this.updateStyles);\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cgl-modal\">\r\n        <div class=\"cgl-modal-image-wrapper\"\r\n             :class=\"transitionClass\"\r\n             :style=\"styles.wrapper\"\r\n             ref=\"wrapper\">\r\n            <div class=\"cgl-modal-image\"\r\n                 :style=\"styles.image\"\r\n                 v-for=\"(url, index) in images.src\">\r\n                <img :src=\"url\"\r\n                     v-if=\"currentIndex == index\"\r\n                     v-show=\"!showImageLoader\"\r\n                     @load=\"hideLoader\"\r\n                     draggable=\"false\"/>\r\n                <div class=\"cgl-image-loader\"\r\n                     v-if=\"currentIndex == index && showImageLoader\">\r\n                    <div class=\"cgl-image-loader-animation\">\r\n                        <div></div><div></div>\r\n                    </div>\r\n                    <span>Loading...</span>\r\n                </div>\r\n            </div>\r\n            <div class=\"cgl-arrow-wrapper cgl-arrow-left\" @click=\"showPrev\">\r\n                <svg class=\"cgl-arrow\"\r\n                     :width=\"arrow.svg.width+'px'\"\r\n                     :height=\"arrow.svg.height+'px'\"\r\n                     :viewBox=\"arrow.svg.viewBox\">\r\n                    <path :d=\"arrow.svg.path\"/>\r\n                </svg>\r\n            </div>\r\n            <div class=\"cgl-arrow-wrapper cgl-arrow-right\" @click=\"showNext\">\r\n                <svg class=\"cgl-arrow\"\r\n                     :width=\"arrow.svg.width+'px'\"\r\n                     :height=\"arrow.svg.height+'px'\"\r\n                     :viewBox=\"arrow.svg.viewBox\">\r\n                    <path :d=\"arrow.svg.path\"/>\r\n                </svg>\r\n            </div>\r\n            <div class=\"cgl-modal-close\" @click=\"closeModal()\"></div>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cgl-modal{\r\n        position: fixed;\r\n        left: 0;\r\n        top: 0;\r\n        width: 100%;\r\n        height: 100%;\r\n        background: rgba(0,0,0,.87);\r\n        z-index: 5000;\r\n        overflow: hidden;\r\n    }\r\n    .cgl-modal-image-wrapper {\r\n        position: absolute;\r\n        top: 0;\r\n        white-space: nowrap;\r\n    }\r\n    .cgl-anim {\r\n        -webkit-transition: left .34s ease-out;\r\n        -moz-transition: left .34s ease-out;\r\n        -o-transition: left .34s ease-out;\r\n        transition: left .34s ease-out;\r\n    }\r\n    .cgl-modal-image {\r\n        position: relative;\r\n        display: table-cell;\r\n        vertical-align: middle;\r\n        text-align: center;\r\n        line-height: 0px;\r\n    }\r\n    .cgl-modal-image img {\r\n        touch-action: none;\r\n        max-height: 100%;\r\n        max-width: 70%;\r\n        -webkit-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n        -moz-box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n        box-shadow: 0px 7px 24px 0px rgba(0,0,0,0.55);\r\n    }\r\n\r\n    @media only screen and (max-width: 900px) {\r\n        .cgl-modal-image img {\r\n            max-width: 100%;\r\n        }\r\n    }\r\n\r\n    .cgl-arrow {\r\n        position: absolute;\r\n        top: 50%;\r\n        fill: #ffffff;\r\n        opacity: .1;\r\n        -webkit-transition: all .34s ease-out;\r\n        -moz-transition: all .34s ease-out;\r\n        -o-transition: all .34s ease-out;\r\n        transition: all .34s ease-out;\r\n    }\r\n\r\n    .cgl-arrow-wrapper {\r\n        position: fixed;\r\n        width: 150px;\r\n        height: 100%;\r\n        top: 0;\r\n        z-index: 5;\r\n        background: rgba(0,0,0,0);\r\n        -webkit-transition: background .34s ease-out;\r\n        -moz-transition: background .34s ease-out;\r\n        -o-transition: background .34s ease-out;\r\n        transition: background .34s ease-out;\r\n    }\r\n\r\n    .cgl-arrow-wrapper:hover {\r\n        background: rgba(0,0,0,.4);\r\n        cursor: pointer;\r\n    }\r\n\r\n    .cgl-arrow-wrapper:hover .cgl-arrow {\r\n        opacity: .5;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-left {\r\n        left: 0;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-left .cgl-arrow {\r\n        transform: rotate(90deg);\r\n        left: 40px;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-right {\r\n        right: 0;\r\n    }\r\n\r\n    .cgl-arrow-wrapper.cgl-arrow-right .cgl-arrow {\r\n        transform: rotate(-90deg);\r\n        right: 40px;\r\n    }\r\n\r\n    .cgl-modal-close {\r\n        width: 35px;\r\n        height: 35px;\r\n        position: fixed;\r\n        z-index: 15;\r\n        top: 15px;\r\n        right: 15px;\r\n        opacity: .3;\r\n    }\r\n\r\n    .cgl-modal-close:after {\r\n        content: \"\\d7\";\r\n        font-size: 55px;\r\n        color: white;\r\n        line-height: 35px;\r\n        font-weight: bold;\r\n    }\r\n\r\n    .cgl-modal-close:hover {\r\n        opacity: .7;\r\n        cursor: pointer;\r\n    }\r\n    .lds-ripple {\r\n        display: inline-block;\r\n        position: relative;\r\n        width: 64px;\r\n        height: 64px;\r\n    }\r\n\r\n    .cgl-image-loader{\r\n        width: 58px;\r\n        height: 58px;\r\n        display: inline-block;\r\n        position: relative;\r\n    }\r\n\r\n    .cgl-image-loader > span {\r\n        display: block;\r\n        width: 100%;\r\n        height: 20px;\r\n        position: absolute;\r\n        left: 0;\r\n        bottom: -30px;\r\n        color: #ffffff;\r\n    }\r\n\r\n    .cgl-image-loader-animation div {\r\n        position: absolute;\r\n        border: 4px solid #ffffff;\r\n        opacity: .7;\r\n        border-radius: 50%;\r\n        animation: lds-ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;\r\n    }\r\n\r\n    .cgl-image-loader-animation div:nth-child(2) {\r\n        animation-delay: -0.5s;\r\n    }\r\n\r\n    @keyframes lds-ripple {\r\n        0% {\r\n            top: 28px;\r\n            left: 28px;\r\n            width: 0;\r\n            height: 0;\r\n            opacity: 1;\r\n        }\r\n        100% {\r\n            top: -1px;\r\n            left: -1px;\r\n            width: 58px;\r\n            height: 58px;\r\n            opacity: 0;\r\n        }\r\n    }\r\n</style>"]}, media: undefined });
 
   };
   /* scoped */
@@ -1387,28 +1309,44 @@ var validator = new Validator();var script$3 = {
         },
 
         /**
-         * After it was detected that last image block width has not enough
-         * space in the line other blocks width will be adjusted. If the
-         * given proportion are tow wide spreader and after minimize all images
-         * to the given minWidth it is still not enough space the remaining
-         * space in the line will be set as the current image with
+         * NOTICE: if the last image do not fit the remaining area all images will
+         * be minimized including last image itself.
          * @returns Number
          */
         adjustSiblingsWidth(width) {
             let limit = parseInt(this.config.maxWidth);
             let iterator = 0;
-            while (!this.isAligned(width) && iterator < limit) {
+            let minWidth = this.config.minWidth;
+            let expectedWidth = width;
+            while (!this.isAligned(expectedWidth) && iterator < limit) {
+                let imagesAreAtMinimum = true;
                 for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {
-                    let mustDecay = this.config.images[index].width > this.config.minWidth;
+                    let mustDecay = this.config.images[index].width > minWidth;
                     if(mustDecay) {
                         this.config.images[index].width = parseInt(this.config.images[index].width) - 1;
+                    }
+                    if (width + this.getLineWidth() < this.window.width) {
+                        return this.getLastPartWidth();
+                    }
+                    if (this.config.images[index].width === minWidth) {
+                        imagesAreAtMinimum = imagesAreAtMinimum && true;
+                    } else {
+                        imagesAreAtMinimum = imagesAreAtMinimum && false;
+                    }
+                    if (imagesAreAtMinimum) {
+                        if (this.getLastPartWidth() > minWidth) {
+                            return this.getLastPartWidth();
+                        }
+                        minWidth =  (minWidth / 5) * 4;
+                        expectedWidth = minWidth;
                     }
                     let limitReached = iterator === limit - 1;
                     if (limitReached) {
                         return this.getLastPartWidth();
                     }
-                    if (this.isAligned(width)) {
-                        return width;
+
+                    if (this.isAligned(expectedWidth)) {
+                        return expectedWidth;
                     }
                 }
                 iterator++;
@@ -1572,7 +1510,7 @@ __vue_render__$3._withStripped = true;
   /* style */
   const __vue_inject_styles__$3 = function (inject) {
     if (!inject) return
-    inject("data-v-2bb4f07c_0", { source: "\n.cgl-columns-block{\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n    width: 100%;\n    position: relative;\n}\n.cgl-image-block {\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n    margin: 0;\n    padding: 0;\n    position: absolute;\n    left: 0;\n    top: 0;\n    border: 0px solid transparent;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Gallery.vue"],"names":[],"mappings":";AA0eA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;IACA,WAAA;IACA,kBAAA;AACA;AACA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;IACA,SAAA;IACA,UAAA;IACA,kBAAA;IACA,OAAA;IACA,MAAA;IACA,6BAAA;AACA","file":"Gallery.vue","sourcesContent":["<script>\r\n    import CascadeGalleryImage from './Image.vue';\r\n    import c from '../../constants';\r\n    import validator from '../../validator';\r\n\r\n    export default {\r\n        name: c.GALLERY_COMPONENT_NAME,\r\n        components: (function(){\r\n            let components = {};\r\n            components[c.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;\r\n            return components;\r\n        })(),\r\n        props: {\r\n            images: { type: Array },\r\n            options: { type: Object },\r\n            width: { type: Number }\r\n        },\r\n        data() {\r\n            return {\r\n                galleryHeight: 0,\r\n                lineIndex: 0,\r\n                columnsAmount: 0,\r\n                previousLineStartIndex: 0,\r\n                lastLineStartIndex: 0,\r\n                currentImageIndex: 0,\r\n                isEndOfTheLine: false,\r\n                hasNewImages: false,\r\n                newImagesStartIndex: 0,\r\n                firstLineIsNotComplete: true,\r\n                config: {\r\n                    maxWidth: c.CONFIG_WIDTH_TO,\r\n                    minWidth: c.CONFIG_WIDTH_FROM,\r\n                    images: [],\r\n                },\r\n                window: {\r\n                    width: this.width,\r\n                    height: 0\r\n                }\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.height = this.$el.parentNode.offsetHeight;\r\n            this.prepareConfigOptions();\r\n            this.prepareConfigImages();\r\n        },\r\n        watch: {\r\n            /**\r\n             * Adds new incoming images\r\n             */\r\n            images() {\r\n                this.addNewImages();\r\n                this.setGalleryHeight();\r\n            }\r\n        },\r\n        methods: {\r\n\r\n            /**\r\n             * Prepare configuration options\r\n             * Not all configuration options is handled in this\r\n             * method, just those that must be prepared in advance\r\n             */\r\n            prepareConfigOptions() {\r\n                if (validator.hasRangesFor(this.options, c.CONFIG_WIDTH_RANGE_KEY, false)) {\r\n                    this.config.maxWidth = this.options[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_TO];\r\n                    this.config.minWidth = this.options[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_FROM];\r\n                }\r\n                if (validator.hasRangesFor(this.options, c.CONFIG_HEIGHT_RANGE_KEY, false)) {\r\n                    this.config.maxHeight = this.options[c.CONFIG_HEIGHT_RANGE_KEY][c.CONFIG_RANGE_KEY_TO];\r\n                    this.config.minHeight = this.options[c.CONFIG_HEIGHT_RANGE_KEY][c.CONFIG_RANGE_KEY_FROM];\r\n                }\r\n                if (validator.hasDelay(this.options)) {\r\n                    this.config[c.CONFIG_DELAY_KEY] = this.options[c.CONFIG_DELAY_KEY];\r\n                }\r\n                if (validator.hasGap(this.options)) {\r\n                    this.config[c.CONFIG_GAP_KEY] = this.options[c.CONFIG_GAP_KEY];\r\n                }\r\n            },\r\n\r\n            /**\r\n             * After configuration options are ready apply them to\r\n             * the images block (parent)\r\n             * That is invoked just on mounting\r\n             * NOTE: By defining image configuration we meant image block so\r\n             *       image it self can detect future sizes or displaying modes\r\n             */\r\n            prepareConfigImages() {\r\n                for(let index in this.images) {\r\n                    this.setNextImageConfig(index);\r\n                }\r\n                let firstLineIsNotComplete = this.getLineWidth() < this.window.width && this.lineIndex < 1;\r\n                if(firstLineIsNotComplete) {\r\n                    let index = this.currentImageIndex;\r\n                    let limit = 5;\r\n                    let start = 0;\r\n                    while (this.firstLineIsNotComplete) {\r\n                        index++;\r\n                        this.setNextImageConfig(index);\r\n                        start++;\r\n                        if (start > limit) {\r\n                            break;\r\n                        }\r\n                    }\r\n                }\r\n                this.setGalleryHeight();\r\n            },\r\n\r\n            /**\r\n             * Sets configuration for the current image in the list\r\n             * @param index Given image index\r\n             */\r\n            setNextImageConfig(index) {\r\n                this.currentImageIndex = index;\r\n                /**\r\n                 * Before a setting the height we have to define widths\r\n                 * of the future columns (images in the first line)\r\n                 */\r\n                this.config.images[index] = {\r\n                    width: this.getWidth(),\r\n                    loaded: false\r\n                };\r\n                this.currentImageIndex = index;\r\n                this.prepareGapStyles();\r\n                this.prepareCurrentLine();\r\n            },\r\n\r\n            /**\r\n             * Prepare gap configuration\r\n             */\r\n            prepareGapStyles() {\r\n                let gap = this.config[c.CONFIG_GAP_KEY];\r\n                if (gap > 0) {\r\n                    this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY] = {};\r\n                    this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-top-width'] = gap+'px';\r\n                    this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-right-width'] = gap+'px';\r\n                    if (this.lastLineStartIndex === 0) {\r\n                        this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-top-width'] = '0px';\r\n                    }\r\n                    if (this.isLastInTheLine(this.currentImageIndex)) {\r\n                        this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';\r\n                    }\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Check if the given image index is the last in the line\r\n             */\r\n            isLastInTheLine(index) {\r\n                return this.config.images[index].width + this.getLineWidth() === this.window.width;\r\n            },\r\n\r\n            /**\r\n             * After wee have all of the widths for given images we check\r\n             * the line order number that we left, and continue to set\r\n             * other image block properties\r\n             */\r\n            prepareCurrentLine() {\r\n                let startIndex = this.lastLineStartIndex;\r\n                if(this.isEndOfTheLine) {\r\n                    for(let index = startIndex; index < this.config.images.length; index++) {\r\n                        if (this.hasNewImages) {\r\n                            index = this.newImagesStartIndex;\r\n                            this.hasNewImages = false;\r\n                        }\r\n                        this.currentImageIndex = index;\r\n                        this.config.images[index].height = this.getHeight();\r\n                        this.config.images[index].left = this.getPositionX();\r\n                        this.config.images[index].top = this.getPositionY();\r\n                    }\r\n                    this.previousLineStartIndex = this.lastLineStartIndex;\r\n                    this.lastLineStartIndex = this.currentImageIndex + 1;\r\n                    this.lineIndex++;\r\n                    this.isEndOfTheLine = false;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * After new images was added to the images list we prepare the\r\n             * new state of gallery config and continue to build it\r\n             */\r\n            addNewImages() {\r\n                this.hasNewImages = true;\r\n                this.newImagesStartIndex = this.currentImageIndex+1;\r\n                this.prepareForNewImages();\r\n                for ( let index = this.newImagesStartIndex; index < this.images.length; index++ ) {\r\n                    this.setNextImageConfig(index);\r\n                }\r\n                this.setGalleryHeight();\r\n            },\r\n\r\n            /**\r\n             * Resets the state of the previous gallery configuration\r\n             * @see this.addNewImages()\r\n             */\r\n            prepareForNewImages() {\r\n                if (this.newImagesStartIndex%this.columnsAmount > 0) {\r\n                    this.lastLineStartIndex = this.previousLineStartIndex;\r\n                    this.previousLineStartIndex = this.lastLineStartIndex - this.columnsAmount;\r\n                    this.lineIndex--;\r\n                    this.isEndOfTheLine = false;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Detects left X axe position for the current image\r\n             * @returns Number\r\n             */\r\n            getPositionX() {\r\n                let posX = 0;\r\n                if (this.currentImageIndex - this.lastLineStartIndex !== 0) {\r\n                    let previousImage = this.config.images[this.currentImageIndex - 1];\r\n                    posX = previousImage.width + previousImage.left;\r\n                }\r\n                return posX;\r\n            },\r\n\r\n            /**\r\n             * Detects top Y axe position for the current image\r\n             * @returns Number\r\n             */\r\n            getPositionY() {\r\n                let posY = 0;\r\n                if (!this.isFirstLine()) {\r\n                    let previousLineSibling = this.config.images[this.getPreviousLineSibling()];\r\n                    posY = previousLineSibling.height + previousLineSibling.top;\r\n                }\r\n                return posY;\r\n            },\r\n\r\n            /**\r\n             * Generate random/given height for the current image\r\n             * @returns Number\r\n             */\r\n            getHeight() {\r\n                return this.getRandomHeight();\r\n            },\r\n\r\n            /**\r\n             * Generates random width/given also if the generated width do\r\n             * not fit in the last remained portion of the parent block\r\n             * width all the images blocks will be adjusted\r\n             * @returns Number\r\n             */\r\n            getWidth() {\r\n                let width = this.getRandomWidth();\r\n                this.isEndOfTheLine = false;\r\n                if (!this.isFirstLine()) {\r\n                    this.columnsAmount = this.lastLineStartIndex - this.previousLineStartIndex;\r\n                    let previousLineSibling = this.config.images[this.getPreviousLineSibling()];\r\n                    width = previousLineSibling.width;\r\n                    let length = this.lastLineStartIndex - this.previousLineStartIndex;\r\n                    this.isEndOfTheLine = this.currentImageIndex == (length - 1) + this.lastLineStartIndex\r\n                        || this.currentImageIndex == this.images.length - 1;\r\n                    return width;\r\n                } else if(this.notEnoughSpaceInLine(width)) {\r\n                    this.isEndOfTheLine = true;\r\n                    this.firstLineIsNotComplete = false;\r\n                    return this.adjustSiblingsWidth(width);\r\n                }\r\n                return width;\r\n            },\r\n\r\n            /**\r\n             * Get the width for the current image block from the image block\r\n             * on the same order number of the previous line to keep the columns\r\n             * width equal in the each line\r\n             * TODO: display one image block in the tow lines\r\n             * @see this.getPreviousLineSibling()\r\n             * @returns Number\r\n             */\r\n            getCurrentImageWidth() {\r\n                let previousLineSibling = this.getPreviousLineSibling();\r\n                return this.config.images[previousLineSibling].width;\r\n            },\r\n\r\n            /**\r\n             * Find index of the previous line block image that has the\r\n             * same order number\r\n             * @see this.getCurrentImageWidth()\r\n             * @returns Number\r\n             */\r\n            getPreviousLineSibling() {\r\n                return this.previousLineStartIndex + ( this.currentImageIndex - this.lastLineStartIndex );\r\n            },\r\n\r\n            /**\r\n             * Generate random width in the given range\r\n             * @returns Number\r\n             */\r\n            getRandomWidth() {\r\n                return this.getRandomNumber(this.config.minWidth, this.config.maxWidth);\r\n            },\r\n\r\n            /**\r\n             * Generate random height in the given range. By default and average\r\n             * height will be picked base on images width range\r\n             * @returns Number\r\n             */\r\n            getRandomHeight() {\r\n                if (!this.config.minHeight || !this.config.maxHeight) {\r\n                    let amountOfImages = Math.round((this.window.width/this.config.minWidth) * 10) / 10;\r\n                    let approximateImageWidth = Math.round((this.window.width/amountOfImages) * 10) / 10;\r\n                    return approximateImageWidth + this.getBacklash(approximateImageWidth);\r\n                }\r\n                return this.getRandomNumber(this.config.minHeight, this.config.maxHeight);\r\n            },\r\n\r\n            /**\r\n             * Counts the current line width based on the current images\r\n             * blocks in the line widths sum\r\n             * @returns Number\r\n             */\r\n            getLineWidth() {\r\n                let lineWidth = 0;\r\n                for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {\r\n                    lineWidth += parseInt(this.config.images[index].width);\r\n                }\r\n                return lineWidth;\r\n            },\r\n\r\n            /**\r\n             * Checks if the sum of the width images blocks is to big to leave\r\n             * space for one another image\r\n             * @see this.getWidth()\r\n             * @returns Boolean\r\n             */\r\n            notEnoughSpaceInLine(width) {\r\n                return this.getLineWidth() + width + this.getBacklash(this.config.minWidth) > this.window.width;\r\n            },\r\n\r\n            /**\r\n             * Is used to add little bet more space to the last image in order\r\n             * to increase visual consistency on random width generating\r\n             * @see this.notEnoughSpaceInLine()\r\n             * @returns Number\r\n             */\r\n            getBacklash(width) {\r\n                return this.getRandomNumber(0, Math.round((width/5)));\r\n            },\r\n\r\n            /**\r\n             * After it was detected that last image block width has not enough\r\n             * space in the line other blocks width will be adjusted. If the\r\n             * given proportion are tow wide spreader and after minimize all images\r\n             * to the given minWidth it is still not enough space the remaining\r\n             * space in the line will be set as the current image with\r\n             * @returns Number\r\n             */\r\n            adjustSiblingsWidth(width) {\r\n                let limit = parseInt(this.config.maxWidth);\r\n                let iterator = 0;\r\n                while (!this.isAligned(width) && iterator < limit) {\r\n                    for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {\r\n                        let mustDecay = this.config.images[index].width > this.config.minWidth;\r\n                        if(mustDecay) {\r\n                            this.config.images[index].width = parseInt(this.config.images[index].width) - 1;\r\n                        }\r\n                        let limitReached = iterator === limit - 1;\r\n                        if (limitReached) {\r\n                            return this.getLastPartWidth();\r\n                        }\r\n                        if (this.isAligned(width)) {\r\n                            return width;\r\n                        }\r\n                    }\r\n                    iterator++;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Get the remaining width in the line\r\n             * @see this.adjustSiblingsWidth()\r\n             * @returns Number\r\n             */\r\n            getLastPartWidth() {\r\n                return this.window.width - this.getLineWidth()\r\n            },\r\n\r\n            /**\r\n             * Check if there is enough space for the last image block width\r\n             * @returns Boolean\r\n             */\r\n            isAligned(width) {\r\n                return width + this.getLineWidth() === this.window.width;\r\n            },\r\n\r\n            /**\r\n             * Get the difference between window and the current image blocks width\r\n             * @returns Number\r\n             */\r\n            getLineLengthDiff(width) {\r\n                return (this.getLineWidth() + width) - this.window.width;\r\n            },\r\n\r\n            /**\r\n             * Generates random number in the given range\r\n             * @returns Number\r\n             */\r\n            getRandomNumber(min, max) {\r\n                min = Math.ceil(min);\r\n                max = Math.floor(max);\r\n                return Math.floor(Math.random() * (max - min + 1)) + min;\r\n            },\r\n\r\n            /**\r\n             * Checks if the current line is the first\r\n             * @returns Boolean\r\n             */\r\n            isFirstLine() {\r\n                return !parseInt(this.lineIndex);\r\n            },\r\n\r\n            /**\r\n             * After all configuration was prepared apply them to the DOM\r\n             */\r\n            getStyles(index) {\r\n                let styles = {\r\n                    width: this.config.images[index].width + 'px',\r\n                    height: this.config.images[index].height + 'px',\r\n                    left: this.config.images[index].left + 'px',\r\n                    top: this.config.images[index].top + 'px'\r\n                };\r\n                styles = this.getGapStyles(styles, index);\r\n                return styles;\r\n            },\r\n\r\n            /**\r\n             * Specific styles for the gap between columns\r\n             * @return Object\r\n             */\r\n            getGapStyles(styles, index) {\r\n                if (validator.hasGap(this.options)) {\r\n                    for (let key in this.config.images[index][c.CONFIG_GAP_KEY]) {\r\n                        styles[key] = this.config.images[index][c.CONFIG_GAP_KEY][key]\r\n                    }\r\n                }\r\n\r\n                return styles;\r\n            },\r\n\r\n            /**\r\n             * Finds the tallest column and sets the height of the gallery\r\n             * That needs as an workaround to the css position absolute of\r\n             * the gallery wrapper\r\n             * @returns Number\r\n             */\r\n            setGalleryHeight() {\r\n                let columnsHeights = [];\r\n                let currentColumn = 0;\r\n                if (this.columnsAmount < 1) {\r\n                    this.columnsAmount = this.config.images.length;\r\n                }\r\n                for (let imageIndex in this.config.images) {\r\n                    let image = this.config.images[imageIndex];\r\n                    if (currentColumn >= this.columnsAmount) {\r\n                        currentColumn = 0;\r\n                    }\r\n                    if (!columnsHeights[currentColumn]) {\r\n                        columnsHeights[currentColumn] = 0;\r\n                    }\r\n                    columnsHeights[currentColumn] += image.height;\r\n                    currentColumn++;\r\n                }\r\n                for (let index in columnsHeights) {\r\n                    if (columnsHeights[index] > this.galleryHeight) {\r\n                        this.galleryHeight = columnsHeights[index];\r\n                    }\r\n                }\r\n            },\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cgl-columns-block\"\r\n         :style=\"{ height: galleryHeight+'px' }\">\r\n        <div class=\"cgl-image-block\"\r\n             v-if=\"config.images[index]\"\r\n             :style=\"getStyles(index)\"\r\n             v-for=\"(image, index) in images\" >\r\n            <cgl-image :imagesData=\"image\"\r\n                       :config.sync=\"config\"\r\n                       :index=\"index\"\r\n                       v-slot:default=\"images\">\r\n                <slot v-bind:index=\"images.index\"></slot>\r\n            </cgl-image>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cgl-columns-block{\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n        width: 100%;\r\n        position: relative;\r\n    }\r\n    .cgl-image-block {\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n        margin: 0;\r\n        padding: 0;\r\n        position: absolute;\r\n        left: 0;\r\n        top: 0;\r\n        border: 0px solid transparent;\r\n    }\r\n</style>"]}, media: undefined });
+    inject("data-v-6bbb886f_0", { source: "\n.cgl-columns-block{\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n    width: 100%;\n    position: relative;\n}\n.cgl-image-block {\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    box-sizing: border-box;\n    margin: 0;\n    padding: 0;\n    position: absolute;\n    left: 0;\n    top: 0;\n    border: 0px solid transparent;\n}\n", map: {"version":3,"sources":["/home/vagrant/code/vue-pakajes/src/js/components/templates/Gallery.vue"],"names":[],"mappings":";AA0fA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;IACA,WAAA;IACA,kBAAA;AACA;AACA;IACA,8BAAA;IACA,2BAAA;IACA,sBAAA;IACA,SAAA;IACA,UAAA;IACA,kBAAA;IACA,OAAA;IACA,MAAA;IACA,6BAAA;AACA","file":"Gallery.vue","sourcesContent":["<script>\r\n    import CascadeGalleryImage from './Image.vue';\r\n    import c from '../../constants';\r\n    import validator from '../../validator';\r\n\r\n    export default {\r\n        name: c.GALLERY_COMPONENT_NAME,\r\n        components: (function(){\r\n            let components = {};\r\n            components[c.IMAGE_COMPONENT_NAME] = CascadeGalleryImage;\r\n            return components;\r\n        })(),\r\n        props: {\r\n            images: { type: Array },\r\n            options: { type: Object },\r\n            width: { type: Number }\r\n        },\r\n        data() {\r\n            return {\r\n                galleryHeight: 0,\r\n                lineIndex: 0,\r\n                columnsAmount: 0,\r\n                previousLineStartIndex: 0,\r\n                lastLineStartIndex: 0,\r\n                currentImageIndex: 0,\r\n                isEndOfTheLine: false,\r\n                hasNewImages: false,\r\n                newImagesStartIndex: 0,\r\n                firstLineIsNotComplete: true,\r\n                config: {\r\n                    maxWidth: c.CONFIG_WIDTH_TO,\r\n                    minWidth: c.CONFIG_WIDTH_FROM,\r\n                    images: [],\r\n                },\r\n                window: {\r\n                    width: this.width,\r\n                    height: 0\r\n                }\r\n            };\r\n        },\r\n        mounted() {\r\n            this.window.height = this.$el.parentNode.offsetHeight;\r\n            this.prepareConfigOptions();\r\n            this.prepareConfigImages();\r\n        },\r\n        watch: {\r\n            /**\r\n             * Adds new incoming images\r\n             */\r\n            images() {\r\n                this.addNewImages();\r\n                this.setGalleryHeight();\r\n            }\r\n        },\r\n        methods: {\r\n\r\n            /**\r\n             * Prepare configuration options\r\n             * Not all configuration options is handled in this\r\n             * method, just those that must be prepared in advance\r\n             */\r\n            prepareConfigOptions() {\r\n                if (validator.hasRangesFor(this.options, c.CONFIG_WIDTH_RANGE_KEY, false)) {\r\n                    this.config.maxWidth = this.options[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_TO];\r\n                    this.config.minWidth = this.options[c.CONFIG_WIDTH_RANGE_KEY][c.CONFIG_RANGE_KEY_FROM];\r\n                }\r\n                if (validator.hasRangesFor(this.options, c.CONFIG_HEIGHT_RANGE_KEY, false)) {\r\n                    this.config.maxHeight = this.options[c.CONFIG_HEIGHT_RANGE_KEY][c.CONFIG_RANGE_KEY_TO];\r\n                    this.config.minHeight = this.options[c.CONFIG_HEIGHT_RANGE_KEY][c.CONFIG_RANGE_KEY_FROM];\r\n                }\r\n                if (validator.hasDelay(this.options)) {\r\n                    this.config[c.CONFIG_DELAY_KEY] = this.options[c.CONFIG_DELAY_KEY];\r\n                }\r\n                if (validator.hasGap(this.options)) {\r\n                    this.config[c.CONFIG_GAP_KEY] = this.options[c.CONFIG_GAP_KEY];\r\n                }\r\n            },\r\n\r\n            /**\r\n             * After configuration options are ready apply them to\r\n             * the images block (parent)\r\n             * That is invoked just on mounting\r\n             * NOTE: By defining image configuration we meant image block so\r\n             *       image it self can detect future sizes or displaying modes\r\n             */\r\n            prepareConfigImages() {\r\n                for(let index in this.images) {\r\n                    this.setNextImageConfig(index);\r\n                }\r\n                let firstLineIsNotComplete = this.getLineWidth() < this.window.width && this.lineIndex < 1;\r\n                if(firstLineIsNotComplete) {\r\n                    let index = this.currentImageIndex;\r\n                    let limit = 5;\r\n                    let start = 0;\r\n                    while (this.firstLineIsNotComplete) {\r\n                        index++;\r\n                        this.setNextImageConfig(index);\r\n                        start++;\r\n                        if (start > limit) {\r\n                            break;\r\n                        }\r\n                    }\r\n                }\r\n                this.setGalleryHeight();\r\n            },\r\n\r\n            /**\r\n             * Sets configuration for the current image in the list\r\n             * @param index Given image index\r\n             */\r\n            setNextImageConfig(index) {\r\n                this.currentImageIndex = index;\r\n                /**\r\n                 * Before a setting the height we have to define widths\r\n                 * of the future columns (images in the first line)\r\n                 */\r\n                this.config.images[index] = {\r\n                    width: this.getWidth(),\r\n                    loaded: false\r\n                };\r\n                this.currentImageIndex = index;\r\n                this.prepareGapStyles();\r\n                this.prepareCurrentLine();\r\n            },\r\n\r\n            /**\r\n             * Prepare gap configuration\r\n             */\r\n            prepareGapStyles() {\r\n                let gap = this.config[c.CONFIG_GAP_KEY];\r\n                if (gap > 0) {\r\n                    this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY] = {};\r\n                    this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-top-width'] = gap+'px';\r\n                    this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-right-width'] = gap+'px';\r\n                    if (this.lastLineStartIndex === 0) {\r\n                        this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-top-width'] = '0px';\r\n                    }\r\n                    if (this.isLastInTheLine(this.currentImageIndex)) {\r\n                        this.config.images[this.currentImageIndex][c.CONFIG_GAP_KEY]['border-right-width'] = '0px';\r\n                    }\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Check if the given image index is the last in the line\r\n             */\r\n            isLastInTheLine(index) {\r\n                return this.config.images[index].width + this.getLineWidth() === this.window.width;\r\n            },\r\n\r\n            /**\r\n             * After wee have all of the widths for given images we check\r\n             * the line order number that we left, and continue to set\r\n             * other image block properties\r\n             */\r\n            prepareCurrentLine() {\r\n                let startIndex = this.lastLineStartIndex;\r\n                if(this.isEndOfTheLine) {\r\n                    for(let index = startIndex; index < this.config.images.length; index++) {\r\n                        if (this.hasNewImages) {\r\n                            index = this.newImagesStartIndex;\r\n                            this.hasNewImages = false;\r\n                        }\r\n                        this.currentImageIndex = index;\r\n                        this.config.images[index].height = this.getHeight();\r\n                        this.config.images[index].left = this.getPositionX();\r\n                        this.config.images[index].top = this.getPositionY();\r\n                    }\r\n                    this.previousLineStartIndex = this.lastLineStartIndex;\r\n                    this.lastLineStartIndex = this.currentImageIndex + 1;\r\n                    this.lineIndex++;\r\n                    this.isEndOfTheLine = false;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * After new images was added to the images list we prepare the\r\n             * new state of gallery config and continue to build it\r\n             */\r\n            addNewImages() {\r\n                this.hasNewImages = true;\r\n                this.newImagesStartIndex = this.currentImageIndex+1;\r\n                this.prepareForNewImages();\r\n                for ( let index = this.newImagesStartIndex; index < this.images.length; index++ ) {\r\n                    this.setNextImageConfig(index);\r\n                }\r\n                this.setGalleryHeight();\r\n            },\r\n\r\n            /**\r\n             * Resets the state of the previous gallery configuration\r\n             * @see this.addNewImages()\r\n             */\r\n            prepareForNewImages() {\r\n                if (this.newImagesStartIndex%this.columnsAmount > 0) {\r\n                    this.lastLineStartIndex = this.previousLineStartIndex;\r\n                    this.previousLineStartIndex = this.lastLineStartIndex - this.columnsAmount;\r\n                    this.lineIndex--;\r\n                    this.isEndOfTheLine = false;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Detects left X axe position for the current image\r\n             * @returns Number\r\n             */\r\n            getPositionX() {\r\n                let posX = 0;\r\n                if (this.currentImageIndex - this.lastLineStartIndex !== 0) {\r\n                    let previousImage = this.config.images[this.currentImageIndex - 1];\r\n                    posX = previousImage.width + previousImage.left;\r\n                }\r\n                return posX;\r\n            },\r\n\r\n            /**\r\n             * Detects top Y axe position for the current image\r\n             * @returns Number\r\n             */\r\n            getPositionY() {\r\n                let posY = 0;\r\n                if (!this.isFirstLine()) {\r\n                    let previousLineSibling = this.config.images[this.getPreviousLineSibling()];\r\n                    posY = previousLineSibling.height + previousLineSibling.top;\r\n                }\r\n                return posY;\r\n            },\r\n\r\n            /**\r\n             * Generate random/given height for the current image\r\n             * @returns Number\r\n             */\r\n            getHeight() {\r\n                return this.getRandomHeight();\r\n            },\r\n\r\n            /**\r\n             * Generates random width/given also if the generated width do\r\n             * not fit in the last remained portion of the parent block\r\n             * width all the images blocks will be adjusted\r\n             * @returns Number\r\n             */\r\n            getWidth() {\r\n                let width = this.getRandomWidth();\r\n                this.isEndOfTheLine = false;\r\n                if (!this.isFirstLine()) {\r\n                    this.columnsAmount = this.lastLineStartIndex - this.previousLineStartIndex;\r\n                    let previousLineSibling = this.config.images[this.getPreviousLineSibling()];\r\n                    width = previousLineSibling.width;\r\n                    let length = this.lastLineStartIndex - this.previousLineStartIndex;\r\n                    this.isEndOfTheLine = this.currentImageIndex == (length - 1) + this.lastLineStartIndex\r\n                        || this.currentImageIndex == this.images.length - 1;\r\n                    return width;\r\n                } else if(this.notEnoughSpaceInLine(width)) {\r\n                    this.isEndOfTheLine = true;\r\n                    this.firstLineIsNotComplete = false;\r\n                    return this.adjustSiblingsWidth(width);\r\n                }\r\n                return width;\r\n            },\r\n\r\n            /**\r\n             * Get the width for the current image block from the image block\r\n             * on the same order number of the previous line to keep the columns\r\n             * width equal in the each line\r\n             * TODO: display one image block in the tow lines\r\n             * @see this.getPreviousLineSibling()\r\n             * @returns Number\r\n             */\r\n            getCurrentImageWidth() {\r\n                let previousLineSibling = this.getPreviousLineSibling();\r\n                return this.config.images[previousLineSibling].width;\r\n            },\r\n\r\n            /**\r\n             * Find index of the previous line block image that has the\r\n             * same order number\r\n             * @see this.getCurrentImageWidth()\r\n             * @returns Number\r\n             */\r\n            getPreviousLineSibling() {\r\n                return this.previousLineStartIndex + ( this.currentImageIndex - this.lastLineStartIndex );\r\n            },\r\n\r\n            /**\r\n             * Generate random width in the given range\r\n             * @returns Number\r\n             */\r\n            getRandomWidth() {\r\n                return this.getRandomNumber(this.config.minWidth, this.config.maxWidth);\r\n            },\r\n\r\n            /**\r\n             * Generate random height in the given range. By default and average\r\n             * height will be picked base on images width range\r\n             * @returns Number\r\n             */\r\n            getRandomHeight() {\r\n                if (!this.config.minHeight || !this.config.maxHeight) {\r\n                    let amountOfImages = Math.round((this.window.width/this.config.minWidth) * 10) / 10;\r\n                    let approximateImageWidth = Math.round((this.window.width/amountOfImages) * 10) / 10;\r\n                    return approximateImageWidth + this.getBacklash(approximateImageWidth);\r\n                }\r\n                return this.getRandomNumber(this.config.minHeight, this.config.maxHeight);\r\n            },\r\n\r\n            /**\r\n             * Counts the current line width based on the current images\r\n             * blocks in the line widths sum\r\n             * @returns Number\r\n             */\r\n            getLineWidth() {\r\n                let lineWidth = 0;\r\n                for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {\r\n                    lineWidth += parseInt(this.config.images[index].width);\r\n                }\r\n                return lineWidth;\r\n            },\r\n\r\n            /**\r\n             * Checks if the sum of the width images blocks is to big to leave\r\n             * space for one another image\r\n             * @see this.getWidth()\r\n             * @returns Boolean\r\n             */\r\n            notEnoughSpaceInLine(width) {\r\n                return this.getLineWidth() + width + this.getBacklash(this.config.minWidth) > this.window.width;\r\n            },\r\n\r\n            /**\r\n             * Is used to add little bet more space to the last image in order\r\n             * to increase visual consistency on random width generating\r\n             * @see this.notEnoughSpaceInLine()\r\n             * @returns Number\r\n             */\r\n            getBacklash(width) {\r\n                return this.getRandomNumber(0, Math.round((width/5)));\r\n            },\r\n\r\n            /**\r\n             * NOTICE: if the last image do not fit the remaining area all images will\r\n             * be minimized including last image itself.\r\n             * @returns Number\r\n             */\r\n            adjustSiblingsWidth(width) {\r\n                let limit = parseInt(this.config.maxWidth);\r\n                let iterator = 0;\r\n                let minWidth = this.config.minWidth;\r\n                let expectedWidth = width;\r\n                while (!this.isAligned(expectedWidth) && iterator < limit) {\r\n                    let imagesAreAtMinimum = true;\r\n                    for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {\r\n                        let mustDecay = this.config.images[index].width > minWidth;\r\n                        if(mustDecay) {\r\n                            this.config.images[index].width = parseInt(this.config.images[index].width) - 1;\r\n                        }\r\n                        if (width + this.getLineWidth() < this.window.width) {\r\n                            return this.getLastPartWidth();\r\n                        }\r\n                        if (this.config.images[index].width === minWidth) {\r\n                            imagesAreAtMinimum = imagesAreAtMinimum && true;\r\n                        } else {\r\n                            imagesAreAtMinimum = imagesAreAtMinimum && false;\r\n                        }\r\n                        if (imagesAreAtMinimum) {\r\n                            if (this.getLastPartWidth() > minWidth) {\r\n                                return this.getLastPartWidth();\r\n                            }\r\n                            minWidth =  (minWidth / 5) * 4;\r\n                            expectedWidth = minWidth;\r\n                        }\r\n                        let limitReached = iterator === limit - 1;\r\n                        if (limitReached) {\r\n                            return this.getLastPartWidth();\r\n                        }\r\n\r\n                        if (this.isAligned(expectedWidth)) {\r\n                            return expectedWidth;\r\n                        }\r\n                    }\r\n                    iterator++;\r\n                }\r\n            },\r\n\r\n            /**\r\n             * Get the remaining width in the line\r\n             * @see this.adjustSiblingsWidth()\r\n             * @returns Number\r\n             */\r\n            getLastPartWidth() {\r\n                return this.window.width - this.getLineWidth()\r\n            },\r\n\r\n            /**\r\n             * Check if there is enough space for the last image block width\r\n             * @returns Boolean\r\n             */\r\n            isAligned(width) {\r\n                return width + this.getLineWidth() === this.window.width;\r\n            },\r\n\r\n            /**\r\n             * Get the difference between window and the current image blocks width\r\n             * @returns Number\r\n             */\r\n            getLineLengthDiff(width) {\r\n                return (this.getLineWidth() + width) - this.window.width;\r\n            },\r\n\r\n            /**\r\n             * Generates random number in the given range\r\n             * @returns Number\r\n             */\r\n            getRandomNumber(min, max) {\r\n                min = Math.ceil(min);\r\n                max = Math.floor(max);\r\n                return Math.floor(Math.random() * (max - min + 1)) + min;\r\n            },\r\n\r\n            /**\r\n             * Checks if the current line is the first\r\n             * @returns Boolean\r\n             */\r\n            isFirstLine() {\r\n                return !parseInt(this.lineIndex);\r\n            },\r\n\r\n            /**\r\n             * After all configuration was prepared apply them to the DOM\r\n             */\r\n            getStyles(index) {\r\n                let styles = {\r\n                    width: this.config.images[index].width + 'px',\r\n                    height: this.config.images[index].height + 'px',\r\n                    left: this.config.images[index].left + 'px',\r\n                    top: this.config.images[index].top + 'px'\r\n                };\r\n                styles = this.getGapStyles(styles, index);\r\n                return styles;\r\n            },\r\n\r\n            /**\r\n             * Specific styles for the gap between columns\r\n             * @return Object\r\n             */\r\n            getGapStyles(styles, index) {\r\n                if (validator.hasGap(this.options)) {\r\n                    for (let key in this.config.images[index][c.CONFIG_GAP_KEY]) {\r\n                        styles[key] = this.config.images[index][c.CONFIG_GAP_KEY][key]\r\n                    }\r\n                }\r\n\r\n                return styles;\r\n            },\r\n\r\n            /**\r\n             * Finds the tallest column and sets the height of the gallery\r\n             * That needs as an workaround to the css position absolute of\r\n             * the gallery wrapper\r\n             * @returns Number\r\n             */\r\n            setGalleryHeight() {\r\n                let columnsHeights = [];\r\n                let currentColumn = 0;\r\n                if (this.columnsAmount < 1) {\r\n                    this.columnsAmount = this.config.images.length;\r\n                }\r\n                for (let imageIndex in this.config.images) {\r\n                    let image = this.config.images[imageIndex];\r\n                    if (currentColumn >= this.columnsAmount) {\r\n                        currentColumn = 0;\r\n                    }\r\n                    if (!columnsHeights[currentColumn]) {\r\n                        columnsHeights[currentColumn] = 0;\r\n                    }\r\n                    columnsHeights[currentColumn] += image.height;\r\n                    currentColumn++;\r\n                }\r\n                for (let index in columnsHeights) {\r\n                    if (columnsHeights[index] > this.galleryHeight) {\r\n                        this.galleryHeight = columnsHeights[index];\r\n                    }\r\n                }\r\n            },\r\n        }\r\n    }\r\n</script>\r\n\r\n<template>\r\n    <div class=\"cgl-columns-block\"\r\n         :style=\"{ height: galleryHeight+'px' }\">\r\n        <div class=\"cgl-image-block\"\r\n             v-if=\"config.images[index]\"\r\n             :style=\"getStyles(index)\"\r\n             v-for=\"(image, index) in images\" >\r\n            <cgl-image :imagesData=\"image\"\r\n                       :config.sync=\"config\"\r\n                       :index=\"index\"\r\n                       v-slot:default=\"images\">\r\n                <slot v-bind:index=\"images.index\"></slot>\r\n            </cgl-image>\r\n        </div>\r\n    </div>\r\n</template>\r\n\r\n<style>\r\n    .cgl-columns-block{\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n        width: 100%;\r\n        position: relative;\r\n    }\r\n    .cgl-image-block {\r\n        -webkit-box-sizing: border-box;\r\n        -moz-box-sizing: border-box;\r\n        box-sizing: border-box;\r\n        margin: 0;\r\n        padding: 0;\r\n        position: absolute;\r\n        left: 0;\r\n        top: 0;\r\n        border: 0px solid transparent;\r\n    }\r\n</style>"]}, media: undefined });
 
   };
   /* scoped */
