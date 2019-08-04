@@ -354,6 +354,9 @@
                         if(mustDecay) {
                             this.config.images[index].width = parseInt(this.config.images[index].width) - 1;
                         }
+                        if (width + this.getLineWidth() < this.window.width) {
+                            return this.getLastPartWidth();
+                        }
                         if (this.config.images[index].width === minWidth) {
                             imagesAreAtMinimum = imagesAreAtMinimum && true;
                         } else {
@@ -370,6 +373,7 @@
                         if (limitReached) {
                             return this.getLastPartWidth();
                         }
+
                         if (this.isAligned(expectedWidth)) {
                             return expectedWidth;
                         }
