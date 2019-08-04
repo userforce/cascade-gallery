@@ -107,7 +107,7 @@
         <div class="page-title">
             Cascade Gallery
         </div>
-        v1.1.0-beta
+        v1.2.0-stable
         <br/>
         <br/>
         <div class="page-description">
@@ -182,8 +182,8 @@
                      * defaults {max: 300, min: 200}
                      */
                     'width-range': {
-                        min: 300,
-                        max: 350
+                        min: 350,
+                        max: 450
                     },
 
                     /**
@@ -193,8 +193,8 @@
                      * @see (Image.vue).getRandomHeight()
                      */
                     'height-range': {
-                        min: 180,
-                        max: 220
+                        min: 200,
+                        max: 300
                     },
 
                     /**
@@ -234,13 +234,13 @@
                     'default-index': 0,
 
                     /**
-                     * NOTE: You can define any property and later not only {data}
+                     * NOTE: You can define any property not only {data}
                      *       that is defined in this example, and then access it
-                     *       using image [index] that can be returned from
-                     *       [v-slot:default="image"] check Vue docs for the slots
-                     *       documentation: https://vuejs.org/v2/guide/components-slots.html#Scoped-Slots
-                     * Data for the slot template, if nothing is given then just
-                     * image will be shown
+                     *       using image.index that is returned from
+                     *       [v-slot:default="image"] check example above and
+                     *       Vue docs for the slots documentation:
+                     *       https://vuejs.org/v2/guide/components-slots.html#Scoped-Slots
+                     * When nothing is given just image is be shown
                      * NOTE: The block that is keeping the image template <slot>
                      *       has a higher index than the image, in order to make
                      *       image "clickable", leave space for the interaction.
@@ -261,8 +261,8 @@
             getImages() {
                 let images = [];
                 for(let iterator = 1; iterator <= 10; iterator++) {
-                    let width = this.getRandomNumber(400, 500);
-                    let height = this.getRandomNumber(250, 300);
+                    let width = this.getRandomNumber(700, 800);
+                    let height = this.getRandomNumber(500, 700);
                     let url = 'http://placekitten.com/'+width+'/'+height;
                     images.push(url);
                 }
