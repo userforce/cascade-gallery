@@ -338,28 +338,40 @@
             },
 
             /**
-             * After it was detected that last image block width has not enough
-             * space in the line other blocks width will be adjusted. If the
-             * given proportion are tow wide spreader and after minimize all images
-             * to the given minWidth it is still not enough space the remaining
-             * space in the line will be set as the current image with
+             * NOTICE: if the last image do not fit the remaining area all images will
+             * be minimized including last image itself.
              * @returns Number
              */
             adjustSiblingsWidth(width) {
                 let limit = parseInt(this.config.maxWidth);
                 let iterator = 0;
-                while (!this.isAligned(width) && iterator < limit) {
+                let minWidth = this.config.minWidth;
+                let expectedWidth = width;
+                while (!this.isAligned(expectedWidth) && iterator < limit) {
+                    let imagesAreAtMinimum = true;
                     for(let index = this.lastLineStartIndex; index < this.currentImageIndex; index++) {
-                        let mustDecay = this.config.images[index].width > this.config.minWidth;
+                        let mustDecay = this.config.images[index].width > minWidth;
                         if(mustDecay) {
                             this.config.images[index].width = parseInt(this.config.images[index].width) - 1;
+                        }
+                        if (this.config.images[index].width === minWidth) {
+                            imagesAreAtMinimum = imagesAreAtMinimum && true;
+                        } else {
+                            imagesAreAtMinimum = imagesAreAtMinimum && false;
+                        }
+                        if (imagesAreAtMinimum) {
+                            if (this.getLastPartWidth() > minWidth) {
+                                return this.getLastPartWidth();
+                            }
+                            minWidth =  (minWidth / 5) * 4;
+                            expectedWidth = minWidth;
                         }
                         let limitReached = iterator === limit - 1;
                         if (limitReached) {
                             return this.getLastPartWidth();
                         }
-                        if (this.isAligned(width)) {
-                            return width;
+                        if (this.isAligned(expectedWidth)) {
+                            return expectedWidth;
                         }
                     }
                     iterator++;
