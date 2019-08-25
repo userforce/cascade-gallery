@@ -111,9 +111,7 @@
         <br/>
         <br/>
         <div class="page-description">
-            Simple image gallery which generates random size blocks which are holding and displaying given images.<br/>
-            You can set the ranges for the sizes and embed custom content.
-            <br/>
+            VueJs image gallery which randomizes image sizes in the given ranges on each load.
             <hr color="#ccc" size="1px">
             <div style="color: #777;">
                 Modal carousel
@@ -159,8 +157,6 @@
         data() {
             /**
              * The list of the images used for the gallery
-             * @see this.
-             * @type Array
              */
             let images = [];
             for(let iterator = 0; iterator <= 25; iterator++) {
@@ -171,30 +167,14 @@
                 images: images,
                 config: {
 
-                    /**
-                     * Max and min for image width in pixels
-                     * Min can't be bigger then max
-                     * The random number in between will be picked
-                     * Both can be the same size
-                     * If it will be enough space to place last image after
-                     * all images will "decay" be adjusted to min the width,
-                     * last image will take the width of the remained space.
-                     * defaults {max: 300, min: 200}
-                     */
                     'width-range': {
                         min: 250,
-                        max: 300
+                        max: 400
                     },
 
-                    /**
-                     * Max and min for image height in pixels
-                     * Default height will be taken randomly
-                     * in the range close to the width.
-                     * @see (Image.vue).getRandomHeight()
-                     */
                     'height-range': {
                         min: 200,
-                        max: 250
+                        max: 350
                     },
 
                     /**
@@ -203,7 +183,7 @@
                     'gap': 10,
 
                     /**
-                     * Delay between images appearance
+                     * The delay between images appearance
                      */
                     'appending-delay': 150,
                 }
@@ -220,32 +200,12 @@
                 return {
 
                     /**
-                     * Array of images that is going to be displayed in modal carousel
-                     * required
-                     * @type Array
+                     * Images list
                      */
                     'src': this.getImages(),
 
                     /**
-                     * Image index that will be displayed first
-                     * not required
-                     * @type Number
-                     */
-                    'default-index': 0,
-
-                    /**
-                     * NOTE: You can define any property not only {data}
-                     *       that is defined in this example, and then access it
-                     *       using image.index that is returned from
-                     *       [v-slot:default="image"] check example above and
-                     *       Vue docs for the slots documentation:
-                     *       https://vuejs.org/v2/guide/components-slots.html#Scoped-Slots
-                     * When nothing is given just image is be shown
-                     * NOTE: The block that is keeping the image template <slot>
-                     *       has a higher index than the image, in order to make
-                     *       image "clickable", leave space for the interaction.
-                     * TODO: Define modal actions slots
-                     * not required
+                     * Data used in the slot
                      */
                     'data': {
                         'my-custom-1': this.getDescriptionText(),
@@ -269,18 +229,10 @@
                 return images;
             },
 
-            /**
-             * Some random text for the slot template
-             * @returns String
-             */
             getTitleText() {
                 return 'Excepteur sint occaecat';
             },
 
-            /**
-             * Some random text for the slot template
-             * @returns String
-             */
             getDescriptionText() {
                 return'Lorem donec massa sapien faucibus et molestie ac feugiat. Ac ' +
                       'turpis egestas integer eget aliquet nibh praesent tristique. ' +
@@ -288,10 +240,6 @@
 
             },
 
-            /**
-             * get a random image index from the list
-             * @returns Number
-             */
             getRandomNumber(min = 0, max = 500) {
                 min = Math.ceil(min);
                 max = Math.floor(max);
