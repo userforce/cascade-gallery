@@ -20,7 +20,9 @@
                     image: { width: '0', height: '0' }
                 },
                 arrow: arrow,
-                transitionClass: 'cgl-anim'
+                transitionClass: 'cgl-anim',
+                loadAttempts: 0,
+                failedImages: []
             };
         },
         mounted() {
@@ -168,6 +170,37 @@
                 this.styles.wrapper.left = this.getPosX(this.currentIndex) + 'px';
             },
 
+            imageLoaded(event) {
+                if (event.type === 'error') {
+                    if(this.loadAttempts > 4) {
+                        this.loadAttempts = 0;
+                        this.addToFailedImages(this.currentIndex);
+                    }
+                    if (this.isFailedImage(this.currentIndex)) {
+                        this.hideLoader();
+                        return;
+                    }
+                    this.loadAttempts++;
+                    setTimeout(function() {
+                        // Add random hash to the image to force image reloading
+                        let src = event.target.src;
+                        event.target.src = src.replace(/\?rh=.+/i, '?rh=' + Math.random());
+                    }, 5000);
+                } else {
+                    this.failedImages = [];
+                    this.loadAttempts = 0;
+                    this.hideLoader();
+                }
+            },
+
+            addToFailedImages(imageIndex) {
+                this.failedImages.push(imageIndex);
+            },
+
+            isFailedImage(imageIndex) {
+                return this.failedImages.indexOf(imageIndex) > -1;
+            },
+
             hideLoader() {
                 this.showImageLoader = false;
             },
@@ -198,13 +231,13 @@
                 <img :src="url"
                      v-if="currentIndex == index"
                      v-show="!showImageLoader"
-                     @load="hideLoader"
+                     @load="imageLoaded"
+                     @error="imageLoaded"
                      draggable="false"/>
+                <span class="color-red" v-if="isFailedImage(currentIndex) && currentIndex == index"> Image error!</span>
                 <div class="cgl-image-loader"
                      v-if="currentIndex == index && showImageLoader">
-                    <div class="cgl-image-loader-animation">
-                        <div></div><div></div>
-                    </div>
+                    <div class="cgl-image-loader-animation"><div></div><div></div></div>
                     <span>Loading...</span>
                 </div>
             </div>
@@ -401,5 +434,9 @@
             height: 58px;
             opacity: 0;
         }
+    }
+
+    .cgl-modal .color-red {
+        color: red;
     }
 </style>
