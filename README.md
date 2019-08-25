@@ -10,18 +10,18 @@ npm install cascade-gallery
 ```
 
 ### Usage
-• import cascade gallery
+Import cascade gallery
 ```javascript
 import CascadeGallery from 'cascade-gallery'
 ```
-**• declare cascade gallery in your component**
+Declare cascade gallery in your component
 ```javascript
 components: {
     'cascade-gallery': CascadeGallery
 }
 ...
 ```
-• prepare minimal configuration
+Minimal configuration
 ```javascript
 images: [
     {
@@ -33,7 +33,7 @@ images: [
     ...
 ]
 ```
-• invoke cascade gallery
+Invoke cascade gallery
 ```javascript
 <cascade-gallery :images="images"></cascade-gallery>
 ```
@@ -43,69 +43,79 @@ images: [
 ```javascript
 <cascade-gallery :images="images" :config="config"></cascade-gallery>
 ```
+
+Each object must contain src property which is an array of urls to the images.
+Also you can set additional data that can be used within solts to embed additional content.
+
 ```javascript
-data() {
-    return {
-        images: {
-           /**
-            * each object must contain [src] property which is an array
-            * of urls to the images.
-            */
-            {
-                 src: [
-                     'https://ibmachine.com/images/machine/87/7257/9004.jpg',
-                     'https://ibmachine.com/images/machine/87/7257/3438.jpg',
-                 ]
-             },
-            {
-                 src: [
-                     'https://ibmachine.com/images/machine/87/7257/9004.jpg',
-                     'https://ibmachine.com/images/machine/87/7257/3438.jpg',
-                 ]
-             }
-             ...
-        },
-        config: {
-            
-            /**
-             * max and min for image width in pixels
-             * min can't me bigger then max
-             * the random number in between will be picked
-             * both can be the same size
-             * if it will be enough space to place last image after
-             * all images will decay to min width last image will
-             * take the width of the remained space.
-             * defaults {max: 300, min: 200}
-             */
-            'width-range': {
-                min: 250,
-                max: 300
-            },
+images: {
+    {
+         src: [
+             'https://ibmachine.com/images/machine/87/7257/9004.jpg',
+             'https://ibmachine.com/images/machine/87/7257/3438.jpg',
+         ],
+         mydata: {
+             'my-custom-data-1': 'Hello',
+             'my-custom-data-2': true
+         }
+     },
+    {
+         src: [
+             'https://ibmachine.com/images/machine/87/7257/9004.jpg',
+             'https://ibmachine.com/images/machine/87/7257/3438.jpg',
+         ],
+         mydata: {
+             'my-custom-data-1': 'World!',
+             'my-custom-data-2': false
+         }
+     }
+     ...
+}
 
-            /**
-             * max and min for image width in pixels (same as for width)
-             *
-             * for defaults is taken approximate image width for
-             * the given (default) image min width and
-             * sums it with it self fifth part.
-             */
-            'height-range': {
-                min: 200,
-                max: 250
-            },
+config: {
+    
+    /**
+     * Images width range
+     */
+    'width-range': {
+        min: 250,
+        max: 300
+    },
 
-            /**
-             * Gap in between a columns in pixels
-             */
-            'gap': 5,
+    /**
+     * Images height range
+     */
+    'height-range': {
+        min: 200,
+        max: 250
+    },
 
-            /**
-             * milliseconds between loaded and for load images
-             */
-            'appending-delay': 150,
-        
-        }
-    }
+    /**
+     * Gap in between a columns in pixels
+     */
+    'gap': 5,
+
+    /**
+     * Milliseconds between images displaying
+     */
+    'appending-delay': 150,
+
 }
 ```
+
+### Content customization
+
+If you want to embed custom content into the image block you can use default Vue slots approach.
+Use ```v-slot:default="image"``` property to get access to the each image configuration.
+
+
+**TODO:** Customize image content as well as modal content
+
+```javascript
+<cascade-gallery v-slot:default="image">
+    {{ images[image.index].mydata['my-custom-data-1'] }}
+    {{ images[image.index].mydata['my-custom-data-2'] ? 'Check Configuration! =]' : '' }}
+```
+
+You can replace ```mydata```  with any name you wish to use.
 

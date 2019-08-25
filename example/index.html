@@ -182,8 +182,8 @@
                      * defaults {max: 300, min: 200}
                      */
                     'width-range': {
-                        min: 1100,
-                        max: 1300
+                        min: 250,
+                        max: 300
                     },
 
                     /**
@@ -193,8 +193,8 @@
                      * @see (Image.vue).getRandomHeight()
                      */
                     'height-range': {
-                        min: 300,
-                        max: 300
+                        min: 200,
+                        max: 250
                     },
 
                     /**
@@ -211,7 +211,7 @@
         },
         methods: {
             addImages() {
-                let amount = this.getRandomNumber(3, 25)
+                let amount = this.getRandomNumber(3, 25);
                 for(let iterator = 1; iterator <= amount; iterator++) {
                     this.images.push(this.generateRandomImageConfig());
                 }
