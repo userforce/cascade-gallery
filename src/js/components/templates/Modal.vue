@@ -153,7 +153,7 @@
             },
 
             showNext() {
-                if (this.images.src.length - 1 > this.currentIndex) {
+                if (this.hasNext()) {
                     ++ this.currentIndex;
                     this.showImageLoader = true;
                 }
@@ -161,7 +161,7 @@
             },
 
             showPrev() {
-                if (0 < this.currentIndex) {
+                if (this.hasPrev()) {
                     -- this.currentIndex;
                     this.showImageLoader = true;
                 }
@@ -171,6 +171,14 @@
             hideLoader() {
                 this.showImageLoader = false;
             },
+
+            hasNext() {
+                return this.images.src.length - 1 > this.currentIndex;
+            },
+
+            hasPrev() {
+                return 0 < this.currentIndex;
+            }
         },
         destroyed() {
             window.removeEventListener('resize', this.updateStyles);
@@ -200,7 +208,9 @@
                     <span>Loading...</span>
                 </div>
             </div>
-            <div class="cgl-arrow-wrapper cgl-arrow-left" @click="showPrev">
+            <div class="cgl-arrow-wrapper cgl-arrow-left"
+                 @click="showPrev"
+                 v-show="0 < currentIndex">
                 <svg class="cgl-arrow"
                      :width="arrow.svg.width+'px'"
                      :height="arrow.svg.height+'px'"
@@ -208,7 +218,9 @@
                     <path :d="arrow.svg.path"/>
                 </svg>
             </div>
-            <div class="cgl-arrow-wrapper cgl-arrow-right" @click="showNext">
+            <div class="cgl-arrow-wrapper cgl-arrow-right"
+                 @click="showNext"
+                 v-show="this.images.src.length - 1 > this.currentIndex">
                 <svg class="cgl-arrow"
                      :width="arrow.svg.width+'px'"
                      :height="arrow.svg.height+'px'"
