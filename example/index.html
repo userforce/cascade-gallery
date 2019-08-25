@@ -107,12 +107,12 @@
         <div class="page-title">
             Cascade Gallery
         </div>
-        v1.2.0-stable
+        v1.2.1
         <br/>
         <br/>
         <div class="page-description">
-            Vue.js component generates random sizes for the given images in the given ranges, creates<br/>
-            a list of cards and modal carousels for each set of images. Try by your self in the example below.
+            Simple image gallery which generates random size blocks which are holding and displaying given images.<br/>
+            You can set the ranges for the sizes and embed custom content.
             <br/>
             <hr color="#ccc" size="1px">
             <div style="color: #777;">
@@ -122,7 +122,7 @@
                 &nbsp;&nbsp;-|-&nbsp;&nbsp;
                 Touch support
                 &nbsp;&nbsp;-|-&nbsp;&nbsp;
-                Template customization
+                Custom content
                 &nbsp;&nbsp;-|-&nbsp;&nbsp;
                 Animation
             </div>
@@ -138,9 +138,9 @@
                 <div style="padding: 10px;">
                     {{ images[image.index].data['my-custom-1'] | cutLongText(95)  }}
                     <br/><br/>
-                    <a class="test-link-class" :href="images[image.index].data['my-custom-3']">Open</a>
-                    <a class="test-link-class" :href="images[image.index].data['my-custom-3']">Read</a>
-                    <a class="test-link-class" :href="images[image.index].data['my-custom-3']">Link</a>
+                    <a class="test-link-class" :href="images[image.index].src[0]">Open</a>
+                    <span class="test-link-class">Read</span>
+                    <span class="test-link-class">Link</span>
                 </div>
             </div>
         </cascade-gallery>
