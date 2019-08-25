@@ -254,6 +254,9 @@
                 } else if(this.notEnoughSpaceInLine(width)) {
                     this.isEndOfTheLine = true;
                     this.firstLineIsNotComplete = false;
+                    if (width > this.window.width && this.getLineWidth() === 0) {
+                        return this.window.width;
+                    }
                     return this.adjustSiblingsWidth(width);
                 }
                 return width;
@@ -355,7 +358,7 @@
                             this.config.images[index].width = parseInt(this.config.images[index].width) - 1;
                         }
                         if (width + this.getLineWidth() < this.window.width) {
-                            return this.getLastPartWidth();
+                            return this.getLineRestWidth();
                         }
                         if (this.config.images[index].width === minWidth) {
                             imagesAreAtMinimum = imagesAreAtMinimum && true;
@@ -363,15 +366,15 @@
                             imagesAreAtMinimum = imagesAreAtMinimum && false;
                         }
                         if (imagesAreAtMinimum) {
-                            if (this.getLastPartWidth() > minWidth) {
-                                return this.getLastPartWidth();
+                            if (this.getLineRestWidth() > minWidth) {
+                                return this.getLineRestWidth();
                             }
                             minWidth =  (minWidth / 5) * 4;
                             expectedWidth = minWidth;
                         }
                         let limitReached = iterator === limit - 1;
                         if (limitReached) {
-                            return this.getLastPartWidth();
+                            return this.getLineRestWidth();
                         }
 
                         if (this.isAligned(expectedWidth)) {
@@ -384,10 +387,9 @@
 
             /**
              * Get the remaining width in the line
-             * @see this.adjustSiblingsWidth()
              * @returns Number
              */
-            getLastPartWidth() {
+            getLineRestWidth() {
                 return this.window.width - this.getLineWidth()
             },
 
