@@ -8,7 +8,7 @@ VueJs image gallery which randomizes image sizes in the given range on each load
 ![version](https://david-dm.org/userforce/cascade-gallery.svg)
 ![version](https://img.shields.io/npm/dt/cascade-gallery)
 - [Example](https://userforce.github.io/cascade-gallery/example/)
-- [Example config](https://github.com/userforce/cascade-gallery/blob/master/example/index.html#L128)
+- [Example config](https://github.com/userforce/cascade-gallery/blob/master/example/index.html#L134)
 ### Dependencies
 - VueJs 2.X
 
