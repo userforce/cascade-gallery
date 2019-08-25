@@ -1,6 +1,14 @@
 ## Cascade gallery
-VueJs cascade gallery generates random sizes for images.
+VueJs image gallery which randomizes image sizes in the given range on each load.
 
+![version](https://img.shields.io/badge/dynamic/json.svg?url=https://raw.githubusercontent.com/userforce/cascade-gallery/master/package.json&label=name&query=$.name&color=blue)
+![version](https://img.shields.io/badge/dynamic/json.svg?url=https://raw.githubusercontent.com/userforce/cascade-gallery/master/package.json&label=version&query=$.version&color=blue)
+![version](https://img.shields.io/badge/dynamic/json.svg?url=https://raw.githubusercontent.com/userforce/cascade-gallery/master/package.json&label=license&query=$.license&color=lightgrey)
+![version](https://img.shields.io/badge/build-passing-green)
+![version](https://david-dm.org/userforce/cascade-gallery.svg)
+![version](https://img.shields.io/npm/dt/cascade-gallery)
+- [Example](https://userforce.github.io/cascade-gallery/example/)
+- [Example config](https://github.com/userforce/cascade-gallery/blob/master/example/index.html#L128)
 ### Dependencies
 - VueJs 2.X
 
@@ -118,4 +126,3 @@ Use ```v-slot:default="image"``` property to get access to the each image config
 ```
 
 You can replace ```mydata```  with any name you wish to use.
-
